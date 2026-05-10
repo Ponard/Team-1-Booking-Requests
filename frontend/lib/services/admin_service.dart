@@ -221,7 +221,7 @@ class AdminService {
   ) async {
     try {
       final response = await ApiConfig.putWithAuth(
-        '/api/parishes/$parishId',
+        '/api/admin/parishes/$parishId',
         token,
         json.encode(parishData),
       );

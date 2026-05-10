@@ -21,11 +21,21 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   List<dynamic> _users = [];
   List<dynamic> _filteredUsers = [];
   String _searchQuery = '';
+  bool _canAddUser = false;
 
   @override
   void initState() {
     super.initState();
     _loadUsers();
+    _checkPermissions();
+  }
+
+  void _checkPermissions() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final role = authProvider.currentUser?.role ?? '';
+    setState(() {
+      _canAddUser = ['diocese_admin', 'diocese_staff', 'parish_admin', 'parish_staff'].contains(role);
+    });
   }
 
   Future<void> _loadUsers() async {
@@ -41,9 +51,24 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
 
     if (response.success && response.data != null) {
       setState(() {
-        // Filter users based on current user's role
+        final currentUser = authProvider.currentUser;
+        final isParishLevel = Roles.isParishLevel(currentUserRole);
+        final userParishId = currentUser?.assignedParishId ?? currentUser?.effectiveParishId;
+
         _users = (response.data!['users'] ?? []).where((user) {
-          return Roles.canViewUser(currentUserRole, user['role'] ?? Roles.parishioner);
+          final targetRole = user['role'] ?? Roles.parishioner;
+
+          if (currentUserRole == 'parish_staff') {
+            if (targetRole != 'parishioner') return false;
+          } else if (!Roles.canViewUser(currentUserRole, targetRole)) {
+            return false;
+          }
+
+          if (isParishLevel && userParishId != null) {
+            final userAssignedParishId = user['assignedParishId'] ?? user['effectiveParishId'];
+            return userAssignedParishId == userParishId;
+          }
+          return true;
         }).toList();
         _applySearchFilter();
         _isLoading = false;
@@ -669,6 +694,12 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
           onPressed: _isSelectionMode ? _toggleSelectionMode : () => Navigator.of(context).pop(),
         ),
         actions: [
+          if (!_isSelectionMode && _canAddUser)
+            IconButton(
+              icon: const Icon(Icons.person_add),
+              tooltip: 'Add User',
+              onPressed: _showAddUserDialog,
+            ),
           if (!_isSelectionMode)
             IconButton(
               icon: const Icon(Icons.select_all),
@@ -726,6 +757,14 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                             : 'No users found',
                         style: const TextStyle(fontSize: 16, color: Colors.grey),
                       ),
+                      if (_canAddUser) ...[
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: _showAddUserDialog,
+                          icon: const Icon(Icons.person_add),
+                          label: const Text('Add User'),
+                        ),
+                      ],
                     ],
                   ),
                 )
@@ -795,11 +834,13 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                     },
                   ),
                 ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddUserDialog,
-        icon: const Icon(Icons.person_add),
-        label: const Text('Add User'),
-      ),
+      floatingActionButton: _canAddUser
+          ? FloatingActionButton.extended(
+              onPressed: _showAddUserDialog,
+              icon: const Icon(Icons.person_add),
+              label: const Text('Add User'),
+            )
+          : null,
     );
   }
 }

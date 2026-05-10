@@ -22,14 +22,14 @@ router.get(
 // Get all users (with filtering and pagination)
 router.get(
   '/users',
-  authorizeRoles('diocese_admin', 'diocese_staff', 'parish_admin'),
+  authorizeRoles('diocese_admin', 'diocese_staff', 'parish_admin', 'parish_staff'),
   adminController.getAllUsers
 );
 
 // Get single user by ID
 router.get(
   '/users/:id',
-  authorizeRoles('diocese_admin', 'diocese_staff', 'parish_admin'),
+  authorizeRoles('diocese_admin', 'diocese_staff', 'parish_admin', 'parish_staff'),
   adminController.getUserById
 );
 

@@ -111,6 +111,7 @@ exports.createBaptismBooking = async (req, res) => {
       preferredTimeSlot,
       priestId,
       notes, // New notes array format
+      additionalNotes, // Legacy additional notes
       parishId,
       godparents = [],
       uploadedFile,

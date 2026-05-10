@@ -186,8 +186,8 @@ const getAllUsers = async (req, res) => {
     } else if (requestingUser.role === 'parish_staff') {
       // Parish staff can only view users in their assigned parish
       whereClause.assignedParishId = requestingUser.assignedParishId;
-      // They can only view priest and parishioner roles
-      whereClause.role = { [Op.in]: ['priest', 'parishioner'] };
+      // They can only view parishioner roles
+      whereClause.role = { [Op.in]: ['parishioner'] };
     } else if (requestingUser.role === 'diocese_staff') {
       // diocese_staff cannot view diocese_staff or diocese_admin users
       whereClause.role = { [Op.notIn]: ['diocese_staff', 'diocese_admin'] };
@@ -394,11 +394,11 @@ const createUser = async (req, res) => {
         });
       }
     } else if (requestingUser.role === 'parish_staff') {
-      // parish_staff can only create priest and parishioner of the same parish
-      if (!['priest', 'parishioner'].includes(role)) {
+      // parish_staff can only create parishioner of the same parish
+      if (role !== 'parishioner') {
         return res.status(403).json({
           error: 'Insufficient permissions',
-          message: 'Parish staff can only create priests and parishioners.',
+          message: 'Parish staff can only create parishioners.',
         });
       }
       
@@ -793,12 +793,13 @@ const createParish = async (req, res) => {
     });
 
     res.status(201).json({
+      success: true,
+      data: { parishes: [parish] },
       message: 'Parish created successfully',
-      parish,
     });
   } catch (error) {
     console.error('Error creating parish:', error);
-    res.status(500).json({ error: 'Failed to create parish' });
+    res.status(500).json({ success: false, message: 'Failed to create parish' });
   }
 };
 
@@ -832,12 +833,13 @@ const updateParish = async (req, res) => {
     });
 
     res.json({
+      success: true,
+      data: { parishes: [parish] },
       message: 'Parish updated successfully',
-      parish,
     });
   } catch (error) {
     console.error('Error updating parish:', error);
-    res.status(500).json({ error: 'Failed to update parish' });
+    res.status(500).json({ success: false, message: 'Failed to update parish' });
   }
 };
 
@@ -853,10 +855,10 @@ const deleteParish = async (req, res) => {
 
     await parish.update({ isActive: false });
 
-    res.json({ message: 'Parish deactivated successfully' });
+    res.json({ success: true, message: 'Parish deactivated successfully' });
   } catch (error) {
     console.error('Error deleting parish:', error);
-    res.status(500).json({ error: 'Failed to delete parish' });
+    res.status(500).json({ success: false, message: 'Failed to deactivate parish' });
   }
 };
 

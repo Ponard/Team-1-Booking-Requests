@@ -42,7 +42,7 @@ const FuneralMassBooking = sequelize.define('FuneralMassBooking', {
     allowNull: true,
   },
   contactPhone: {
-    type: DataTypes.STRING(20),
+    type: DataTypes.STRING(255),
     allowNull: true,
   },
   // Wake information

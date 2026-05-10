@@ -11,8 +11,8 @@ class WeddingBooking {
   final String? preferredDate;
   final String? preferredTimeSlot;
   final String? seminarSchedule;
-  final String? preferredPriest;
-  final String? additionalNotes;
+  final int? priestId;
+  final List<dynamic>? notes;
   final String status;
   final String? adminNotes;
   final int? approvedBy;
@@ -32,8 +32,8 @@ class WeddingBooking {
     this.preferredDate,
     this.preferredTimeSlot,
     this.seminarSchedule,
-    this.preferredPriest,
-    this.additionalNotes,
+    this.priestId,
+    this.notes,
     this.status = 'pending',
     this.adminNotes,
     this.approvedBy,
@@ -55,8 +55,8 @@ class WeddingBooking {
       preferredDate: json['preferredDate'],
       preferredTimeSlot: json['preferredTimeSlot'],
       seminarSchedule: json['seminarSchedule'],
-      preferredPriest: json['preferredPriest'],
-      additionalNotes: json['additionalNotes'],
+      priestId: json['priestId'],
+      notes: json['notes'] as List<dynamic>?,
       status: json['status'] ?? 'pending',
       adminNotes: json['adminNotes'],
       approvedBy: json['approvedBy'],
@@ -81,8 +81,8 @@ class WeddingBooking {
       if (preferredDate != null) 'preferredDate': preferredDate,
       if (preferredTimeSlot != null) 'preferredTimeSlot': preferredTimeSlot,
       if (seminarSchedule != null) 'seminarSchedule': seminarSchedule,
-      if (preferredPriest != null) 'preferredPriest': preferredPriest,
-      if (additionalNotes != null) 'additionalNotes': additionalNotes,
+      if (priestId != null) 'priestId': priestId,
+      if (notes != null) 'notes': notes,
       if (status != null) 'status': status,
       if (adminNotes != null) 'adminNotes': adminNotes,
       if (documents != null) 'documents': documents!.map((d) => d.toJson()).toList(),
@@ -100,8 +100,8 @@ class WeddingBooking {
     String? preferredDate,
     String? preferredTimeSlot,
     String? seminarSchedule,
-    String? preferredPriest,
-    String? additionalNotes,
+    int? priestId,
+    List<dynamic>? notes,
     String? status,
     String? adminNotes,
     int? approvedBy,
@@ -121,8 +121,8 @@ class WeddingBooking {
       preferredDate: preferredDate ?? this.preferredDate,
       preferredTimeSlot: preferredTimeSlot ?? this.preferredTimeSlot,
       seminarSchedule: seminarSchedule ?? this.seminarSchedule,
-      preferredPriest: preferredPriest ?? this.preferredPriest,
-      additionalNotes: additionalNotes ?? this.additionalNotes,
+      priestId: priestId ?? this.priestId,
+      notes: notes ?? this.notes,
       status: status ?? this.status,
       adminNotes: adminNotes ?? this.adminNotes,
       approvedBy: approvedBy ?? this.approvedBy,

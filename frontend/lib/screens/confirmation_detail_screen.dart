@@ -5,9 +5,13 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/document.dart';
 import '../models/confirmation_booking.dart';
+import '../models/note.dart';
 import '../providers/auth_provider.dart';
+import '../providers/parish_provider.dart';
+import '../providers/priest_provider.dart';
 import '../services/confirmation_service.dart';
 import '../config/api_config.dart';
+import '../widgets/notes_display.dart';
 
 class ConfirmationDetailScreen extends StatefulWidget {
   final int? confirmationId;
@@ -42,8 +46,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
   final TextEditingController _contactPhoneController = TextEditingController();
   final TextEditingController _preferredDateController = TextEditingController();
   final TextEditingController _preferredTimeController = TextEditingController();
-  final TextEditingController _preferredPriestController = TextEditingController();
-  final TextEditingController _notesController = TextEditingController();
+  int? _selectedPriestId;
+  final TextEditingController _newNoteController = TextEditingController();
 
   List<Document> _documents = [];
 
@@ -85,8 +89,15 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         _contactPhoneController.text = booking.contactPhone ?? '';
         _preferredDateController.text = booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
-        _preferredPriestController.text = booking.preferredPriest ?? '';
-        _notesController.text = booking.additionalNotes ?? '';
+        if (booking.priestId != null) {
+          _selectedPriestId = booking.priestId;
+          // Load priests for dropdown
+          final priestProvider = Provider.of<PriestProvider>(context, listen: false);
+          final parishProvider = Provider.of<ParishProvider>(context, listen: false);
+          if (parishProvider.selectedParish != null) {
+            priestProvider.loadPriestsByParish(parishProvider.selectedParish!.id!, token: token);
+          }
+        }
         _documents = booking.documents ?? [];
       });
       if (widget.fromStatusButton && isEditable) {
@@ -272,6 +283,21 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         return;
       }
 
+      // Prepare notes array if a new note was added
+      List<Map<String, dynamic>>? notesToAdd;
+      if (_newNoteController.text.trim().isNotEmpty) {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final currentUser = authProvider.currentUser;
+        final isParishioner = currentUser?.role == 'parishioner';
+        notesToAdd = [
+          {
+            'author': isParishioner ? 'parishioner' : 'admin',
+            'content': _newNoteController.text.trim(),
+            'authorId': currentUser?.id,
+          }
+        ];
+      }
+
       final result = await _confirmationService.updateConfirmationBooking(
         token: token,
         id: widget.confirmationId!,
@@ -282,8 +308,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         contactPhone: _contactPhoneController.text.trim(),
         preferredDate: _preferredDateController.text,
         preferredTimeSlot: _preferredTimeController.text,
-        preferredPriest: _preferredPriestController.text.trim().isEmpty ? null : _preferredPriestController.text.trim(),
-        additionalNotes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        priestId: _selectedPriestId,
+        notes: notesToAdd,
       );
 
       if (mounted) {
@@ -291,6 +317,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
         if (result.success) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking updated successfully')));
+          _newNoteController.clear();
           _toggleEditMode();
           Navigator.pop(context, true);
         } else {
@@ -482,8 +509,69 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
             _textField("Parish", TextEditingController(text: _booking?.parishName ?? ''), enabled: false),
             _textField("Preferred Date *", _preferredDateController, enabled: _isEditMode, readOnly: _isEditMode, onTap: _selectDate),
             _textField("Time Slot *", _preferredTimeController, enabled: _isEditMode, readOnly: _isEditMode, onTap: _selectTime),
-            _textField("Preferred Priest", _preferredPriestController, enabled: _isEditMode),
-            _textField("Additional Notes", _notesController, maxLines: 3, enabled: _isEditMode),
+            // Preferred Priest dropdown
+            Consumer<PriestProvider>(
+              builder: (context, priestProvider, child) {
+                // Load priests if not loaded
+                if (priestProvider.priests.isEmpty && _booking != null) {
+                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  final parishProvider = Provider.of<ParishProvider>(context, listen: false);
+                  if (parishProvider.selectedParish != null && authProvider.token != null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      priestProvider.loadPriestsByParish(parishProvider.selectedParish!.id!, token: authProvider.token);
+                    });
+                  }
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: DropdownButtonFormField<int>(
+                    value: _selectedPriestId,
+                    decoration: const InputDecoration(
+                      labelText: "Preferred Priest (Optional)",
+                      border: OutlineInputBorder(),
+                    ),
+                    items: [
+                      const DropdownMenuItem<int>(
+                        value: null,
+                        child: Text("No preference"),
+                      ),
+                      ...priestProvider.priests.map((priest) => DropdownMenuItem<int>(
+                        value: priest.id,
+                        child: Text(priest.fullName),
+                      )),
+                    ],
+                    onChanged: _isEditMode ? (value) {
+                      setState(() {
+                        _selectedPriestId = value;
+                      });
+                    } : null,
+                  ),
+                );
+              },
+            ),
+            // Notes display
+            _buildSectionTitle('Notes'),
+            if (_booking?.notes != null && _booking!.notes!.isNotEmpty)
+              NotesDisplay(
+                notes: _booking!.notes!.map((note) {
+                  if (note is Map) {
+                    return Note.fromJson(Map<String, dynamic>.from(note));
+                  }
+                  return note as Note;
+                }).toList(),
+              ),
+            if (_isEditMode) ...[
+              const SizedBox(height: 8),
+              TextField(
+                controller: _newNoteController,
+                decoration: const InputDecoration(
+                  labelText: "Add a note",
+                  border: OutlineInputBorder(),
+                  hintText: "Enter your note here...",
+                ),
+                maxLines: 2,
+              ),
+            ],
 
             const SizedBox(height: 16),
             Text('Documents', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
@@ -730,8 +818,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     _contactPhoneController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
-    _preferredPriestController.dispose();
-    _notesController.dispose();
+    _newNoteController.dispose();
     super.dispose();
   }
 }

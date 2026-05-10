@@ -71,10 +71,15 @@ const checkBookingWindow = async (parishId, serviceType, preferredDate) => {
   const maxDate = new Date(today);
   maxDate.setDate(maxDate.getDate() + (settings.maxAdvanceDays || 90));
 
+  const minDateStr = minDate.toISOString().split('T')[0];
+  const maxDateStr = maxDate.toISOString().split('T')[0];
+
   if (requestedDate < minDate) {
     return {
       valid: false,
       error: `Booking must be made at least ${settings.minAdvanceDays} days in advance`,
+      minDateStr,
+      maxDateStr
     };
   }
 
@@ -82,6 +87,8 @@ const checkBookingWindow = async (parishId, serviceType, preferredDate) => {
     return {
       valid: false,
       error: `Booking can only be made up to ${settings.maxAdvanceDays} days in advance`,
+      minDateStr,
+      maxDateStr
     };
   }
 
@@ -136,6 +143,7 @@ const checkDailyLimit = async (parishId, serviceType, date, Model) => {
     return {
       withinLimit: false,
       error: `Daily limit of ${settings.dailyLimit} bookings has been reached`,
+      remaining: 0
     };
   }
 
@@ -155,7 +163,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
       preferredDate,
       preferredTimeSlot,
       priestId,
-      notes, // New notes array format
+      notes, // Array of {author, content, authorId, timestamp}
       godparents = [],
       uploadedFile,
       filePath,
@@ -176,36 +184,43 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
     // Check booking window
     const windowCheck = await checkBookingWindow(parishId, sacramentType, preferredDate);
     if (!windowCheck.valid) {
-      return res.status(400).json({ error: windowCheck.error });
+      return res.status(400).json({ 
+        error: windowCheck.error,
+        code: 'BOOKING_WINDOW_ERROR',
+        suggestion: `Please select a date between ${windowCheck.minDateStr} and ${windowCheck.maxDateStr}`
+      });
     }
 
     // Check blackout dates
     const blackoutCheck = await checkBlackoutDates(parishId, sacramentType, preferredDate);
     if (!blackoutCheck.available) {
-      return res.status(400).json({ error: blackoutCheck.reason });
+      return res.status(400).json({ 
+        error: blackoutCheck.reason,
+        code: 'BLACKOUT_DATE',
+        suggestion: 'Please select a different date or contact the parish directly'
+      });
     }
 
     // Check daily limit
     const limitCheck = await checkDailyLimit(parishId, sacramentType, preferredDate, config.model);
     if (!limitCheck.withinLimit) {
-      return res.status(400).json({ error: limitCheck.error });
+      return res.status(400).json({ 
+        error: limitCheck.error,
+        code: 'DAILY_LIMIT_REACHED',
+        suggestion: `Only ${limitCheck.remaining} slot(s) available on this date. Please try a different date.`
+      });
     }
 
-    // Convert notes array to JSONB string if needed, or handle legacy additionalNotes
-    let notesArray = [];
-    if (notes && Array.isArray(notes) && notes.length > 0) {
-      // New format: notes is already an array of {author, content, authorId, timestamp}
-      notesArray = notes;
-    } else if (additionalNotes) {
-      // Legacy format: convert single additionalNotes string to array
-      notesArray = [{
-        author: 'parishioner',
-        content: additionalNotes,
-        authorId: req.user.userId,
-        timestamp: new Date().toISOString(),
-      }];
+    // Get notes array - stored as JSONB in the database
+    const notesArray = (notes && Array.isArray(notes)) ? notes : [];
+
+    // Validate contact fields if provided (now accepts phone OR email)
+    if (bookingData.contactPhone && bookingData.contactPhone.length > 255) {
+      return res.status(400).json({ 
+        error: 'Contact must not exceed 255 characters',
+        field: 'contactPhone'
+      });
     }
-    // If neither notes nor additionalNotes provided, notesArray remains empty
 
     // Create booking first (we need the booking ID to link documents)
     const booking = await config.model.create({
@@ -241,8 +256,37 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
     const documentEntries = [];
 
     // Check if documents array is provided (new format)
-    if (Array.isArray(documents) && documents.length > 0) {
-      documentEntries.push(...documents);
+    // Handle case where documents might be sent as JSON string
+    let docsArray = documents;
+    if (typeof documents === 'string' && documents.trim().startsWith('[')) {
+      try {
+        docsArray = JSON.parse(documents);
+      } catch (e) {
+        console.log('Failed to parse documents JSON string:', e);
+        docsArray = [];
+      }
+    }
+
+    if (Array.isArray(docsArray) && docsArray.length > 0) {
+      // Filter out documents with missing required fields
+      for (const doc of docsArray) {
+        // Handle case where doc might be a string
+        const docObj = typeof doc === 'string' ? JSON.parse(doc) : doc;
+        
+        if (docObj.uploadedFile && docObj.filePath && docObj.fileUrl) {
+          // Use defaults if mimeType or fileSize is missing
+          documentEntries.push({
+            uploadedFile: docObj.uploadedFile,
+            filePath: docObj.filePath,
+            fileUrl: docObj.fileUrl,
+            fileSize: docObj.fileSize || 0,
+            mimeType: docObj.mimeType || 'application/octet-stream',
+            documentType: docObj.documentType || 'other',
+          });
+        } else {
+          console.log(`Skipping document with missing fields:`, docObj);
+        }
+      }
     } 
     // Otherwise, fallback to single document fields (legacy)
     else if (uploadedFile && filePath && fileUrl && fileSize && mimeType) {
@@ -295,7 +339,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
             <li>Parish: ${parish.name}</li>
           </ul>
           <p>Your request is currently under review. We will notify you once it has been confirmed by our parish staff.</p>
-          ${preferredPriest ? '<p><em>Note: Your preferred priest has been noted. Subject to availability. Parish will confirm.</em></p>' : ''}
+          ${priestId ? '<p><em>Note: Your preferred priest has been noted. Subject to availability. Parish will confirm.</em></p>' : ''}
           <br>
           <p>Best regards,<br>The Parish Team</p>
         `
@@ -304,7 +348,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
       console.error('Failed to send confirmation email:', emailError);
     }
 
-    const responseNote = preferredPriest
+    const responseNote = priestId
       ? 'Preferred priest noted. Subject to availability. Parish will confirm.'
       : undefined;
 

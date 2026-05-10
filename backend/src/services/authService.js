@@ -82,9 +82,9 @@ class AuthService {
     // Validate preferredParishId if provided (for non-diocese roles)
     const isDioceseLevel = ['diocese_staff', 'diocese_admin'].includes(role);
     let finalPreferredParishId = isDioceseLevel ? null : preferredParishId;
+    let finalAssignedParishId = isDioceseLevel ? null : undefined;
     
     if (!isDioceseLevel && preferredParishId != null) {
-      // Ensure parishId is a positive integer
       if (!Number.isInteger(preferredParishId) || preferredParishId <= 0) {
         throw new Error('Invalid parish selected');
       }
@@ -92,9 +92,8 @@ class AuthService {
       if (!parish) {
         throw new Error('Invalid parish selected');
       }
+      finalAssignedParishId = preferredParishId;
     }
-    
-    const finalAssignedParishId = isDioceseLevel ? null : undefined;
 
     // Create new user
     const user = await User.create({

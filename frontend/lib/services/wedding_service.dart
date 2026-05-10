@@ -245,8 +245,8 @@ class WeddingService {
     String? preferredDate,
     String? preferredTimeSlot,
     String? seminarSchedule,
-    String? preferredPriest,
-    String? additionalNotes,
+    int? priestId,
+    List<Map<String, dynamic>>? notes,
   }) async {
     try {
       final requestBody = <String, dynamic>{
@@ -257,8 +257,8 @@ class WeddingService {
         if (preferredDate != null) 'preferredDate': preferredDate,
         if (preferredTimeSlot != null) 'preferredTimeSlot': preferredTimeSlot,
         if (seminarSchedule != null) 'seminarSchedule': seminarSchedule,
-        if (preferredPriest != null) 'preferredPriest': preferredPriest,
-        if (additionalNotes != null) 'additionalNotes': additionalNotes,
+        if (priestId != null) 'priestId': priestId,
+        if (notes != null) 'notes': notes,
       };
 
       final response = await ApiConfig.putWithAuth(

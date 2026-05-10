@@ -142,7 +142,7 @@ class MyApp extends StatelessWidget {
           final args = settings.arguments as Map<String, dynamic>? ?? {};
           return MaterialPageRoute(
             builder: (_) => WeddingDetailScreen(
-              weddingId: args['id'] as int?,
+              weddingId: (args['weddingId'] ?? args['id']) as int?,
               fromStatusButton: args['fromStatusButton'] as bool? ?? false,
             ),
           );

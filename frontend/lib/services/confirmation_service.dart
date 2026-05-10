@@ -85,7 +85,7 @@ class ConfirmationService {
           'filePath': baptismalCertificate['path'],
           'fileUrl': baptismalCertificate['url'],
           'fileSize': baptismalCertificate['size'],
-          'mimeType': baptismalCertificate['mimetype'],
+          'mimeType': baptismalCertificate['mimeType'],
           'documentType': 'baptismal_certificate',
         });
       }
@@ -95,7 +95,7 @@ class ConfirmationService {
           'filePath': birthCertificate['path'],
           'fileUrl': birthCertificate['url'],
           'fileSize': birthCertificate['size'],
-          'mimeType': birthCertificate['mimetype'],
+          'mimeType': birthCertificate['mimeType'],
           'documentType': 'birth_certificate',
         });
       }
@@ -237,8 +237,8 @@ class ConfirmationService {
     String? contactPhone,
     String? preferredDate,
     String? preferredTimeSlot,
-    String? preferredPriest,
-    String? additionalNotes,
+    int? priestId,
+    List<Map<String, dynamic>>? notes,
   }) async {
     try {
       final requestBody = <String, dynamic>{
@@ -249,8 +249,8 @@ class ConfirmationService {
         if (contactPhone != null) 'contactPhone': contactPhone,
         if (preferredDate != null) 'preferredDate': preferredDate,
         if (preferredTimeSlot != null) 'preferredTimeSlot': preferredTimeSlot,
-        if (preferredPriest != null) 'preferredPriest': preferredPriest,
-        if (additionalNotes != null) 'additionalNotes': additionalNotes,
+        if (priestId != null) 'priestId': priestId,
+        if (notes != null) 'notes': notes,
       };
 
       final response = await ApiConfig.putWithAuth(

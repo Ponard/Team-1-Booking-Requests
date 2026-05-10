@@ -5,12 +5,15 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/parish_provider.dart';
+import '../providers/priest_provider.dart';
 import '../providers/wedding_provider.dart';
 import '../services/wedding_service.dart';
 import '../services/file_service.dart';
 import '../models/document.dart';
 import '../models/wedding_booking.dart';
+import '../models/note.dart';
 import '../config/api_config.dart';
+import '../widgets/notes_display.dart';
 
 class WeddingDetailScreen extends StatefulWidget {
   final int? weddingId;
@@ -44,8 +47,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   final TextEditingController _preferredDateController = TextEditingController();
   final TextEditingController _preferredTimeController = TextEditingController();
   final TextEditingController _seminarScheduleController = TextEditingController();
-  final TextEditingController _preferredPriestController = TextEditingController();
-  final TextEditingController _notesController = TextEditingController();
+  int? _selectedPriestId;
+  final TextEditingController _newNoteController = TextEditingController();
 
   // Document files and upload data
   PlatformFile? _cenomarFile;
@@ -66,11 +69,164 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
 
   List<Document> _documents = [];
 
+  Future<void> _updateBookingStatus(String status) async {
+    if (widget.weddingId == null) return;
+
+    final result = await _weddingService.updateWeddingStatus(
+      token: Provider.of<AuthProvider>(context, listen: false).token!,
+      id: widget.weddingId!,
+      status: status,
+    );
+
+    if (mounted) {
+      if (result.success) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Booking marked as $status')));
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
+      }
+    }
+  }
+
+  String get _displayBookingStatus {
+    if (_booking == null) return 'PENDING';
+    final status = (_booking?.status?.toUpperCase() ?? 'PENDING');
+    if (status == 'APPROVED') {
+      final scheduledDate = _booking?.preferredDate;
+      if (scheduledDate != null && scheduledDate.isNotEmpty) {
+        try {
+          final now = DateTime.now();
+          final bookingDate = DateTime.parse(scheduledDate);
+          final today = DateTime(now.year, now.month, now.day);
+          final eventDate = DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
+          if (eventDate.isBefore(today)) {
+            return 'COMPLETED';
+          }
+        } catch (e) {}
+      }
+    }
+    return status;
+  }
+
+  bool get _canChangeStatus {
+    if (_booking == null) return false;
+    final status = _booking!.status?.toLowerCase();
+    if (status == 'pending') {
+      return true;
+    } else if (status == 'approved') {
+      final scheduledDate = _booking!.preferredDate;
+      if (scheduledDate != null && scheduledDate.isNotEmpty) {
+        try {
+          final now = DateTime.now();
+          final bookingDate = DateTime.parse(scheduledDate);
+          final today = DateTime(now.year, now.month, now.day);
+          final eventDate = DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
+          return eventDate.isBefore(today);
+        } catch (e) {
+          return false;
+        }
+      }
+      return false;
+    }
+    return false;
+  }
+
+  String get _actionButtonText {
+    if (_booking == null) return 'Approve';
+    final status = _booking!.status?.toLowerCase();
+    if (status == 'pending') return 'Approve';
+    if (status == 'approved') return 'Mark as Completed';
+    return 'Approve';
+  }
+
+  Widget _buildStatusSection(bool isAdmin) {
+    if (!isAdmin || _showStatusButtons) return const SizedBox.shrink();
+
+    final displayStatus = _displayBookingStatus;
+    final canChangeStatus = _canChangeStatus;
+    final actionButtonText = _actionButtonText;
+    final status = _booking?.status?.toLowerCase();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        const Text(
+          'Status',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(
+                width: 120,
+                child: Text(
+                  'Status',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  displayStatus,
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (status == 'pending') ...[
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.check_circle),
+                  label: const Text('Approve'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  onPressed: () => _updateBookingStatus('approved'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.cancel),
+                  label: const Text('Decline'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  onPressed: () => _updateBookingStatus('declined'),
+                ),
+              ),
+            ],
+          ),
+        ] else if (status == 'approved') ...[
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: Text(actionButtonText),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                  onPressed: canChangeStatus ? () => _updateBookingStatus('completed') : null,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
   @override
   void initState() {
     super.initState();
-    _showStatusButtons = !widget.fromStatusButton;
-    _loadBooking();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showStatusButtons = !widget.fromStatusButton;
+      _loadBooking();
+    });
   }
 
   @override
@@ -81,8 +237,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
     _seminarScheduleController.dispose();
-    _preferredPriestController.dispose();
-    _notesController.dispose();
+    _newNoteController.dispose();
     super.dispose();
   }
 
@@ -126,8 +281,15 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
         _preferredDateController.text = booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
         _seminarScheduleController.text = booking.seminarSchedule ?? '';
-        _preferredPriestController.text = booking.preferredPriest ?? '';
-        _notesController.text = booking.additionalNotes ?? '';
+        if (booking.priestId != null) {
+          _selectedPriestId = booking.priestId;
+          // Load priests for dropdown
+          final priestProvider = Provider.of<PriestProvider>(context, listen: false);
+          final parishProvider = Provider.of<ParishProvider>(context, listen: false);
+          if (parishProvider.selectedParish != null) {
+            priestProvider.loadPriestsByParish(parishProvider.selectedParish!.id!, token: token);
+          }
+        }
         _documents = booking.documents ?? [];
         _isLoading = false;
       });
@@ -382,28 +544,6 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
     }
   }
 
-  String get _displayStatus {
-    if (_booking == null) return 'PENDING';
-    final status = (_booking?.status?.toUpperCase() ?? 'PENDING');
-    if (status == 'APPROVED') {
-      final scheduledDate = _booking?.preferredDate;
-      if (scheduledDate != null && scheduledDate.isNotEmpty) {
-        try {
-          final now = DateTime.now();
-          final bookingDate = DateTime.parse(scheduledDate);
-          final today = DateTime(now.year, now.month, now.day);
-          final eventDate = DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
-          if (eventDate.isBefore(today)) {
-            return 'COMPLETED';
-          }
-        } catch (e) {
-          // ignore
-        }
-      }
-    }
-    return status;
-  }
-
   Future<void> _uploadConfirmationCertificate() async {
     if (_confirmationCertificateFile == null || widget.weddingId == null) return;
 
@@ -469,6 +609,21 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
       return;
     }
 
+    // Prepare notes array if a new note was added
+    List<Map<String, dynamic>>? notesToAdd;
+    if (_newNoteController.text.trim().isNotEmpty) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final currentUser = authProvider.currentUser;
+      final isParishioner = currentUser?.role == 'parishioner';
+      notesToAdd = [
+        {
+          'author': isParishioner ? 'parishioner' : 'admin',
+          'content': _newNoteController.text.trim(),
+          'authorId': currentUser?.id,
+        }
+      ];
+    }
+
     final result = await _weddingService.updateWeddingBooking(
       token: token,
       id: widget.weddingId!,
@@ -480,12 +635,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
       seminarSchedule: _seminarScheduleController.text.trim().isEmpty
           ? null
           : _seminarScheduleController.text.trim(),
-      preferredPriest: _preferredPriestController.text.trim().isEmpty
-          ? null
-          : _preferredPriestController.text.trim(),
-      additionalNotes: _notesController.text.trim().isEmpty
-          ? null
-          : _notesController.text.trim(),
+      priestId: _selectedPriestId,
+      notes: notesToAdd,
     );
 
     setState(() => _isSaving = false);
@@ -495,48 +646,12 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result.message ?? 'Booking updated successfully')),
         );
+        _newNoteController.clear();
         setState(() => _isEditMode = false);
         await _loadBooking(); // Reload to show updated data
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result.message ?? 'Failed to update booking')),
-        );
-      }
-    }
-  }
-
-  Future<void> _updateStatus(String status) async {
-    setState(() => _isSaving = true);
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final token = authProvider.token;
-    if (token == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please login to update status')),
-        );
-      }
-      setState(() => _isSaving = false);
-      return;
-    }
-
-    final result = await _weddingService.updateWeddingStatus(
-      token: token,
-      id: widget.weddingId!,
-      status: status,
-    );
-
-    setState(() => _isSaving = false);
-
-    if (mounted) {
-      if (result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.message ?? 'Status updated successfully')),
-        );
-        await _loadBooking();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.message ?? 'Failed to update status')),
         );
       }
     }
@@ -666,6 +781,11 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
     }
   }
 
+  Widget _buildSectionTitle(String title) => Padding(
+    padding: const EdgeInsets.only(top: 16, bottom: 8),
+    child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
+  );
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -675,7 +795,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
     final isOwner = _booking?.userId == currentUser?.id;
     final status = _booking?.status?.toLowerCase();
     final canEdit = isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
-    final effectiveStatus = _displayStatus.toLowerCase();
+    final effectiveStatus = _displayBookingStatus.toLowerCase();
     final canDelete = isAdmin || (isOwner && effectiveStatus != 'approved');
 
     return Scaffold(
@@ -730,23 +850,23 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
-                                        _displayStatus,
+                                        _displayBookingStatus,
                                         style: TextStyle(
                                           color: _getStatusColor(
-                                              _displayStatus.toLowerCase()),
+                                              _displayBookingStatus.toLowerCase()),
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ),
                                   ],
                                 ),
-                                if (_showStatusButtons && _isEditMode)
+                                if (!_showStatusButtons && isAdmin)
                                   Row(
                                     children: [
                                       if (_booking!.status?.toLowerCase() ==
                                           'pending')
                                         ElevatedButton(
-                                          onPressed: () => _updateStatus(
+                                          onPressed: () => _updateBookingStatus(
                                               'declined'),
                                           style: ElevatedButton.styleFrom(
                                               backgroundColor: Colors.red),
@@ -759,7 +879,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                           'pending')
                                         ElevatedButton(
                                           onPressed: () =>
-                                              _updateStatus('approved'),
+                                              _updateBookingStatus('approved'),
                                           style: ElevatedButton.styleFrom(
                                               backgroundColor: Colors.green),
                                           child: const Text('Approve'),
@@ -958,34 +1078,69 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                               _booking!.seminarSchedule ?? 'Not provided'),
                         const SizedBox(height: 16),
 
-                        // Preferred Priest
-                        if (_isEditMode)
-                          TextFormField(
-                            controller: _preferredPriestController,
-                            decoration: const InputDecoration(
-                              labelText: 'Preferred Priest',
-                              border: OutlineInputBorder(),
-                            ),
-                          )
-                        else
-                          _buildInfoRow('Preferred Priest',
-                              _booking!.preferredPriest ?? 'Not provided'),
-                        const SizedBox(height: 16),
+                        // Preferred Priest dropdown
+                        Consumer<PriestProvider>(
+                          builder: (context, priestProvider, child) {
+                            if (priestProvider.priests.isEmpty && _booking != null) {
+                              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                              final parishProvider = Provider.of<ParishProvider>(context, listen: false);
+                              if (parishProvider.selectedParish != null && authProvider.token != null) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  priestProvider.loadPriestsByParish(parishProvider.selectedParish!.id!, token: authProvider.token);
+                                });
+                              }
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: DropdownButtonFormField<int>(
+                                value: _selectedPriestId,
+                                decoration: const InputDecoration(
+                                  labelText: "Preferred Priest (Optional)",
+                                  border: OutlineInputBorder(),
+                                ),
+                                items: [
+                                  const DropdownMenuItem<int>(
+                                    value: null,
+                                    child: Text("No preference"),
+                                  ),
+                                  ...priestProvider.priests.map((priest) => DropdownMenuItem<int>(
+                                    value: priest.id,
+                                    child: Text(priest.fullName),
+                                  )),
+                                ],
+                                onChanged: _isEditMode ? (value) {
+                                  setState(() {
+                                    _selectedPriestId = value;
+                                  });
+                                } : null,
+                              ),
+                            );
+                          },
+                        ),
 
-                        // Additional Notes
-                        if (_isEditMode)
-                          TextFormField(
-                            controller: _notesController,
+                        // Notes display
+                        _buildSectionTitle('Notes'),
+                        if (_booking?.notes != null && _booking!.notes!.isNotEmpty)
+                          NotesDisplay(
+                            notes: _booking!.notes!.map((note) {
+                              if (note is Map) {
+                                return Note.fromJson(Map<String, dynamic>.from(note));
+                              }
+                              return note as Note;
+                            }).toList(),
+                          ),
+                        if (_isEditMode) ...[
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: _newNoteController,
                             decoration: const InputDecoration(
-                              labelText: 'Additional Notes',
+                              labelText: "Add a note",
                               border: OutlineInputBorder(),
-                              alignLabelWithHint: true,
+                              hintText: "Enter your note here...",
                             ),
-                            maxLines: 3,
-                          )
-                        else
-                          _buildInfoRow('Additional Notes',
-                              _booking!.additionalNotes ?? 'Not provided'),
+                            maxLines: 2,
+                          ),
+                        ],
                         const SizedBox(height: 24),
 
                         // Documents Section

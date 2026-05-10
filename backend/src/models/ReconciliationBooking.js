@@ -34,7 +34,7 @@ const ReconciliationBooking = sequelize.define('ReconciliationBooking', {
     allowNull: true,
   },
   contactPhone: {
-    type: DataTypes.STRING(20),
+    type: DataTypes.STRING(255),
     allowNull: true,
   },
   // Preferred schedule
