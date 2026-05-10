@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:file_picker/file_picker.dart';
 import '../models/document.dart';
 import '../models/confirmation_booking.dart';
+import '../models/note.dart';
 import '../providers/auth_provider.dart';
+import '../providers/parish_provider.dart';
+import '../providers/priest_provider.dart';
 import '../services/confirmation_service.dart';
 import '../config/api_config.dart';
+import '../widgets/notes_display.dart';
 
 class ConfirmationDetailScreen extends StatefulWidget {
   final int? confirmationId;
@@ -24,8 +29,8 @@ class ConfirmationDetailScreen extends StatefulWidget {
 
 class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
   final ConfirmationService _confirmationService = ConfirmationService();
-  XFile? _baptismalCertificateFile;
-  XFile? _birthCertificateFile;
+  PlatformFile? _baptismalCertificateFile;
+  PlatformFile? _birthCertificateFile;
   bool _isUploading = false;
 
   bool _isEditMode = false;
@@ -41,8 +46,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
   final TextEditingController _contactPhoneController = TextEditingController();
   final TextEditingController _preferredDateController = TextEditingController();
   final TextEditingController _preferredTimeController = TextEditingController();
-  final TextEditingController _preferredPriestController = TextEditingController();
-  final TextEditingController _notesController = TextEditingController();
+  int? _selectedPriestId;
+  final TextEditingController _newNoteController = TextEditingController();
 
   List<Document> _documents = [];
 
@@ -84,8 +89,15 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         _contactPhoneController.text = booking.contactPhone ?? '';
         _preferredDateController.text = booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
-        _preferredPriestController.text = booking.preferredPriest ?? '';
-        _notesController.text = booking.additionalNotes ?? '';
+        if (booking.priestId != null) {
+          _selectedPriestId = booking.priestId;
+          // Load priests for dropdown
+          final priestProvider = Provider.of<PriestProvider>(context, listen: false);
+          final parishProvider = Provider.of<ParishProvider>(context, listen: false);
+          if (parishProvider.selectedParish != null) {
+            priestProvider.loadPriestsByParish(parishProvider.selectedParish!.id!, token: token);
+          }
+        }
         _documents = booking.documents ?? [];
       });
       if (widget.fromStatusButton && isEditable) {
@@ -104,21 +116,27 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
   }
 
   Future<void> _pickBaptismalCertificateFile() async {
-    final picker = ImagePicker();
-    final result = await picker.pickImage(source: ImageSource.gallery);
-    if (result != null && mounted) {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'png'],
+      allowMultiple: false,
+    );
+    if (result != null && result.files.isNotEmpty && mounted) {
       setState(() {
-        _baptismalCertificateFile = XFile(result.path, name: result.name, mimeType: result.mimeType);
+        _baptismalCertificateFile = result.files.first;
       });
     }
   }
 
   Future<void> _pickBirthCertificateFile() async {
-    final picker = ImagePicker();
-    final result = await picker.pickImage(source: ImageSource.gallery);
-    if (result != null && mounted) {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'png'],
+      allowMultiple: false,
+    );
+    if (result != null && result.files.isNotEmpty && mounted) {
       setState(() {
-        _birthCertificateFile = XFile(result.path, name: result.name, mimeType: result.mimeType);
+        _birthCertificateFile = result.files.first;
       });
     }
   }
@@ -135,7 +153,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     final result = await _confirmationService.attachDocumentToBooking(
       bookingId: widget.confirmationId!,
       token: token,
-      filePath: _baptismalCertificateFile!.path,
+      file: _baptismalCertificateFile!,
       documentType: 'baptismal_certificate',
     );
 
@@ -166,7 +184,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     final result = await _confirmationService.attachDocumentToBooking(
       bookingId: widget.confirmationId!,
       token: token,
-      filePath: _birthCertificateFile!.path,
+      file: _birthCertificateFile!,
       documentType: 'birth_certificate',
     );
 
@@ -265,6 +283,21 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         return;
       }
 
+      // Prepare notes array if a new note was added
+      List<Map<String, dynamic>>? notesToAdd;
+      if (_newNoteController.text.trim().isNotEmpty) {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final currentUser = authProvider.currentUser;
+        final isParishioner = currentUser?.role == 'parishioner';
+        notesToAdd = [
+          {
+            'author': isParishioner ? 'parishioner' : 'admin',
+            'content': _newNoteController.text.trim(),
+            'authorId': currentUser?.id,
+          }
+        ];
+      }
+
       final result = await _confirmationService.updateConfirmationBooking(
         token: token,
         id: widget.confirmationId!,
@@ -275,8 +308,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         contactPhone: _contactPhoneController.text.trim(),
         preferredDate: _preferredDateController.text,
         preferredTimeSlot: _preferredTimeController.text,
-        preferredPriest: _preferredPriestController.text.trim().isEmpty ? null : _preferredPriestController.text.trim(),
-        additionalNotes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        priestId: _selectedPriestId,
+        notes: notesToAdd,
       );
 
       if (mounted) {
@@ -284,6 +317,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
         if (result.success) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking updated successfully')));
+          _newNoteController.clear();
           _toggleEditMode();
           Navigator.pop(context, true);
         } else {
@@ -384,6 +418,43 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     return 'Approve';
   }
 
+  Future<void> _resubmitBooking() async {
+    if (widget.confirmationId == null) return;
+
+    setState(() => _isSaving = true);
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final token = authProvider.token;
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not authenticated')));
+        setState(() => _isSaving = false);
+        return;
+      }
+
+      final result = await _confirmationService.resubmitBooking(
+        id: widget.confirmationId!,
+        token: token,
+      );
+
+      if (mounted) {
+        setState(() => _isSaving = false);
+
+        if (result.success) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking resubmitted successfully')));
+          await _loadBooking();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed to resubmit')));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -438,8 +509,69 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
             _textField("Parish", TextEditingController(text: _booking?.parishName ?? ''), enabled: false),
             _textField("Preferred Date *", _preferredDateController, enabled: _isEditMode, readOnly: _isEditMode, onTap: _selectDate),
             _textField("Time Slot *", _preferredTimeController, enabled: _isEditMode, readOnly: _isEditMode, onTap: _selectTime),
-            _textField("Preferred Priest", _preferredPriestController, enabled: _isEditMode),
-            _textField("Additional Notes", _notesController, maxLines: 3, enabled: _isEditMode),
+            // Preferred Priest dropdown
+            Consumer<PriestProvider>(
+              builder: (context, priestProvider, child) {
+                // Load priests if not loaded
+                if (priestProvider.priests.isEmpty && _booking != null) {
+                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  final parishProvider = Provider.of<ParishProvider>(context, listen: false);
+                  if (parishProvider.selectedParish != null && authProvider.token != null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      priestProvider.loadPriestsByParish(parishProvider.selectedParish!.id!, token: authProvider.token);
+                    });
+                  }
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: DropdownButtonFormField<int>(
+                    value: _selectedPriestId,
+                    decoration: const InputDecoration(
+                      labelText: "Preferred Priest (Optional)",
+                      border: OutlineInputBorder(),
+                    ),
+                    items: [
+                      const DropdownMenuItem<int>(
+                        value: null,
+                        child: Text("No preference"),
+                      ),
+                      ...priestProvider.priests.map((priest) => DropdownMenuItem<int>(
+                        value: priest.id,
+                        child: Text(priest.fullName),
+                      )),
+                    ],
+                    onChanged: _isEditMode ? (value) {
+                      setState(() {
+                        _selectedPriestId = value;
+                      });
+                    } : null,
+                  ),
+                );
+              },
+            ),
+            // Notes display
+            _buildSectionTitle('Notes'),
+            if (_booking?.notes != null && _booking!.notes!.isNotEmpty)
+              NotesDisplay(
+                notes: _booking!.notes!.map((note) {
+                  if (note is Map) {
+                    return Note.fromJson(Map<String, dynamic>.from(note));
+                  }
+                  return note as Note;
+                }).toList(),
+              ),
+            if (_isEditMode) ...[
+              const SizedBox(height: 8),
+              TextField(
+                controller: _newNoteController,
+                decoration: const InputDecoration(
+                  labelText: "Add a note",
+                  border: OutlineInputBorder(),
+                  hintText: "Enter your note here...",
+                ),
+                maxLines: 2,
+              ),
+            ],
 
             const SizedBox(height: 16),
             Text('Documents', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
@@ -521,6 +653,38 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
                 ],
               ]),
             )),
+
+            if (status == 'declined' && isOwner) ...[
+              Card(
+                color: Colors.orange.shade50,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Your booking was declined. Please make the necessary changes and resubmit.',
+                        style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w500),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Resubmit Booking'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: _resubmitBooking,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
 
             _buildStatusSection(isAdmin, widget.confirmationId ?? 0),
           ]),
@@ -654,8 +818,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     _contactPhoneController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
-    _preferredPriestController.dispose();
-    _notesController.dispose();
+    _newNoteController.dispose();
     super.dispose();
   }
 }

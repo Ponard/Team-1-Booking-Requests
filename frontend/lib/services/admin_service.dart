@@ -221,7 +221,7 @@ class AdminService {
   ) async {
     try {
       final response = await ApiConfig.putWithAuth(
-        '/api/parishes/$parishId',
+        '/api/admin/parishes/$parishId',
         token,
         json.encode(parishData),
       );
@@ -487,6 +487,45 @@ class AdminService {
       }
     } catch (e) {
       return ApiResponse<Map<String, dynamic>>(
+        success: false,
+        message: 'Network error',
+        errors: [e.toString()],
+      );
+    }
+  }
+
+  // Get priests by parish ID
+  Future<ApiResponse<List<Map<String, dynamic>>>> getPriestsByParish(
+    String token, {
+    int? parishId,
+  }) async {
+    try {
+      String url = '/api/admin/priests';
+      if (parishId != null) url += '?parishId=$parishId';
+
+      final response = await ApiConfig.getWithAuth(url, token);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return ApiResponse<List<Map<String, dynamic>>>(
+          success: true,
+          data: List<Map<String, dynamic>>.from(data['priests'] ?? []),
+          message: data['message'],
+        );
+      } else if (ApiConfig.isPasswordChangeRequired(response)) {
+        return ApiResponse<List<Map<String, dynamic>>>(
+          success: false,
+          message: 'Password change required',
+          mustChangePassword: true,
+        );
+      } else {
+        return ApiResponse<List<Map<String, dynamic>>>(
+          success: false,
+          message: 'Failed to fetch priests',
+        );
+      }
+    } catch (e) {
+      return ApiResponse<List<Map<String, dynamic>>>(
         success: false,
         message: 'Network error',
         errors: [e.toString()],

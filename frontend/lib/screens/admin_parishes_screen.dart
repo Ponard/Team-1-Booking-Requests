@@ -17,11 +17,21 @@ class _AdminParishesScreenState extends State<AdminParishesScreen> {
   List<dynamic> _parishes = [];
   List<dynamic> _filteredParishes = [];
   String _searchQuery = '';
+  bool _canAddParish = false;
 
   @override
   void initState() {
     super.initState();
     _loadParishes();
+    _checkPermissions();
+  }
+
+  void _checkPermissions() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final role = authProvider.currentUser?.role ?? '';
+    setState(() {
+      _canAddParish = role == 'diocese_admin';
+    });
   }
 
   Future<void> _loadParishes() async {
@@ -233,6 +243,14 @@ class _AdminParishesScreenState extends State<AdminParishesScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          if (_canAddParish)
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: 'Add Parish',
+              onPressed: _showAddParishDialog,
+            ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
@@ -275,6 +293,13 @@ class _AdminParishesScreenState extends State<AdminParishesScreen> {
                             : 'No parishes found',
                         style: const TextStyle(fontSize: 16, color: Colors.grey),
                       ),
+                      const SizedBox(height: 24),
+                      if (_canAddParish)
+                        ElevatedButton.icon(
+                          onPressed: _showAddParishDialog,
+                          icon: const Icon(Icons.add),
+                          label: const Text('Add Parish'),
+                        ),
                     ],
                   ),
                 )
@@ -320,11 +345,13 @@ class _AdminParishesScreenState extends State<AdminParishesScreen> {
                     },
                   ),
                 ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddParishDialog,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Parish'),
-      ),
+      floatingActionButton: _canAddParish
+          ? FloatingActionButton.extended(
+              onPressed: _showAddParishDialog,
+              icon: const Icon(Icons.add),
+              label: const Text('Add Parish'),
+            )
+          : null,
     );
   }
 }

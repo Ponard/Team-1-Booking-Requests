@@ -6,6 +6,8 @@ import '../providers/parish_provider.dart';
 import '../services/admin_service.dart';
 import '../config/api_config.dart';
 import '../utils/role_helpers.dart';
+import 'document_preview_screen.dart';
+import '../models/document.dart';
 
 class AdminBookingsScreen extends StatefulWidget {
   final String? initialStatus;
@@ -243,15 +245,28 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                 ? booking['id']
                 : null;
 
-        Navigator.pushNamed(
+Navigator.pushNamed(
           context,
           '/funeral-mass-detail',
           arguments: {'id': id, 'fromStatusButton': true},
         );
         return;
+      } else if (bookingType == 'wedding') {
+        final weddingId = booking['id'] is String
+            ? int.tryParse(booking['id'])
+            : booking['id'] is int
+                ? booking['id']
+                : null;
+
+        Navigator.pushNamed(
+          context,
+          '/wedding-detail',
+          arguments: {'weddingId': weddingId, 'fromStatusButton': true},
+        );
+        return;
       }
 
-     final response = await _adminService.updateBookingStatus(
+      final response = await _adminService.updateBookingStatus(
       token,
       bookingId,
       status,
@@ -395,6 +410,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
     );
   }
 
+  /// Opens a document in the preview screen
   Future<void> _openDocument(dynamic doc) async {
     final fileUrl = doc['fileUrl'];
     if (fileUrl == null || fileUrl.isEmpty) {
@@ -404,27 +420,21 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
       return;
     }
 
-    try {
-      final baseUri = Uri.parse(ApiConfig.baseUrl);
-      final fileUri = baseUri.resolve(fileUrl);
+    // Convert to Document object
+    final document = Document(
+      id: doc['id'],
+      documentType: doc['documentType'],
+      fileName: doc['fileName'],
+      fileUrl: fileUrl,
+    );
 
-      final success = await launchUrl(
-        fileUri,
-        mode: LaunchMode.externalApplication,
-      );
-
-      if (!success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to open document. Please check if the file exists.')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error opening document: $e')),
-        );
-      }
-    }
+    // Navigate to document preview screen
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DocumentPreviewScreen(document: document),
+      ),
+    );
   }
 
   Widget _buildDetailRow(String label, String value) {
@@ -686,6 +696,19 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                                         'fromStatusButton': true,
                                       },
                                     );
+                                  } else if (bookingType == 'wedding') {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/wedding-detail',
+                                      arguments: {
+                                        'weddingId': booking['id'] is String
+                                            ? int.tryParse(booking['id'])
+                                            : booking['id'] is int
+                                                ? booking['id']
+                                                : null,
+                                        'fromStatusButton': true,
+                                      },
+                                    );
                                   } else {
                                     // Show generic details for other types
                                     _showBookingDetails(booking);
@@ -812,21 +835,32 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                                               '/funeral-mass-detail',
                                               arguments: {'id': id, 'fromStatusButton': true},
                                             );
-                                          } else if (bookingType == 'reconciliation') {
-                                            final id = booking['id'] is String
-                                                ? int.tryParse(booking['id'])
-                                                : booking['id'] is int
-                                                    ? booking['id']
-                                                    : null;
-                                            Navigator.pushNamed(
-                                              context,
-                                              '/reconciliation-detail',
-                                              arguments: {'id': id, 'fromStatusButton': true},
-                                            );
-                                          } else {
-                                            // Show generic details for other types
-                                            _showBookingDetails(booking);
-                                          }
+} else if (bookingType == 'reconciliation') {
+                                             final id = booking['id'] is String
+                                                 ? int.tryParse(booking['id'])
+                                                 : booking['id'] is int
+                                                     ? booking['id']
+                                                     : null;
+                                             Navigator.pushNamed(
+                                               context,
+                                               '/reconciliation-detail',
+                                               arguments: {'id': id, 'fromStatusButton': true},
+                                             );
+                                           } else if (bookingType == 'wedding') {
+                                             final weddingId = booking['id'] is String
+                                                 ? int.tryParse(booking['id'])
+                                                 : booking['id'] is int
+                                                     ? booking['id']
+                                                     : null;
+                                             Navigator.pushNamed(
+                                               context,
+                                               '/wedding-detail',
+                                               arguments: {'weddingId': weddingId, 'fromStatusButton': true},
+                                             );
+                                           } else {
+                                             // Show generic details for other types
+                                             _showBookingDetails(booking);
+                                           }
                                         },
                                       ),
                                       const SizedBox(width: 8),

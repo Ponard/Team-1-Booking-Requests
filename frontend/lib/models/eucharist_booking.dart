@@ -11,8 +11,8 @@ class EucharistBooking {
   final String? contactPhone;
   final String? preferredDate;
   final String? preferredTimeSlot;
-  final String? preferredPriest;
-  final String? additionalNotes;
+  final int? priestId;
+  final List<dynamic>? notes;
   final String status;
   final String? adminNotes;
   final int? approvedBy;
@@ -32,8 +32,8 @@ class EucharistBooking {
     this.contactPhone,
     this.preferredDate,
     this.preferredTimeSlot,
-    this.preferredPriest,
-    this.additionalNotes,
+    this.priestId,
+    this.notes,
     this.status = 'pending',
     this.adminNotes,
     this.approvedBy,
@@ -55,8 +55,8 @@ class EucharistBooking {
       contactPhone: json['contactPhone'],
       preferredDate: json['preferredDate'],
       preferredTimeSlot: json['preferredTimeSlot'],
-      preferredPriest: json['preferredPriest'],
-      additionalNotes: json['additionalNotes'],
+      priestId: json['priestId'],
+      notes: json['notes'] as List<dynamic>?,
       status: json['status'] ?? 'pending',
       adminNotes: json['adminNotes'],
       approvedBy: json['approvedBy'],
@@ -81,8 +81,8 @@ class EucharistBooking {
       if (contactPhone != null) 'contactPhone': contactPhone,
       if (preferredDate != null) 'preferredDate': preferredDate,
       if (preferredTimeSlot != null) 'preferredTimeSlot': preferredTimeSlot,
-      if (preferredPriest != null) 'preferredPriest': preferredPriest,
-      if (additionalNotes != null) 'additionalNotes': additionalNotes,
+      if (priestId != null) 'priestId': priestId,
+      if (notes != null) 'notes': notes,
       if (status != null) 'status': status,
       if (adminNotes != null) 'adminNotes': adminNotes,
     };
@@ -99,8 +99,8 @@ class EucharistBooking {
     String? contactPhone,
     String? preferredDate,
     String? preferredTimeSlot,
-    String? preferredPriest,
-    String? additionalNotes,
+    int? priestId,
+    List<dynamic>? notes,
     String? status,
     String? adminNotes,
     int? approvedBy,
@@ -120,8 +120,8 @@ class EucharistBooking {
       contactPhone: contactPhone ?? this.contactPhone,
       preferredDate: preferredDate ?? this.preferredDate,
       preferredTimeSlot: preferredTimeSlot ?? this.preferredTimeSlot,
-      preferredPriest: preferredPriest ?? this.preferredPriest,
-      additionalNotes: additionalNotes ?? this.additionalNotes,
+      priestId: priestId ?? this.priestId,
+      notes: notes ?? this.notes,
       status: status ?? this.status,
       adminNotes: adminNotes ?? this.adminNotes,
       approvedBy: approvedBy ?? this.approvedBy,

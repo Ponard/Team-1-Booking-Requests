@@ -186,8 +186,8 @@ const getAllUsers = async (req, res) => {
     } else if (requestingUser.role === 'parish_staff') {
       // Parish staff can only view users in their assigned parish
       whereClause.assignedParishId = requestingUser.assignedParishId;
-      // They can only view priest and parishioner roles
-      whereClause.role = { [Op.in]: ['priest', 'parishioner'] };
+      // They can only view parishioner roles
+      whereClause.role = { [Op.in]: ['parishioner'] };
     } else if (requestingUser.role === 'diocese_staff') {
       // diocese_staff cannot view diocese_staff or diocese_admin users
       whereClause.role = { [Op.notIn]: ['diocese_staff', 'diocese_admin'] };
@@ -394,11 +394,11 @@ const createUser = async (req, res) => {
         });
       }
     } else if (requestingUser.role === 'parish_staff') {
-      // parish_staff can only create priest and parishioner of the same parish
-      if (!['priest', 'parishioner'].includes(role)) {
+      // parish_staff can only create parishioner of the same parish
+      if (role !== 'parishioner') {
         return res.status(403).json({
           error: 'Insufficient permissions',
-          message: 'Parish staff can only create priests and parishioners.',
+          message: 'Parish staff can only create parishioners.',
         });
       }
       
@@ -793,12 +793,13 @@ const createParish = async (req, res) => {
     });
 
     res.status(201).json({
+      success: true,
+      data: { parishes: [parish] },
       message: 'Parish created successfully',
-      parish,
     });
   } catch (error) {
     console.error('Error creating parish:', error);
-    res.status(500).json({ error: 'Failed to create parish' });
+    res.status(500).json({ success: false, message: 'Failed to create parish' });
   }
 };
 
@@ -832,12 +833,13 @@ const updateParish = async (req, res) => {
     });
 
     res.json({
+      success: true,
+      data: { parishes: [parish] },
       message: 'Parish updated successfully',
-      parish,
     });
   } catch (error) {
     console.error('Error updating parish:', error);
-    res.status(500).json({ error: 'Failed to update parish' });
+    res.status(500).json({ success: false, message: 'Failed to update parish' });
   }
 };
 
@@ -853,10 +855,10 @@ const deleteParish = async (req, res) => {
 
     await parish.update({ isActive: false });
 
-    res.json({ message: 'Parish deactivated successfully' });
+    res.json({ success: true, message: 'Parish deactivated successfully' });
   } catch (error) {
     console.error('Error deleting parish:', error);
-    res.status(500).json({ error: 'Failed to delete parish' });
+    res.status(500).json({ success: false, message: 'Failed to deactivate parish' });
   }
 };
 
@@ -994,13 +996,14 @@ const getAllBookings = async (req, res) => {
       { model: MassIntention, type: 'mass_intention', include: [] },
     ];
 
-    for (const { model, type } of bookingTables) {
+    for (const { model, type, include } of bookingTables) {
       // Skip if sacramentType filter is set and doesn't match
       if (sacramentType && sacramentType !== type) continue;
 
       try {
         const bookings = await model.findAll({
           where: bookingWhereClause,
+          include: include,
           limit: parseInt(limit),
           offset: parseInt(offset),
           order: [['createdAt', 'DESC']],
@@ -1106,11 +1109,11 @@ const getBookingById = async (req, res) => {
   }
 };
 
-// Update booking status (approve/reject/reschedule)
+// Update booking status (approve/reject/reschedule) and add notes
 const updateBookingStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, adminNotes } = req.body;
+    const { status, notes } = req.body;
     const requestingUser = req.user;
 
     const bookingTables = [
@@ -1164,9 +1167,16 @@ const updateBookingStatus = async (req, res) => {
       status: status || booking.status,
     };
 
-    // Add admin notes if provided
-    if (adminNotes !== undefined) {
-      updateData.adminNotes = adminNotes;
+    // Handle notes as append-only
+    if (notes && Array.isArray(notes) && notes.length > 0) {
+      const existingNotes = booking.notes || [];
+      const newNotes = notes.map(note => ({
+        author: 'admin',
+        content: note.content || note,
+        authorId: req.user.userId,
+        timestamp: new Date().toISOString(),
+      }));
+      updateData.notes = [...existingNotes, ...newNotes];
     }
 
     // Add approval metadata
@@ -1311,7 +1321,7 @@ const getAllMassIntentions = async (req, res) => {
   }
 };
 
-// Update mass intention status
+// Update mass intention status and add notes
 const updateMassIntentionStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -1342,10 +1352,20 @@ const updateMassIntentionStatus = async (req, res) => {
       });
     }
 
-    await intention.update({
-      status: status || intention.status,
-      notes: notes !== undefined ? notes : intention.notes,
-    });
+    // Handle notes as append-only
+    let updateData = { status: status || intention.status };
+    if (notes && Array.isArray(notes) && notes.length > 0) {
+      const existingNotes = intention.notes || [];
+      const newNotes = notes.map(note => ({
+        author: 'admin',
+        content: note.content || note,
+        authorId: req.user.userId,
+        timestamp: new Date().toISOString(),
+      }));
+      updateData.notes = [...existingNotes, ...newNotes];
+    }
+
+    await intention.update(updateData);
 
     res.json({
       message: 'Mass intention updated successfully',
@@ -1354,6 +1374,62 @@ const updateMassIntentionStatus = async (req, res) => {
   } catch (error) {
     console.error('Error updating mass intention:', error);
     res.status(500).json({ error: 'Failed to update mass intention' });
+  }
+};
+
+// Get priests by parish ID
+const getPriestsByParish = async (req, res) => {
+  try {
+    const { parishId } = req.query;
+    const requestingUser = req.user;
+
+    // If no parishId provided, use the user's preferred parish
+    let targetParishId = parishId ? parseInt(parishId) : null;
+    
+    // If still no parishId, try to get from user's preferred parish
+    if (!targetParishId && requestingUser.preferredParishId) {
+      targetParishId = requestingUser.preferredParishId;
+    }
+
+    if (!targetParishId) {
+      return res.status(400).json({
+        error: 'Missing parish ID',
+        message: 'Please select a parish first',
+      });
+    }
+
+    // Apply parish-level restrictions
+    // Parish-level users can only see priests from their own parish
+    if (requestingUser.role === 'parish_admin' || requestingUser.role === 'parish_staff' || requestingUser.role === 'priest') {
+      if (requestingUser.assignedParishId !== targetParishId) {
+        // Check if the user is viewing their own parish
+        if (requestingUser.assignedParishId !== targetParishId) {
+          return res.status(403).json({
+            error: 'Insufficient permissions',
+            message: 'You can only view priests from your assigned parish.',
+          });
+        }
+      }
+    }
+
+    // Get priests assigned to this parish
+    const priests = await User.findAll({
+      where: {
+        role: 'priest',
+        assignedParishId: targetParishId,
+        isActive: true,
+      },
+      attributes: ['id', 'firstName', 'lastName', 'email'],
+      order: [['lastName', 'ASC'], ['firstName', 'ASC']],
+    });
+
+    res.json({
+      message: 'Priests retrieved successfully',
+      priests: priests.map(priest => priest.toSafeObject()),
+    });
+  } catch (error) {
+    console.error('Error getting priests:', error);
+    res.status(500).json({ error: 'Failed to get priests' });
   }
 };
 
@@ -1378,4 +1454,5 @@ module.exports = {
   deleteBooking,
   getAllMassIntentions,
   updateMassIntentionStatus,
+  getPriestsByParish,
 };

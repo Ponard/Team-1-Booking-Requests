@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const { User } = require('../models');
+const { User, Parish } = require('../models');
 const { Op } = require('sequelize');
 
 class AuthService {
@@ -79,11 +79,21 @@ class AuthService {
       throw new Error('Email already registered');
     }
 
-    // For diocese-level roles, set parish fields to null
-    // since diocese personnel don't belong to a specific parish
+    // Validate preferredParishId if provided (for non-diocese roles)
     const isDioceseLevel = ['diocese_staff', 'diocese_admin'].includes(role);
-    const finalPreferredParishId = isDioceseLevel ? null : preferredParishId;
-    const finalAssignedParishId = isDioceseLevel ? null : undefined;
+    let finalPreferredParishId = isDioceseLevel ? null : preferredParishId;
+    let finalAssignedParishId = isDioceseLevel ? null : undefined;
+    
+    if (!isDioceseLevel && preferredParishId != null) {
+      if (!Number.isInteger(preferredParishId) || preferredParishId <= 0) {
+        throw new Error('Invalid parish selected');
+      }
+      const parish = await Parish.findByPk(preferredParishId);
+      if (!parish) {
+        throw new Error('Invalid parish selected');
+      }
+      finalAssignedParishId = preferredParishId;
+    }
 
     // Create new user
     const user = await User.create({
