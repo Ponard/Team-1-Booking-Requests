@@ -1345,12 +1345,17 @@ const getAllMassIntentions = async (req, res) => {
     }
 
     if (status) whereClause.status = status;
-    if (intentionType) whereClause.intentionType = intentionType;
+    if (intentionType) whereClause.type = intentionType;
 
     if (startDate || endDate) {
-      whereClause.massDate = {};
-      if (startDate) whereClause.massDate[Op.gte] = startDate;
-      if (endDate) whereClause.massDate[Op.lte] = endDate;
+      whereClause.massSchedule = {};
+      if (startDate) {
+        whereClause.massSchedule[Op.gte] = startDate;
+      }
+      if (endDate) {
+        const endOfDay = `${endDate} 23:59:59`;
+        whereClause.massSchedule[Op.lte] = endOfDay;
+      }
     }
 
     const { count, rows } = await MassIntention.findAndCountAll({
@@ -1358,7 +1363,7 @@ const getAllMassIntentions = async (req, res) => {
       include: [
         {
           model: User,
-          as: 'user',
+          as: 'submitter',
           attributes: ['id', 'firstName', 'lastName', 'email'],
         },
         {
@@ -1369,7 +1374,7 @@ const getAllMassIntentions = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['massDate', 'DESC']],
+      order: [['massSchedule', 'DESC']],
     });
 
     res.json({

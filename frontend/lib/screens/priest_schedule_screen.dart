@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/admin_service.dart';
+import '../utils/sacrament_icons.dart';
 
 class PriestScheduleScreen extends StatefulWidget {
   const PriestScheduleScreen({super.key});
@@ -124,6 +125,8 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
         return 'Anointing of the Sick';
       case 'funeral_mass':
         return 'Funeral Mass';
+      case 'mass_intention':
+        return 'Mass Intention';
       default:
         return type ?? 'Sacrament';
     }
@@ -145,24 +148,7 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
   }
 
   IconData _getSacramentIcon(String? type) {
-    switch (type) {
-      case 'baptism':
-        return Icons.water_drop;
-      case 'wedding':
-        return Icons.wc;
-      case 'confirmation':
-        return Icons.local_fire_department;
-      case 'eucharist':
-        return Icons.breakfast_dining;
-      case 'reconciliation':
-        return Icons.handshake;
-      case 'anointing_sick':
-        return Icons.medical_services;
-      case 'funeral_mass':
-        return Icons.church;
-      default:
-        return Icons.event;
-    }
+    return getSacramentIcon(type);
   }
 
   void _showBookingDetails(Map<String, dynamic> booking) {
@@ -386,23 +372,11 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
   }
 
   String _formatDate(dynamic dateStr) {
-    if (dateStr == null) return 'N/A';
-    try {
-      final date = DateTime.parse(dateStr.toString());
-      return '${date.day}/${date.month}/${date.year}';
-    } catch (e) {
-      return dateStr.toString();
-    }
+    return formatDateMMDDYYYY(dateStr?.toString());
   }
 
   String _formatDateTime(dynamic dateStr) {
-    if (dateStr == null) return 'N/A';
-    try {
-      final date = DateTime.parse(dateStr.toString());
-      return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return dateStr.toString();
-    }
+    return formatDateTimeMMDDYYYY(dateStr?.toString());
   }
 
   @override

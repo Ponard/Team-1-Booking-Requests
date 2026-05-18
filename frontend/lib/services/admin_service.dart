@@ -577,4 +577,53 @@ class AdminService {
       );
     }
   }
+
+  // Get all mass intentions (admin view)
+  Future<ApiResponse<Map<String, dynamic>>> getAdminMassIntentions(
+    String token, {
+    String? status,
+    String? parishId,
+    String? intentionType,
+    String? startDate,
+    String? endDate,
+    int page = 1,
+    int limit = 100,
+  }) async {
+    try {
+      String url = '/api/admin/mass-intentions?page=$page&limit=$limit';
+      if (status != null) url += '&status=$status';
+      if (parishId != null) url += '&parishId=$parishId';
+      if (intentionType != null) url += '&intentionType=$intentionType';
+      if (startDate != null) url += '&startDate=$startDate';
+      if (endDate != null) url += '&endDate=$endDate';
+
+      final response = await ApiConfig.getWithAuth(url, token);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return ApiResponse<Map<String, dynamic>>(
+          success: true,
+          data: data,
+          message: data['message'],
+        );
+      } else if (ApiConfig.isPasswordChangeRequired(response)) {
+        return ApiResponse<Map<String, dynamic>>(
+          success: false,
+          message: 'Password change required',
+          mustChangePassword: true,
+        );
+      } else {
+        return ApiResponse<Map<String, dynamic>>(
+          success: false,
+          message: 'Failed to fetch mass intentions',
+        );
+      }
+    } catch (e) {
+      return ApiResponse<Map<String, dynamic>>(
+        success: false,
+        message: 'Network error',
+        errors: [e.toString()],
+      );
+    }
+  }
 }

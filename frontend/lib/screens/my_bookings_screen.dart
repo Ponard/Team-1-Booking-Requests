@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/user_booking_service.dart';
+import '../utils/sacrament_icons.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -208,6 +209,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         return 'Anointing the Sick';
       case 'funeral_mass':
         return 'Funeral Mass';
+      case 'mass_intention':
+        return 'Mass Intention';
       default:
         return sacramentType.toUpperCase();
     }
@@ -291,12 +294,24 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Expanded(
-                                        child: Text(
-                                          _getSacramentDisplayName(sacramentType),
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              getSacramentIcon(sacramentType),
+                                              size: 20,
+                                              color: Theme.of(context).primaryColor,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                _getSacramentDisplayName(sacramentType),
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                       Container(
@@ -319,7 +334,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   if (booking['preferredDate'] != null)
-                                    Text('Date: ${booking['preferredDate']}'),
+                                    Text('Date: ${formatDateMMDDYYYY(booking['preferredDate'])}'),
                                   if (booking['preferredTimeSlot'] != null)
                                     Text('Time: ${booking['preferredTimeSlot']}'),
                                   if (booking['parishName'] != null)

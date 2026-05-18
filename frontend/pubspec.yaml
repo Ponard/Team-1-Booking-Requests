@@ -58,6 +58,10 @@ dependencies:
   cupertino_icons: ^1.0.2
   webview_flutter_web: ^0.2.3+4
 
+  # PDF generation
+  pdf: ^3.10.8
+  printing: ^5.11.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

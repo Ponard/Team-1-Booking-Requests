@@ -13,6 +13,7 @@ import '../models/document.dart';
 import '../models/eucharist_booking.dart';
 import '../models/note.dart';
 import '../config/api_config.dart';
+import '../utils/sacrament_icons.dart';
 import '../widgets/notes_display.dart';
 
 class EucharistDetailScreen extends StatefulWidget {
@@ -811,7 +812,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                           )
                         else
                           _buildInfoRow('Preferred Date',
-                              _booking!.preferredDate ?? 'Not provided'),
+                              formatDateMMDDYYYY(_booking!.preferredDate)),
                         const SizedBox(height: 16),
 
                         // Preferred Time

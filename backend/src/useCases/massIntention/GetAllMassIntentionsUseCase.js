@@ -36,6 +36,18 @@ class GetAllMassIntentionsUseCase {
     const limit = parseInt(options.limit) || 10;
     const filters = { ...options.filters };
 
+    // Support flat query params for massSchedule date filtering
+    if (options.massScheduleDate) {
+      filters.massScheduleStart = options.massScheduleDate;
+      filters.massScheduleEnd = options.massScheduleDate;
+    }
+    if (options.massScheduleStart) {
+      filters.massScheduleStart = options.massScheduleStart;
+    }
+    if (options.massScheduleEnd) {
+      filters.massScheduleEnd = options.massScheduleEnd;
+    }
+
     // Role-based access control
     if (user.role === 'parishioner') {
       // Parishioners can only see their own intentions

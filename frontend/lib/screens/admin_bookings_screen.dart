@@ -8,6 +8,7 @@ import '../config/api_config.dart';
 import '../utils/role_helpers.dart';
 import 'document_preview_screen.dart';
 import '../models/document.dart';
+import '../utils/sacrament_icons.dart';
 
 class AdminBookingsScreen extends StatefulWidget {
   final String? initialStatus;
@@ -50,6 +51,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
     {'value': 'reconciliation', 'label': 'Reconciliation'},
     {'value': 'anointing_sick', 'label': 'Anointing Sick'},
     {'value': 'funeral_mass', 'label': 'Funeral Mass'},
+    {'value': 'mass_intention', 'label': 'Mass Intention'},
   ];
 
   @override
@@ -332,7 +334,7 @@ Navigator.pushNamed(
                 _buildDetailRow('Name', booking['childFullName'] ?? booking['deceasedFullName'] ?? booking['coupleNames'] ?? booking['fullName'] ?? 'N/A'),
                 _buildDetailRow(
                   'Date',
-                  booking['preferredDate']?.toString().substring(0, 10) ?? 'N/A',
+                  formatDateMMDDYYYY(booking['preferredDate']?.toString()),
                 ),
                 _buildDetailRow('Email', booking['contactEmail'] ?? 'N/A'),
                 _buildDetailRow('Phone', booking['contactPhone'] ?? 'N/A'),
@@ -736,8 +738,8 @@ Navigator.pushNamed(
                                           booking['status'] ?? 'pending',
                                         ),
                                         radius: 24,
-                                        child: const Icon(
-                                          Icons.calendar_today,
+                                        child: Icon(
+                                          getSacramentIcon(bookingType),
                                           color: Colors.white,
                                         ),
                                       ),
@@ -777,11 +779,11 @@ Text(
                                             ),
                                             const SizedBox(height: 2),
                                             Text(
-                                              bookingType == 'mass_intention'
-                                                  ? (booking['massSchedule']?.toString().substring(0, 10) ??
-                                                      'No date set')
-                                                  : (booking['preferredDate']?.toString().substring(0, 10) ??
-                                                      'No date set'),
+                                              formatDateMMDDYYYY(
+                                                bookingType == 'mass_intention'
+                                                    ? booking['massSchedule']?.toString()
+                                                    : booking['preferredDate']?.toString(),
+                                              ),
                                               style: const TextStyle(fontSize: 12),
                                             ),
                                           ],

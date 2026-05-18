@@ -17,6 +17,7 @@ class MassIntentionService {
     String? status,
     int? parishId,
     String? type,
+    String? massScheduleDate,
   }) async {
     try {
       List<String> queryParams = [];
@@ -25,6 +26,7 @@ class MassIntentionService {
       if (status != null) queryParams.add('status=$status');
       if (parishId != null) queryParams.add('parishId=$parishId');
       if (type != null) queryParams.add('type=$type');
+      if (massScheduleDate != null) queryParams.add('massScheduleDate=$massScheduleDate');
 
       String endpoint = ApiConfig.massIntentionsEndpoint;
       if (queryParams.isNotEmpty) {

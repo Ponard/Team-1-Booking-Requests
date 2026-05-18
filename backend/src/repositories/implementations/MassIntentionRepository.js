@@ -129,11 +129,18 @@ class MassIntentionRepository {
     if (filters.parishId) where.parishId = filters.parishId;
     if (filters.submittedBy) where.submittedBy = filters.submittedBy;
 
-    // Date range filtering
+    // Date range filtering on dateRequested
     if (filters.startDate || filters.endDate) {
       where.dateRequested = {};
       if (filters.startDate) where.dateRequested[Op.gte] = filters.startDate;
       if (filters.endDate) where.dateRequested[Op.lte] = filters.endDate;
+    }
+
+    // Date range filtering on massSchedule
+    if (filters.massScheduleStart || filters.massScheduleEnd) {
+      where.massSchedule = {};
+      if (filters.massScheduleStart) where.massSchedule[Op.gte] = filters.massScheduleStart;
+      if (filters.massScheduleEnd) where.massSchedule[Op.lte] = filters.massScheduleEnd;
     }
 
     return where;

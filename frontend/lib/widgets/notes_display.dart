@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/note.dart';
+import '../utils/sacrament_icons.dart';
 
 class NotesDisplay extends StatelessWidget {
   final List<Note>? notes;
@@ -90,11 +91,6 @@ class NotesDisplay extends StatelessWidget {
   }
 
   String _formatTimestamp(String timestamp) {
-    try {
-      final dateTime = DateTime.parse(timestamp);
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return timestamp;
-    }
+    return formatDateTimeMMDDYYYY(timestamp);
   }
 }

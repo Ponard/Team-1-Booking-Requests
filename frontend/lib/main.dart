@@ -45,6 +45,7 @@ import 'screens/admin_bookings_screen.dart';
 import 'screens/admin_parishes_screen.dart';
 import 'screens/admin_users_screen.dart';
 import 'screens/admin_records_screen.dart';
+import 'screens/admin_mass_intentions_screen.dart';
 import 'screens/priest_schedule_screen.dart';
 import 'config/app_constants.dart';
 
@@ -169,6 +170,8 @@ class MyApp extends StatelessWidget {
         return MaterialPageRoute(builder: (_) => AdminUsersScreen());
       case '/admin-records':
         return MaterialPageRoute(builder: (_) => AdminRecordsScreen());
+      case '/admin-mass-intentions':
+        return MaterialPageRoute(builder: (_) => const AdminMassIntentionsScreen());
       case '/change-password':
         return MaterialPageRoute(builder: (_) => ChangePasswordScreen());
       case '/forgot-password':

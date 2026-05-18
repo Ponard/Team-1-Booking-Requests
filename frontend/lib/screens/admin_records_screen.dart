@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/admin_service.dart';
+import '../utils/sacrament_icons.dart';
 
 class AdminRecordsScreen extends StatefulWidget {
   const AdminRecordsScreen({super.key});
@@ -25,6 +26,7 @@ class _AdminRecordsScreenState extends State<AdminRecordsScreen> {
     {'value': 'reconciliation', 'label': 'Reconciliation'},
     {'value': 'anointing_sick', 'label': 'Anointing Sick'},
     {'value': 'funeral_mass', 'label': 'Funeral Mass'},
+    {'value': 'mass_intention', 'label': 'Mass Intention'},
   ];
 
   @override
@@ -115,7 +117,7 @@ class _AdminRecordsScreenState extends State<AdminRecordsScreen> {
                               child: ListTile(
                                 leading: CircleAvatar(
                                   backgroundColor: Colors.indigo,
-                                  child: const Icon(Icons.description, color: Colors.white),
+                                  child: Icon(getSacramentIcon(record['sacramentType']), color: Colors.white),
                                 ),
                                 title: Text(
                                   record['personName'] ?? 
@@ -134,7 +136,7 @@ class _AdminRecordsScreenState extends State<AdminRecordsScreen> {
                                           .toUpperCase(),
                                     ),
                                     Text(
-                                      'Date: ${record['sacramentDate']?.toString().substring(0, 10) ?? 'N/A'}',
+                                      'Date: ${formatDateMMDDYYYY(record['sacramentDate']?.toString())}',
                                     ),
                                     if (record['parishName'] != null)
                                       Text('Parish: ${record['parishName']}'),
