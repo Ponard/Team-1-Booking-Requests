@@ -4,6 +4,7 @@ import '../providers/auth_provider.dart';
 import '../providers/parish_provider.dart';
 import '../utils/role_helpers.dart';
 import '../services/user_booking_service.dart';
+import '../utils/sacrament_icons.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -193,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Diocese Booking System"),
+        title: const Text("RCDOK Booking System"),
         centerTitle: true,
         actions: [
           IconButton(
@@ -419,7 +420,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         children: [
           const Text(
-            "Welcome to Diocese Booking System",
+            "Welcome to the Roman Catholic Diocese of Kalookan Booking System",
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -508,6 +509,28 @@ class _HomeScreenState extends State<HomeScreen> {
                               foregroundColor: Colors.white,
                             ),
                           ),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/admin-mass-intentions');
+                          },
+                          icon: const Icon(Icons.book, size: 20),
+                          label: const Text('Mass Intentions'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue.shade700,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/admin-mass-schedule');
+                          },
+                          icon: const Icon(Icons.schedule, size: 20),
+                          label: const Text('Mass Schedule'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue.shade700,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -732,7 +755,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.church,
+                          getSacramentIcon(_getServiceSacramentType(service["title"]!)),
                           size: 32,
                           color: Colors.blue.shade700,
                         ),
@@ -799,6 +822,29 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  String _getServiceSacramentType(String title) {
+    switch (title) {
+      case 'Baptism':
+        return 'baptism';
+      case 'Wedding':
+        return 'wedding';
+      case 'Confirmation':
+        return 'confirmation';
+      case 'Eucharist (First Communion)':
+        return 'eucharist';
+      case 'Reconciliation (Confession)':
+        return 'reconciliation';
+      case 'Anointing the Sick':
+        return 'anointing_sick';
+      case 'Mass Intentions':
+        return 'mass_intention';
+      case 'Funeral Mass':
+        return 'funeral_mass';
+      default:
+        return '';
+    }
   }
 
   String _capitalize(String s) {

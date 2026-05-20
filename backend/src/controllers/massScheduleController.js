@@ -52,12 +52,15 @@ exports.createMassSchedule = async (req, res, next) => {
     // Check if user has permission to create mass schedule for this parish
     if (req.user.role !== 'diocese_staff' && req.user.role !== 'diocese_admin') {
       if (req.user.role === 'parish_admin' || req.user.role === 'parish_staff') {
-        if (req.user.assignedParishId !== parishId) {
+        // Auto-assign to user's parish if not provided
+        const targetParishId = parishId || req.user.assignedParishId;
+        if (req.user.assignedParishId !== targetParishId) {
           return res.status(403).json({
             error: 'Access denied',
             message: 'You can only create mass schedules for your assigned parish'
           });
         }
+        req.body.parishId = targetParishId;
       } else {
         return res.status(403).json({
           error: 'Access denied',
@@ -111,12 +114,13 @@ exports.getAllMassSchedules = async (req, res, next) => {
     // Check if user has permission to view mass schedules
     if (req.user.role !== 'diocese_staff' && req.user.role !== 'diocese_admin') {
       if (req.user.role === 'parish_admin' || req.user.role === 'parish_staff') {
-        if (parishId && req.user.assignedParishId !== parseInt(parishId)) {
-          return res.status(403).json({
-            error: 'Access denied',
-            message: 'You can only view mass schedules for your assigned parish'
-          });
+        // Parish-level users can only view schedules for their assigned parish
+        const userParishId = req.user.assignedParishId;
+        if (userParishId) {
+          req.query.parishId = userParishId;
         }
+        // If user has no assignedParishId, proceed without parish filter
+        // (will return all active schedules)
       } else {
         return res.status(403).json({
           error: 'Access denied',
@@ -127,8 +131,8 @@ exports.getAllMassSchedules = async (req, res, next) => {
 
     const whereClause = { isActive: true };
 
-    if (parishId) {
-      whereClause.parishId = parishId;
+    if (req.query.parishId) {
+      whereClause.parishId = req.query.parishId;
     }
 
     const massSchedules = await MassSchedule.findAll({

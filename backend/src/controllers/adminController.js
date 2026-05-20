@@ -1329,6 +1329,7 @@ const getAllMassIntentions = async (req, res) => {
       intentionType,
       startDate,
       endDate,
+      massTime,
     } = req.query;
 
     const requestingUser = req.user;
@@ -1345,20 +1346,36 @@ const getAllMassIntentions = async (req, res) => {
     }
 
     if (status) whereClause.status = status;
-    if (intentionType) whereClause.intentionType = intentionType;
+    if (intentionType) whereClause.type = intentionType;
+    if (massTime) whereClause.preferredTime = massTime;
 
     if (startDate || endDate) {
-      whereClause.massDate = {};
-      if (startDate) whereClause.massDate[Op.gte] = startDate;
-      if (endDate) whereClause.massDate[Op.lte] = endDate;
+      if (startDate && endDate && startDate === endDate) {
+        whereClause.massSchedule = sequelize.where(
+          sequelize.fn('DATE', sequelize.col('MassIntention.mass_schedule')),
+          Op.eq,
+          startDate
+        );
+      } else {
+        whereClause.massSchedule = {};
+        if (startDate) {
+          whereClause.massSchedule[Op.gte] = `${startDate}T00:00:00.000Z`;
+        }
+        if (endDate) {
+          whereClause.massSchedule[Op.lte] = `${endDate}T23:59:59.999Z`;
+        }
+      }
     }
+
+    console.log('[adminController.getMassIntentions] whereClause:', JSON.stringify(whereClause, null, 2));
+    console.log('[adminController.getMassIntentions] user role:', requestingUser.role, 'assignedParishId:', requestingUser.assignedParishId);
 
     const { count, rows } = await MassIntention.findAndCountAll({
       where: whereClause,
       include: [
         {
           model: User,
-          as: 'user',
+          as: 'submitter',
           attributes: ['id', 'firstName', 'lastName', 'email'],
         },
         {
@@ -1369,7 +1386,7 @@ const getAllMassIntentions = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['massDate', 'DESC']],
+      order: [['massSchedule', 'DESC']],
     });
 
     res.json({

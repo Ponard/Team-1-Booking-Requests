@@ -8,6 +8,7 @@ import '../providers/parish_provider.dart';
 import '../providers/priest_provider.dart';
 import '../providers/wedding_provider.dart';
 import '../services/wedding_service.dart';
+import '../utils/sacrament_icons.dart';
 import '../services/file_service.dart';
 import '../models/document.dart';
 import '../models/wedding_booking.dart';
@@ -1041,7 +1042,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                           )
                         else
                           _buildInfoRow('Preferred Date',
-                              _booking!.preferredDate ?? 'Not provided'),
+                              formatDateMMDDYYYY(_booking!.preferredDate)),
                         const SizedBox(height: 16),
 
                         // Preferred Time

@@ -137,7 +137,7 @@ router.put(
 // Delete booking
 router.delete(
   '/bookings/:id',
-  authorizeRoles('diocese_admin', 'parish_admin'),
+  authorizeRoles('diocese_admin', 'diocese_staff', 'parish_admin', 'parish_staff'),
   adminController.deleteBooking
 );
 
