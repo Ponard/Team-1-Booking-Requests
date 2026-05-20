@@ -169,6 +169,7 @@ class AuthService {
         userId: user.id, 
         role: user.role,
         email: user.email,
+        assignedParishId: user.assignedParishId || null,
       },
       this.jwtSecret,
       { expiresIn: this.jwtExpiry }

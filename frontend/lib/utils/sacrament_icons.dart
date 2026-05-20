@@ -17,7 +17,7 @@ IconData getSacramentIcon(String? type) {
     case 'mass_intention':
       return Icons.church;
     case 'funeral_mass':
-      return Icons.elderly;
+      return Icons.local_florist;
     default:
       return Icons.event;
   }
@@ -27,7 +27,8 @@ String formatDateMMDDYYYY(String? dateStr) {
   if (dateStr == null || dateStr.isEmpty) return 'N/A';
   try {
     final date = DateTime.parse(dateStr);
-    return '${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}/${date.year}';
+    final phDate = date.isUtc ? date.add(const Duration(hours: 8)) : date;
+    return '${phDate.month.toString().padLeft(2, '0')}/${phDate.day.toString().padLeft(2, '0')}/${phDate.year}';
   } catch (e) {
     return dateStr;
   }
@@ -37,7 +38,8 @@ String formatDateTimeMMDDYYYY(String? dateStr) {
   if (dateStr == null || dateStr.isEmpty) return 'N/A';
   try {
     final date = DateTime.parse(dateStr);
-    return '${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    final phDate = date.isUtc ? date.add(const Duration(hours: 8)) : date;
+    return '${phDate.month.toString().padLeft(2, '0')}/${phDate.day.toString().padLeft(2, '0')}/${phDate.year} ${phDate.hour.toString().padLeft(2, '0')}:${phDate.minute.toString().padLeft(2, '0')}';
   } catch (e) {
     return dateStr;
   }

@@ -334,7 +334,11 @@ Navigator.pushNamed(
                 _buildDetailRow('Name', booking['childFullName'] ?? booking['deceasedFullName'] ?? booking['coupleNames'] ?? booking['fullName'] ?? 'N/A'),
                 _buildDetailRow(
                   'Date',
-                  formatDateMMDDYYYY(booking['preferredDate']?.toString()),
+                  formatDateMMDDYYYY(
+                    (booking['bookingType'] ?? booking['sacramentType']) == 'mass_intention'
+                        ? booking['massSchedule']?.toString()
+                        : booking['preferredDate']?.toString(),
+                  ),
                 ),
                 _buildDetailRow('Email', booking['contactEmail'] ?? 'N/A'),
                 _buildDetailRow('Phone', booking['contactPhone'] ?? 'N/A'),

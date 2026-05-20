@@ -5,8 +5,10 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../providers/auth_provider.dart';
 import '../providers/parish_provider.dart';
+import '../providers/mass_schedule_provider.dart';
 import '../services/admin_service.dart';
 import '../models/mass_intention.dart';
+import '../models/mass_schedule.dart';
 import '../utils/sacrament_icons.dart';
 
 class AdminMassIntentionsScreen extends StatefulWidget {
@@ -25,19 +27,17 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
   String? _selectedDate;
   String? _selectedTime;
   String? _selectedParishId;
+  List<MassSchedule> _availableSchedules = [];
 
-  final List<String> _massTimes = [
-    '5:00 AM',
-    '6:00 AM',
-    '7:00 AM',
-    '8:00 AM',
-    '9:00 AM',
-    '10:00 AM',
-    '4:00 PM',
-    '5:00 PM',
-    '6:00 PM',
-    '7:00 PM',
-  ];
+  List<String> get _massTimes {
+    if (_availableSchedules.isEmpty) {
+      return ['05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '16:00', '17:00', '18:00', '19:00'];
+    }
+    return _availableSchedules.map((s) {
+      final parts = s.startTime.split(':');
+      return '${parts[0]}:${parts[1]}';
+    }).toList();
+  }
 
   @override
   void initState() {
@@ -49,8 +49,9 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
     final now = DateTime.now();
     setState(() {
       _selectedDate = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-      _selectedTime = _findNearestMassTime();
     });
+
+    await _loadSchedulesForDate(now);
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final userParishId = authProvider.currentUser?.effectiveParishId;
@@ -61,7 +62,30 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
     }
 
     await Future.delayed(const Duration(milliseconds: 100));
-    _loadIntentions();
+  }
+
+  Future<void> _loadSchedulesForDate(DateTime date) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final scheduleProvider = Provider.of<MassScheduleProvider>(context, listen: false);
+
+    int? parishId;
+    if (_selectedParishId != null) {
+      parishId = int.tryParse(_selectedParishId!);
+    } else if (authProvider.currentUser?.effectiveParishId != null) {
+      parishId = authProvider.currentUser!.effectiveParishId;
+    }
+
+    await scheduleProvider.loadSchedules(parishId: parishId);
+    final schedules = scheduleProvider.getSchedulesForDate(date);
+
+    setState(() {
+      _availableSchedules = schedules;
+      if (schedules.isNotEmpty && _selectedTime == null) {
+        _selectedTime = _findNearestMassTime();
+      }
+    });
+
+    await _loadIntentions();
   }
 
   String _findNearestMassTime() {
@@ -69,18 +93,37 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
     final currentHour = now.hour;
     final currentMinute = now.minute;
 
-    String nearestTime = _massTimes.first;
+    if (_massTimes.isNotEmpty) {
+      String nearestTime = _massTimes.first;
+      int smallestDiff = 999999;
+
+      for (final time in _massTimes) {
+        final timeParts = time.split(':');
+        final hour = int.parse(timeParts[0]);
+        final minute = int.parse(timeParts[1]);
+
+        final diff = (hour * 60 + minute) - (currentHour * 60 + currentMinute);
+        if (diff >= 0 && diff < smallestDiff) {
+          smallestDiff = diff;
+          nearestTime = time;
+        }
+      }
+
+      if (smallestDiff == 999999) {
+        nearestTime = _massTimes.first;
+      }
+
+      return nearestTime;
+    }
+
+    final fallbackTimes = ['05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '16:00', '17:00', '18:00', '19:00'];
+    String nearestTime = fallbackTimes.first;
     int smallestDiff = 999999;
 
-    for (final time in _massTimes) {
-      final parts = time.split(' ');
-      final timeParts = parts[0].split(':');
-      var hour = int.parse(timeParts[0]);
+    for (final time in fallbackTimes) {
+      final timeParts = time.split(':');
+      final hour = int.parse(timeParts[0]);
       final minute = int.parse(timeParts[1]);
-      final period = parts[1];
-
-      if (period == 'PM' && hour != 12) hour += 12;
-      if (period == 'AM' && hour == 12) hour = 0;
 
       final diff = (hour * 60 + minute) - (currentHour * 60 + currentMinute);
       if (diff >= 0 && diff < smallestDiff) {
@@ -90,7 +133,7 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
     }
 
     if (smallestDiff == 999999) {
-      nearestTime = _massTimes.first;
+      nearestTime = fallbackTimes.first;
     }
 
     return nearestTime;
@@ -106,7 +149,11 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
     if (picked != null) {
       setState(() {
         _selectedDate = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+        _selectedTime = null;
+        _availableSchedules.clear();
       });
+      await _loadSchedulesForDate(picked);
+      await _loadIntentions();
     }
   }
 
@@ -148,7 +195,15 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
         parishId: _selectedParishId,
         startDate: _selectedDate,
         endDate: _selectedDate,
+        massTime: _selectedTime,
       );
+
+      print('[MassIntentionsScreen] Request: parishId=$_selectedParishId, startDate=$_selectedDate, massTime=$_selectedTime');
+      print('[MassIntentionsScreen] Response success: ${response.success}');
+      print('[MassIntentionsScreen] Response message: ${response.message}');
+      print('[MassIntentionsScreen] Response data keys: ${response.data?.keys.toList()}');
+      print('[MassIntentionsScreen] Mass intentions count: ${(response.data?['massIntentions'] as List?)?.length ?? 0}');
+      print('[MassIntentionsScreen] Mass intentions data: ${response.data?['massIntentions']}');
 
       if (mounted) {
         if (response.success && response.data != null) {
@@ -216,7 +271,15 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
     final grouped = _groupIntentionsByType();
     final parishName = _getParishName(_selectedParishId);
     final dateDisplay = _formatDateDisplay(_selectedDate);
-    final timeDisplay = _selectedTime ?? 'N/A';
+    String timeDisplay = 'N/A';
+    if (_selectedTime != null) {
+      final parts = _selectedTime!.split(':');
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      final period = hour >= 12 ? 'PM' : 'AM';
+      final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+      timeDisplay = '$displayHour:${minute.toString().padLeft(2, '0')} $period';
+    }
 
     pdf.addPage(
       pw.MultiPage(
@@ -302,9 +365,21 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
       ),
     );
 
+    final now = DateTime.now();
+    String dateStr = 'report';
+    if (_selectedDate != null) {
+      final parts = _selectedDate!.split('-');
+      final y = parts[0];
+      final m = int.parse(parts[1]);
+      final d = parts[2];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      dateStr = '${months[m - 1]}_${d}_$y';
+    }
+    final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+
     await Printing.layoutPdf(
       onLayout: (format) async => pdf.save(),
-      name: 'mass_intentions_${_selectedDate ?? 'report'}.pdf',
+      name: 'MassIntention_${dateStr}_${timeStr}.pdf',
     );
   }
 
@@ -359,13 +434,20 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
                           isDense: true,
                         ),
                         items: _massTimes
-                            .map((time) => DropdownMenuItem(
-                                  value: time,
-                                  child: Text(time),
-                                ))
+                            .map((time) {
+                              final hour = int.parse(time.split(':')[0]);
+                              final minute = int.parse(time.split(':')[1]);
+                              final period = hour >= 12 ? 'PM' : 'AM';
+                              final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+                              return DropdownMenuItem(
+                                value: time,
+                                child: Text('$displayHour:${minute.toString().padLeft(2, '0')} $period'),
+                              );
+                            })
                             .toList(),
                         onChanged: (value) {
                           setState(() => _selectedTime = value);
+                          _loadIntentions();
                         },
                       ),
                     ),
@@ -412,17 +494,6 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _isLoading ? null : _loadIntentions,
-                    icon: const Icon(Icons.search),
-                    label: const Text('Load Intentions'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),

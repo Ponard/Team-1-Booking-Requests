@@ -586,6 +586,7 @@ class AdminService {
     String? intentionType,
     String? startDate,
     String? endDate,
+    String? massTime,
     int page = 1,
     int limit = 100,
   }) async {
@@ -596,6 +597,7 @@ class AdminService {
       if (intentionType != null) url += '&intentionType=$intentionType';
       if (startDate != null) url += '&startDate=$startDate';
       if (endDate != null) url += '&endDate=$endDate';
+      if (massTime != null) url += '&massTime=$massTime';
 
       final response = await ApiConfig.getWithAuth(url, token);
 

@@ -520,6 +520,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             foregroundColor: Colors.white,
                           ),
                         ),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/admin-mass-schedule');
+                          },
+                          icon: const Icon(Icons.schedule, size: 20),
+                          label: const Text('Mass Schedule'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue.shade700,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
                       ],
                     ),
                   ],

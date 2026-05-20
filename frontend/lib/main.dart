@@ -14,6 +14,7 @@ import 'providers/reconciliation_provider.dart';
 import 'providers/anointing_sick_provider.dart';
 import 'providers/funeral_mass_provider.dart';
 import 'providers/mass_intention_provider.dart';
+import 'providers/mass_schedule_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
@@ -46,6 +47,7 @@ import 'screens/admin_parishes_screen.dart';
 import 'screens/admin_users_screen.dart';
 import 'screens/admin_records_screen.dart';
 import 'screens/admin_mass_intentions_screen.dart';
+import 'screens/admin_mass_schedule_screen.dart';
 import 'screens/priest_schedule_screen.dart';
 import 'config/app_constants.dart';
 
@@ -172,6 +174,8 @@ class MyApp extends StatelessWidget {
         return MaterialPageRoute(builder: (_) => AdminRecordsScreen());
       case '/admin-mass-intentions':
         return MaterialPageRoute(builder: (_) => const AdminMassIntentionsScreen());
+      case '/admin-mass-schedule':
+        return MaterialPageRoute(builder: (_) => const AdminMassScheduleScreen());
       case '/change-password':
         return MaterialPageRoute(builder: (_) => ChangePasswordScreen());
       case '/forgot-password':
@@ -205,6 +209,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AnointingSickProvider()),
         ChangeNotifierProvider(create: (_) => FuneralMassProvider()),
         ChangeNotifierProvider(create: (_) => MassIntentionProvider()),
+        ChangeNotifierProvider(create: (_) => MassScheduleProvider()),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {

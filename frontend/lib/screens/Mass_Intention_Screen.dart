@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/parish_provider.dart';
 import '../providers/mass_intention_provider.dart';
+import '../providers/mass_schedule_provider.dart';
+import '../models/mass_schedule.dart';
 
 class MassIntentionScreen extends StatefulWidget {
   const MassIntentionScreen({super.key});
@@ -15,19 +17,19 @@ class MassIntentionScreen extends StatefulWidget {
 class _MassIntentionScreenState extends State<MassIntentionScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers
   final TextEditingController _offeredByController = TextEditingController();
   final TextEditingController _intentionForController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _preferredTimeController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
-  String _selectedType = 'Thanksgiving'; // Default selection
+  String _selectedType = 'Thanksgiving';
+  String? _selectedTime;
+  DateTime? _selectedDate;
+  List<MassSchedule> _availableSchedules = [];
 
   @override
   void initState() {
     super.initState();
-    // Load parishes for selection
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ParishProvider>(context, listen: false).loadAllParishes();
     });
@@ -38,13 +40,71 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
     _offeredByController.dispose();
     _intentionForController.dispose();
     _dateController.dispose();
-    _preferredTimeController.dispose();
     _notesController.dispose();
     super.dispose();
   }
 
+  Future<void> _selectDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+        _dateController.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+        _selectedTime = null;
+      });
+      _loadSchedulesForDate(picked);
+    }
+  }
+
+  Future<void> _loadSchedulesForDate(DateTime date) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final parishProvider = Provider.of<ParishProvider>(context, listen: false);
+    final scheduleProvider = Provider.of<MassScheduleProvider>(context, listen: false);
+
+    int? parishId;
+    if (parishProvider.selectedParish != null) {
+      parishId = parishProvider.selectedParish!.id;
+    } else if (authProvider.currentUser?.effectiveParishId != null) {
+      parishId = authProvider.currentUser!.effectiveParishId;
+    }
+
+    await scheduleProvider.loadSchedules(parishId: parishId);
+    final schedules = scheduleProvider.getSchedulesForDate(date);
+
+    setState(() {
+      _availableSchedules = schedules;
+      if (schedules.isNotEmpty && _selectedTime == null) {
+        _selectedTime = _normalizeTime(schedules.first.startTime);
+      }
+    });
+  }
+
+  String _normalizeTime(String? time) {
+    if (time == null) return '';
+    final parts = time.split(':');
+    return '${parts[0]}:${parts[1]}';
+  }
+
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
+      if (_selectedDate == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select a mass date.")),
+        );
+        return;
+      }
+      if (_selectedTime == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select a mass time.")),
+        );
+        return;
+      }
+
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final massIntentionProvider = Provider.of<MassIntentionProvider>(context, listen: false);
       final parishProvider = Provider.of<ParishProvider>(context, listen: false);
@@ -63,7 +123,6 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
         return;
       }
 
-      // Map frontend type to backend enum
       String mapType(String frontendType) {
         switch (frontendType) {
           case 'Thanksgiving':
@@ -80,7 +139,6 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
         }
       }
 
-      // Format date to ISO format
       String formatDate(String date) {
         final parts = date.split('-');
         if (parts.length == 3) {
@@ -89,16 +147,13 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
         return date;
       }
 
-      // Prepare notes array if a note was added
       List<Map<String, dynamic>>? notesToAdd;
       if (_notesController.text.trim().isNotEmpty) {
-        final noteMap = {
+        notesToAdd = [{
           'author': 'parishioner',
           'content': _notesController.text.trim(),
           'authorId': authProvider.currentUser!.id,
-        };
-        print('[Mass_Intention_Screen] notesToAdd: $noteMap');
-        notesToAdd = [noteMap];
+        }];
       }
 
       final success = await massIntentionProvider.createMassIntention(
@@ -108,7 +163,7 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
         dateRequested: formatDate(_dateController.text),
         parishId: parishProvider.selectedParish!.id!,
         massSchedule: formatDate(_dateController.text),
-        preferredTime: _preferredTimeController.text.trim().isEmpty ? null : _preferredTimeController.text.trim(),
+        preferredTime: _selectedTime,
         notes: notesToAdd,
       );
 
@@ -156,6 +211,19 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
     );
   }
 
+  String _formatTimeDisplay(String time) {
+    try {
+      final parts = time.split(':');
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      final period = hour >= 12 ? 'PM' : 'AM';
+      final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+      return '$displayHour:${minute.toString().padLeft(2, '0')} $period';
+    } catch (e) {
+      return time;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -193,6 +261,9 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
                         final parish = parishProvider.parishes
                             .firstWhere((p) => p.id == value);
                         parishProvider.selectParish(parish);
+                        if (_selectedDate != null) {
+                          _loadSchedulesForDate(_selectedDate!);
+                        }
                       },
                       validator: (value) =>
                           value == null ? "Please select a parish" : null,
@@ -223,33 +294,56 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
                   decoration: const InputDecoration(labelText: "Preferred Mass Date *", border: OutlineInputBorder(), suffixIcon: Icon(Icons.calendar_today)),
                   onTap: () async {
                     FocusScope.of(context).requestFocus(FocusNode());
-                    DateTime? picked = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime(2027));
-                    if (picked != null) {
-                      _dateController.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
-                    }
+                    await _selectDate();
                   },
+                  validator: (value) => value!.isEmpty ? "Please select a date" : null,
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
-                  controller: _preferredTimeController,
-                  decoration: const InputDecoration(
-                    labelText: "Preferred Time *",
-                    hintText: "HH:MM (e.g., 08:00 or 14:30)",
-                    border: OutlineInputBorder(),
+                if (_selectedDate != null && _availableSchedules.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      border: Border.all(color: Colors.orange.shade200),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, color: Colors.orange.shade700, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'No mass schedules configured for ${_getDayName(_selectedDate!.weekday)}. Please select another date or contact the parish office.',
+                            style: TextStyle(color: Colors.orange.shade700, fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  validator: (value) => value!.isEmpty ? "Required" : null,
-                  onTap: () async {
-                    FocusScope.of(context).requestFocus(FocusNode());
-                    TimeOfDay? pickedTime = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.now(),
-                    );
-                    if (pickedTime != null) {
-                      _preferredTimeController.text =
-                          "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
-                    }
-                  },
-                ),
+                if (_availableSchedules.isNotEmpty)
+                  DropdownButtonFormField<String>(
+                    value: _selectedTime,
+                    decoration: const InputDecoration(
+                      labelText: "Mass Time *",
+                      border: OutlineInputBorder(),
+                    ),
+                    items: _availableSchedules
+                        .fold<Map<String, MassSchedule>>({}, (map, s) {
+                          final normalized = _normalizeTime(s.startTime);
+                          if (!map.containsKey(normalized)) {
+                            map[normalized] = s;
+                          }
+                          return map;
+                        })
+                        .values
+                        .map((s) => DropdownMenuItem(
+                              value: _normalizeTime(s.startTime),
+                              child: Text('${_formatTimeDisplay(s.startTime)} - ${_formatTimeDisplay(s.endTime)}${s.notes != null ? ' (${s.notes})' : ''}'),
+                            ))
+                        .toList(),
+                    onChanged: (value) => setState(() => _selectedTime = value),
+                    validator: (value) => value == null ? "Please select a mass time" : null,
+                  ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _offeredByController,
@@ -295,5 +389,10 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
         ),
       ),
     );
+  }
+
+  String _getDayName(int weekday) {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return days[weekday - 1];
   }
 }

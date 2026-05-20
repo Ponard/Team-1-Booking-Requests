@@ -44,9 +44,20 @@ const MassIntention = sequelize.define('MassIntention', {
     allowNull: true,
   },
   notes: {
-    type: DataTypes.JSONB,
+    type: DataTypes.TEXT,
     allowNull: true,
-    defaultValue: [],
+    defaultValue: '[]',
+    get() {
+      const raw = this.getDataValue('notes');
+      try {
+        return typeof raw === 'string' ? JSON.parse(raw) : raw;
+      } catch {
+        return [];
+      }
+    },
+    set(val) {
+      this.setDataValue('notes', typeof val === 'string' ? val : JSON.stringify(val));
+    },
   },
   status: {
     type: DataTypes.ENUM('pending', 'approved', 'declined', 'completed'),
