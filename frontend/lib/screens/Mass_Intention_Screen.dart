@@ -26,6 +26,7 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
   String? _selectedTime;
   DateTime? _selectedDate;
   List<MassSchedule> _availableSchedules = [];
+  String _noSchedulesMessage = '';
 
   @override
   void initState() {
@@ -74,12 +75,30 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
     }
 
     await scheduleProvider.loadSchedules(parishId: parishId);
-    final schedules = scheduleProvider.getSchedulesForDate(date);
+    List<MassSchedule> schedules = scheduleProvider.getSchedulesForDate(date);
+
+    final now = DateTime.now();
+    final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
+    if (isToday) {
+      final currentTimeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+      schedules = schedules.where((s) {
+        if (s.intentionCutoffTime == null) return true;
+        return currentTimeStr.compareTo(s.intentionCutoffTime!) < 0;
+      }).toList();
+    }
 
     setState(() {
       _availableSchedules = schedules;
       if (schedules.isNotEmpty && _selectedTime == null) {
         _selectedTime = _normalizeTime(schedules.first.startTime);
+      }
+      final allSchedules = scheduleProvider.getSchedulesForDate(date);
+      if (allSchedules.isEmpty) {
+        _noSchedulesMessage = 'No mass schedules configured for ${_getDayName(date.weekday)}. Please select another date or contact the parish office.';
+      } else if (schedules.isEmpty && isToday) {
+        _noSchedulesMessage = 'Intention cutoff time has passed for all masses today. Please select another date.';
+      } else {
+        _noSchedulesMessage = '';
       }
     });
   }
@@ -313,7 +332,7 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'No mass schedules configured for ${_getDayName(_selectedDate!.weekday)}. Please select another date or contact the parish office.',
+                            _noSchedulesMessage,
                             style: TextStyle(color: Colors.orange.shade700, fontSize: 13),
                           ),
                         ),

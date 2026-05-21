@@ -269,25 +269,53 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
     'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
   ];
   final Set<String> _selectedDays = {};
+  final TextEditingController _cutoffController = TextEditingController();
   String? _startTime;
   String? _endTime;
-  String? _cutoffTime;
   String? _notes;
   int? _selectedParishId;
   int? _selectedPriestId;
+
+  String _stripSeconds(String time) {
+    final parts = time.split(':');
+    return parts.length >= 2 ? '${parts[0]}:${parts[1]}' : time;
+  }
+
+  String? _calculateCutoff(String startTime) {
+    try {
+      final parts = startTime.split(':');
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      final totalMinutes = hour * 60 + minute - 30;
+      if (totalMinutes < 0) return '00:00';
+      final newHour = totalMinutes ~/ 60;
+      final newMinute = totalMinutes % 60;
+      return '${newHour.toString().padLeft(2, '0')}:${newMinute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return null;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     if (widget.schedule != null) {
       _selectedDays.add(widget.schedule!.dayOfWeek);
-      _startTime = widget.schedule!.startTime;
-      _endTime = widget.schedule!.endTime;
-      _cutoffTime = widget.schedule!.intentionCutoffTime;
+      _startTime = _stripSeconds(widget.schedule!.startTime);
+      _endTime = _stripSeconds(widget.schedule!.endTime);
+      _cutoffController.text = widget.schedule!.intentionCutoffTime != null
+          ? _stripSeconds(widget.schedule!.intentionCutoffTime!)
+          : '';
       _notes = widget.schedule!.notes;
       _selectedParishId = widget.schedule!.parishId;
       _selectedPriestId = widget.schedule!.priestId;
     }
+  }
+
+  @override
+  void dispose() {
+    _cutoffController.dispose();
+    super.dispose();
   }
 
   Future<void> _save() async {
@@ -312,6 +340,7 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
     }
 
     bool allSuccess = true;
+    final cutoffValue = _cutoffController.text.isNotEmpty ? _cutoffController.text : null;
     for (final day in _selectedDays) {
       bool success;
       if (widget.schedule != null) {
@@ -322,7 +351,7 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
           startTime: _startTime!,
           endTime: _endTime!,
           priestId: _selectedPriestId,
-          intentionCutoffTime: _cutoffTime,
+          intentionCutoffTime: cutoffValue,
           notes: _notes,
         );
       } else {
@@ -332,7 +361,7 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
           startTime: _startTime!,
           endTime: _endTime!,
           priestId: _selectedPriestId,
-          intentionCutoffTime: _cutoffTime,
+          intentionCutoffTime: cutoffValue,
           notes: _notes,
         );
       }
@@ -371,8 +400,12 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
                 if (!isParishLevel)
                   Consumer<ParishProvider>(
                     builder: (context, parishProvider, _) {
+                      final validParishId = _selectedParishId != null &&
+                          parishProvider.parishes.any((p) => p.id == _selectedParishId)
+                          ? _selectedParishId
+                          : null;
                       return DropdownButtonFormField<int>(
-                        value: _selectedParishId,
+                        value: validParishId,
                         decoration: const InputDecoration(
                           labelText: 'Parish',
                           border: OutlineInputBorder(),
@@ -425,6 +458,13 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
                           border: OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.datetime,
+                        onChanged: (v) {
+                          _startTime = v;
+                          final cutoff = _calculateCutoff(v);
+                          if (cutoff != null) {
+                            _cutoffController.text = cutoff;
+                          }
+                        },
                         onSaved: (v) => _startTime = v,
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Required';
@@ -454,13 +494,12 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
-                  initialValue: _cutoffTime,
+                  controller: _cutoffController,
                   decoration: const InputDecoration(
                     labelText: 'Intention Cutoff Time (HH:MM)',
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.datetime,
-                  onSaved: (v) => _cutoffTime = v,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
