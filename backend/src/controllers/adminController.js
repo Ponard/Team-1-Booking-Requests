@@ -1267,27 +1267,34 @@ const updateBookingStatus = async (req, res) => {
 const deleteBooking = async (req, res) => {
   try {
     const { id } = req.params;
+    const { sacramentType } = req.query;
     const requestingUser = req.user;
 
-    const bookingTables = [
-      BaptismBooking,
-      WeddingBooking,
-      ConfirmationBooking,
-      EucharistBooking,
-      ReconciliationBooking,
-      AnointingSickBooking,
-      FuneralMassBooking,
-      MassIntention,
-    ];
+    const modelMap = {
+      baptism: BaptismBooking,
+      wedding: WeddingBooking,
+      confirmation: ConfirmationBooking,
+      eucharist: EucharistBooking,
+      reconciliation: ReconciliationBooking,
+      anointing_sick: AnointingSickBooking,
+      funeral_mass: FuneralMassBooking,
+      mass_intention: MassIntention,
+    };
 
     let booking = null;
+    let bookingType = sacramentType;
 
-    // Find the booking in all tables
-    for (const model of bookingTables) {
-      const found = await model.findByPk(id);
-      if (found) {
-        booking = found;
-        break;
+    if (sacramentType && modelMap[sacramentType]) {
+      booking = await modelMap[sacramentType].findByPk(id);
+    } else {
+      // Fallback: search all tables (less reliable due to overlapping IDs)
+      for (const [type, model] of Object.entries(modelMap)) {
+        const found = await model.findByPk(id);
+        if (found) {
+          booking = found;
+          bookingType = type;
+          break;
+        }
       }
     }
 
@@ -1297,7 +1304,6 @@ const deleteBooking = async (req, res) => {
 
     // Apply parish-level restrictions
     if (requestingUser.role === 'parish_admin' || requestingUser.role === 'parish_staff') {
-      // Parish-level users can only delete bookings in their assigned parish
       if (booking.parishId !== requestingUser.assignedParishId) {
         return res.status(403).json({
           error: 'Insufficient permissions',
@@ -1306,10 +1312,14 @@ const deleteBooking = async (req, res) => {
       }
     }
 
-    // Soft delete by setting status to cancelled
-    await booking.update({ status: 'cancelled' });
+    // Delete associated documents
+    const { BookingDocument } = require('../models');
+    await BookingDocument.destroy({ where: { bookingId: parseInt(id), bookingType } });
+    
+    // Hard delete the booking
+    await booking.destroy();
 
-    res.json({ message: 'Booking cancelled successfully' });
+    res.json({ message: 'Booking deleted successfully' });
   } catch (error) {
     console.error('Error deleting booking:', error);
     res.status(500).json({ error: 'Failed to delete booking' });

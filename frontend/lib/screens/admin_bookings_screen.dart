@@ -122,7 +122,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
     }
   }
 
-  Future<void> _deleteBooking(String bookingId) async {
+  Future<void> _deleteBooking(String bookingId, {String? sacramentType}) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -148,7 +148,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
     final token = authProvider.token;
     if (token == null) return;
 
-    final response = await _adminService.deleteBooking(token, bookingId);
+    final response = await _adminService.deleteBooking(token, bookingId, sacramentType: sacramentType);
 
     if (mounted) {
       if (response.success) {
@@ -905,7 +905,7 @@ Text(
                                       IconButton(
                                         icon: const Icon(Icons.delete, color: Colors.red, size: 20),
                                         tooltip: 'Delete booking',
-                                        onPressed: () => _deleteBooking(booking['id'].toString()),
+                                        onPressed: () => _deleteBooking(booking['id'].toString(), sacramentType: booking['bookingType'] ?? booking['sacramentType']),
                                       ),
                                     ],
                                   ),

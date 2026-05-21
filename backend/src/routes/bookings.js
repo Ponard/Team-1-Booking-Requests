@@ -282,10 +282,14 @@ router.delete('/:id', async (req, res) => {
       }
 
       if (sacramentType !== 'mass_intention') {
-        await booking.setDocuments([]);
+        const { BookingDocument } = require('../models');
+        console.log(`[DELETE] Destroying documents for bookingId: ${id}, type: ${sacramentType}`);
+        await BookingDocument.destroy({ where: { bookingId: parseInt(id), bookingType: sacramentType } });
       }
+      console.log(`[DELETE] Destroying booking: ${id}`);
       await booking.destroy();
 
+      console.log(`[DELETE] Success`);
       return res.json({ success: true, message: 'Booking deleted successfully' });
     }
 
@@ -338,7 +342,8 @@ router.delete('/:id', async (req, res) => {
 
     // Delete associated documents (only for booking types that have documents relationship)
     if (bookingType !== 'mass_intention') {
-      await foundBooking.setDocuments([]);
+      const { BookingDocument } = require('../models');
+      await BookingDocument.destroy({ where: { bookingId: parseInt(id), bookingType: bookingType } });
     }
     
     // Delete the booking

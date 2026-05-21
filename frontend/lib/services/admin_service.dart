@@ -417,13 +417,14 @@ class AdminService {
   // Delete booking
   Future<ApiResponse<Map<String, dynamic>>> deleteBooking(
     String token,
-    String bookingId,
-  ) async {
+    String bookingId, {
+    String? sacramentType,
+  }) async {
     try {
-      final response = await ApiConfig.deleteWithAuth(
-        '/api/admin/bookings/$bookingId',
-        token,
-      );
+      String url = '/api/admin/bookings/$bookingId';
+      if (sacramentType != null) url += '?sacramentType=$sacramentType';
+
+      final response = await ApiConfig.deleteWithAuth(url, token);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
