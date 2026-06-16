@@ -96,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
             'approved': 0,
             'declined': 0,
             'completed': 0,
+            'cancelled': 0,
           };
           for (var booking in bookings) {
             final status = (booking['status'] ?? 'pending').toString().toLowerCase();
@@ -135,37 +136,37 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(icon, size: 28, color: color),
-              const SizedBox(height: 8),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                  maxLines: 1,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Flexible(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+              Icon(icon, size: 20, color: color),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                      maxLines: 1,
+                    ),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -385,14 +386,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.pushNamed(context, '/admin-users');
                   },
                 ),
-              ListTile(
-                leading: const Icon(Icons.description),
-                title: const Text('Sacramental Records'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/admin-records');
-                },
-              ),
             ],
             const Divider(),
             ListTile(
@@ -430,13 +423,10 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 10),
           Text(
             isAdmin
-                ? 'Manage sacraments, bookings, and parish operations across ${isDioceseLevel ? 'all parishes' : 'your parish'}.'
-                  '\nSelect a service below to begin.'
+                ? 'Manage sacraments, bookings, and parish operations across ${isDioceseLevel ? 'all parishes' : 'your parish'}.\nSelect a service below to begin.'
                 : isPriest
-                    ? 'View your schedule of assigned sacraments and bookings.'
-                      '\nClick below to see your monthly schedule.'
-                    : 'Book sacraments and mass intentions across all parishes in the diocese.'
-                      '\nSelect a service below to begin your booking request.',
+                    ? 'View your schedule of assigned sacraments and bookings.\nClick below to see your monthly schedule.'
+                    : 'Book sacraments and mass intentions across all parishes in the diocese.\nSelect a service below to begin your booking request.',
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 16),
           ),
@@ -605,7 +595,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
                           GridView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
@@ -613,15 +603,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               crossAxisCount: 2,
                               crossAxisSpacing: 12,
                               mainAxisSpacing: 12,
-                              childAspectRatio: 1.3,
+                              childAspectRatio: 3.0,
                             ),
-                            itemCount: _bookingStats.entries.where((e) => e.key != 'total' && e.value > 0).length,
+                            itemCount: 5,
                             itemBuilder: (context, index) {
-                              final entries = _bookingStats.entries.where((e) => e.key != 'total' && e.value > 0).toList();
-                              if (index >= entries.length) return const SizedBox.shrink();
-                              final entry = entries[index];
-                              final status = entry.key;
-                              final count = entry.value;
+                              final statuses = ['pending', 'approved', 'declined', 'completed', 'cancelled'];
+                              final status = statuses[index];
+                              final count = _bookingStats[status] ?? 0;
+
                               Color color;
                               IconData icon;
                               switch (status) {
@@ -640,6 +629,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 case 'completed':
                                   color = Colors.blue;
                                   icon = Icons.done_all;
+                                  break;
+                                case 'cancelled':
+                                  color = Colors.blueGrey;
+                                  icon = Icons.info;
                                   break;
                                 default:
                                   color = Colors.grey;
@@ -730,12 +723,11 @@ class _HomeScreenState extends State<HomeScreen> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: services.length,
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 1.3,
+                childAspectRatio: 3.0,
               ),
               itemBuilder: (context, index) {
                 final service = services[index];
@@ -744,7 +736,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.pushNamed(context, service["route"]!);
                   },
                   child: Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.grey.shade300),
@@ -756,30 +748,30 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Icon(
                           getSacramentIcon(_getServiceSacramentType(service["title"]!)),
-                          size: 32,
+                          size: 20,
                           color: Colors.blue.shade700,
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 1),
                         Flexible(
                           child: Text(
                             service["title"]!,
                             style: const TextStyle(
-                              fontSize: 14,
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
-                            maxLines: 2,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 1),
                         Flexible(
                           child: Text(
                             service["desc"]!,
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 10,
                               color: Colors.grey,
                             ),
-                            maxLines: 2,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
