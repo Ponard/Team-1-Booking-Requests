@@ -129,6 +129,8 @@ class _HomeScreenState extends State<HomeScreen> {
     required Color color,
     VoidCallback? onTap,
   }) {
+    final bool isWeb = MediaQuery.of(context).size.width > 600;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -136,12 +138,15 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+          padding: EdgeInsets.symmetric(
+            vertical: isWeb ? 16 : 4, 
+            horizontal: isWeb ? 16 : 8,
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(icon, size: 20, color: color),
-              const SizedBox(width: 8),
+              Icon(icon, size: isWeb ? 32 : 20, color: color),
+              SizedBox(width: isWeb ? 16 : 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       value,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: isWeb ? 24 : 14,
                         fontWeight: FontWeight.bold,
                         color: color,
                       ),
@@ -159,9 +164,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey,
+                      style: TextStyle(
+                        fontSize: isWeb ? 14 : 10,
+                        color: Colors.grey.shade600,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -731,12 +736,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               itemBuilder: (context, index) {
                 final service = services[index];
+                final bool isWeb = MediaQuery.of(context).size.width > 600;
+
                 return InkWell(
                   onTap: () {
                     Navigator.pushNamed(context, service["route"]!);
                   },
                   child: Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: EdgeInsets.all(isWeb ? 16 : 6),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.grey.shade300),
@@ -748,30 +755,30 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Icon(
                           getSacramentIcon(_getServiceSacramentType(service["title"]!)),
-                          size: 20,
+                          size: isWeb ? 32 : 20,
                           color: Colors.blue.shade700,
                         ),
-                        const SizedBox(height: 1),
+                        SizedBox(height: isWeb ? 8 : 2),
                         Flexible(
                           child: Text(
                             service["title"]!,
-                            style: const TextStyle(
-                              fontSize: 12,
+                            style: TextStyle(
+                              fontSize: isWeb ? 18 : 12,
                               fontWeight: FontWeight.bold,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(height: 1),
+                        SizedBox(height: isWeb ? 4 : 1),
                         Flexible(
                           child: Text(
                             service["desc"]!,
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: Colors.grey,
+                            style: TextStyle(
+                              fontSize: isWeb ? 13 : 10,
+                              color: Colors.grey.shade600,
                             ),
-                            maxLines: 1,
+                            maxLines: isWeb ? 2 : 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
