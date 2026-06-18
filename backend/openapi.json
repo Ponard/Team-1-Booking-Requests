@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:3000",
+      "url": "https://tcnrf7dv-3000.asse.devtunnels.ms",
       "description": "Development server"
     }
   ],

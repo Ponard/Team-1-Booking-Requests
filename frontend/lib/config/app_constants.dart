@@ -4,7 +4,7 @@ class AppConstants {
   static const String packageName = 'com.diocese.kalookan';
   
   // API Configuration
-  static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://10.0.2.2:3000');
+  static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://tcnrf7dv-3000.asse.devtunnels.ms');
   static const Duration apiTimeout = Duration(seconds: 30);
   
   // Storage Keys

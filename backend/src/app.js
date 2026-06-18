@@ -44,7 +44,7 @@ app.use(helmet({
 // CORS configuration for Flutter app
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
   'http://localhost:8080', // Flutter web
-  'http://10.0.2.2:3000',  // Android emulator
+  'https://tcnrf7dv-3000.asse.devtunnels.ms',  // Android emulator
   'http://127.0.0.1:3000', // iOS simulator
 ];
 

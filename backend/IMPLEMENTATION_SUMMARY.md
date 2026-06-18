@@ -324,6 +324,6 @@ npm run dev
 ```
 
 Access points:
-- API: http://localhost:3000
-- Swagger Docs: http://localhost:3000/api-docs
-- Health Check: http://localhost:3000/health
+- API: https://tcnrf7dv-3000.asse.devtunnels.ms
+- Swagger Docs: https://tcnrf7dv-3000.asse.devtunnels.ms/api-docs
+- Health Check: https://tcnrf7dv-3000.asse.devtunnels.ms/health

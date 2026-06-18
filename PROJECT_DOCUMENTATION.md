@@ -361,8 +361,8 @@ Generic JSON-based config per parish.
 
 ## 6. API Reference
 
-Base URL: `http://localhost:3000/api` (dev)  
-Swagger UI: `http://localhost:3000/api-docs`
+Base URL: `https://tcnrf7dv-3000.asse.devtunnels.ms/api` (dev)  
+Swagger UI: `https://tcnrf7dv-3000.asse.devtunnels.ms/api-docs`
 
 ### 6.1 Authentication
 
@@ -633,7 +633,7 @@ flutter build linux                  # Linux build
 # App
 NODE_ENV=development
 PORT=3000
-API_URL=http://localhost:3000
+API_URL=https://tcnrf7dv-3000.asse.devtunnels.ms
 
 # PostgreSQL
 DB_HOST=localhost
@@ -671,7 +671,7 @@ SUPABASE_SERVICE_KEY=your-service-key
 SUPABASE_STORAGE_BUCKET=diocese-booking-documents
 
 # CORS
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
+ALLOWED_ORIGINS=https://tcnrf7dv-3000.asse.devtunnels.ms,http://localhost:8080
 
 # Rate Limiting
 RATE_LIMIT_WINDOW_MS=900000
@@ -732,7 +732,7 @@ npm run migrate
 npm run seed
 
 # 5. Start dev server
-npm run dev    # http://localhost:3000
+npm run dev    # https://tcnrf7dv-3000.asse.devtunnels.ms
 ```
 
 ### 11.3 Database Migration

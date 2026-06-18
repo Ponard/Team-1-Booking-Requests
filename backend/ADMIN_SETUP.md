@@ -219,12 +219,12 @@ Role-based authorization is enforced:
 Test the admin endpoints:
 ```bash
 # Get admin token first
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST https://tcnrf7dv-3000.asse.devtunnels.ms/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@diocese.kalookan.org","password":"ChangeMe123!"}'
 
 # Use token to access admin endpoints
-curl http://localhost:3000/api/admin/dashboard \
+curl https://tcnrf7dv-3000.asse.devtunnels.ms/api/admin/dashboard \
   -H "Authorization: Bearer <token>"
 ```
 

@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const BASE_URL = 'http://localhost:3000/api';
+const BASE_URL = 'https://tcnrf7dv-3000.asse.devtunnels.ms/api';
 let authToken = null;
 
 async function testAuth() {
