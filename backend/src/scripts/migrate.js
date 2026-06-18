@@ -124,8 +124,8 @@ async function runMigrations() {
     console.log('📋 Next steps:');
     console.log('   - Run `npm run seed` to populate sample data (optional)');
     console.log('   - Run `npm run dev` to start the server');
-    console.log('   - Access the API at https://cngqa-180-190-226-223.run.pinggy-free.link');
-    console.log('   - Access Swagger docs at https://cngqa-180-190-226-223.run.pinggy-free.link/api-docs');
+    console.log('   - Access the API at http://localhost:3000');
+    console.log('   - Access Swagger docs at http://localhost:3000/api-docs');
     console.log('   - Use the /health endpoint to verify everything is working');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 

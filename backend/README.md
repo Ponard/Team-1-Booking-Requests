@@ -149,7 +149,7 @@ npm start
 
 ## API Documentation
 
-Access the Swagger UI at: `https://cngqa-180-190-226-223.run.pinggy-free.link/api-docs`
+Access the Swagger UI at: `http://localhost:3000/api-docs`
 
 Or view the OpenAPI spec in `openapi.json`.
 

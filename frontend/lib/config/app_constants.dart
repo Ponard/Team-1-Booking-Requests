@@ -4,7 +4,7 @@ class AppConstants {
   static const String packageName = 'com.diocese.kalookan';
   
   // API Configuration
-  static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://cngqa-180-190-226-223.run.pinggy-free.link');
+  static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:3000');
   static const Duration apiTimeout = Duration(seconds: 30);
   
   // Storage Keys

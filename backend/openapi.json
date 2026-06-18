@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://cngqa-180-190-226-223.run.pinggy-free.link",
+      "url": "http://localhost:3000",
       "description": "Development server"
     }
   ],

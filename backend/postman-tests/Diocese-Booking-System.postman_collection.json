@@ -8,7 +8,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "https://cngqa-180-190-226-223.run.pinggy-free.link",
+      "value": "http://localhost:3000",
       "type": "string"
     },
     {

@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 // Test variables
-const BASE_URL = 'https://cngqa-180-190-226-223.run.pinggy-free.link';
+const BASE_URL = 'http://localhost:3000';
 const TEST_JWT_TOKEN = process.env.TEST_JWT_TOKEN || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJkaW9jZXNlX2FkbWluIiwiaWF0IjoxNjI0NTA2NDAwfQ.example'; // Replace with a valid JWT token
 
 async function testNewEndpoints() {
