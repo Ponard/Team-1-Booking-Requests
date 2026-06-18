@@ -324,6 +324,6 @@ npm run dev
 ```
 
 Access points:
-- API: http://cngqa-180-190-226-223.run.pinggy-free.link
-- Swagger Docs: http://cngqa-180-190-226-223.run.pinggy-free.link/api-docs
-- Health Check: http://cngqa-180-190-226-223.run.pinggy-free.link/health
+- API: https://cngqa-180-190-226-223.run.pinggy-free.link
+- Swagger Docs: https://cngqa-180-190-226-223.run.pinggy-free.link/api-docs
+- Health Check: https://cngqa-180-190-226-223.run.pinggy-free.link/health

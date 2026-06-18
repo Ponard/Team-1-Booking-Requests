@@ -36,7 +36,7 @@ This directory contains Postman collection and environment files for testing the
 
 | Variable | Description | Default Value |
 |----------|-------------|---------------|
-| `baseUrl` | API base URL | `http://cngqa-180-190-226-223.run.pinggy-free.link` |
+| `baseUrl` | API base URL | `https://cngqa-180-190-226-223.run.pinggy-free.link` |
 | `accessToken` | JWT access token (auto-populated after login) | - |
 | `refreshToken` | JWT refresh token (auto-populated after login) | - |
 | `adminId` | Admin user ID (auto-populated) | - |
@@ -356,7 +356,7 @@ The collection uses dynamic data generation:
 - Check that `{{userId}}`, `{{parishId}}`, etc. are populated
 
 ### Tests Failing
-- Ensure the backend server is running on `http://cngqa-180-190-226-223.run.pinggy-free.link`
+- Ensure the backend server is running on `https://cngqa-180-190-226-223.run.pinggy-free.link`
 - Check database connection and data
 - Run requests in order (especially for dependent resources)
 

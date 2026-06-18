@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://cngqa-180-190-226-223.run.pinggy-free.link",
+      "url": "https://cngqa-180-190-226-223.run.pinggy-free.link",
       "description": "Development server"
     }
   ],
