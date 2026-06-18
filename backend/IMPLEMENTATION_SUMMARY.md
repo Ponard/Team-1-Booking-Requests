@@ -324,6 +324,6 @@ npm run dev
 ```
 
 Access points:
-- API: https://tcnrf7dv-3000.asse.devtunnels.ms
-- Swagger Docs: https://tcnrf7dv-3000.asse.devtunnels.ms/api-docs
-- Health Check: https://tcnrf7dv-3000.asse.devtunnels.ms/health
+- API: http://cngqa-180-190-226-223.run.pinggy-free.link
+- Swagger Docs: http://cngqa-180-190-226-223.run.pinggy-free.link/api-docs
+- Health Check: http://cngqa-180-190-226-223.run.pinggy-free.link/health

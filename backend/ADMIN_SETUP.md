@@ -219,12 +219,12 @@ Role-based authorization is enforced:
 Test the admin endpoints:
 ```bash
 # Get admin token first
-curl -X POST https://tcnrf7dv-3000.asse.devtunnels.ms/api/auth/login \
+curl -X POST http://cngqa-180-190-226-223.run.pinggy-free.link/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@diocese.kalookan.org","password":"ChangeMe123!"}'
 
 # Use token to access admin endpoints
-curl https://tcnrf7dv-3000.asse.devtunnels.ms/api/admin/dashboard \
+curl http://cngqa-180-190-226-223.run.pinggy-free.link/api/admin/dashboard \
   -H "Authorization: Bearer <token>"
 ```
 

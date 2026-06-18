@@ -101,7 +101,7 @@ lib/
 Create a `.env` file in the project root with the following variables:
 
 ```
-API_BASE_URL=https://tcnrf7dv-3000.asse.devtunnels.ms  # For Android emulator
+API_BASE_URL=http://cngqa-180-190-226-223.run.pinggy-free.link  # For Android emulator
 # API_BASE_URL=http://127.0.0.1:3000  # For iOS simulator
 ```
 
@@ -110,7 +110,7 @@ API_BASE_URL=https://tcnrf7dv-3000.asse.devtunnels.ms  # For Android emulator
 The app integrates with the Diocese backend API. All API endpoints are configured in `lib/config/api_config.dart`.
 
 ### Base URLs
-- **Development**: https://tcnrf7dv-3000.asse.devtunnels.ms (Android emulator) or http://127.0.0.1:3000 (iOS simulator)
+- **Development**: http://cngqa-180-190-226-223.run.pinggy-free.link (Android emulator) or http://127.0.0.1:3000 (iOS simulator)
 - **Production**: https://api.diocese-kalookan.com
 
 ### Authentication

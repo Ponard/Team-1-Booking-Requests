@@ -1,6 +1,25 @@
 const app = require('./src/app');
 const { testConnection } = require('./src/config/database');
 const { syncDatabase } = require('./src/models');
+const express = require('express');
+const cors = require('cors'); // 1. Make sure this import is here
+const app = express();
+
+// 1. Completely open up CORS for development
+app.use(cors());
+
+// 2. Add an explicit interceptor for the Preflight check 
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  
+  // Instantly approve OPTIONS preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 require('dotenv').config({ 
   path: `.env.${process.env.NODE_ENV || 'development'}` 
 });

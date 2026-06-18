@@ -54,7 +54,7 @@ npm run migrate
 ```bash
 npm run dev
 ```
-The server will start on `https://tcnrf7dv-3000.asse.devtunnels.ms` (or the port specified in your .env file)
+The server will start on `http://cngqa-180-190-226-223.run.pinggy-free.link` (or the port specified in your .env file)
 
 ## Setting Up the Flutter App
 
@@ -70,7 +70,7 @@ flutter pub get
 
 ### 3. Configure API Base URL
 The app uses environment-based API configuration. By default, it points to:
-- Development: `https://tcnrf7dv-3000.asse.devtunnels.ms` (for Android emulator)
+- Development: `http://cngqa-180-190-226-223.run.pinggy-free.link` (for Android emulator)
 - You can change this in `lib/config/app_constants.dart`
 
 ### 4. Make sure you have a device/emulator running:
@@ -87,13 +87,13 @@ flutter run
 
 ### Backend-first approach:
 1. Start the backend server first: `npm run dev`
-2. Verify the backend is running by accessing: `https://tcnrf7dv-3000.asse.devtunnels.ms/health`
+2. Verify the backend is running by accessing: `http://cngqa-180-190-226-223.run.pinggy-free.link/health`
 3. Then start the Flutter app: `flutter run`
 
 ### Important Configuration Notes:
 
 #### For Android Emulator:
-- The default API URL in the Flutter app is configured for Android emulator (`https://tcnrf7dv-3000.asse.devtunnels.ms`)
+- The default API URL in the Flutter app is configured for Android emulator (`http://cngqa-180-190-226-223.run.pinggy-free.link`)
 - No changes needed for default setup
 
 #### For iOS Simulator:

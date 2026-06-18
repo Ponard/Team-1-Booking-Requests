@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const BASE_URL = 'https://tcnrf7dv-3000.asse.devtunnels.ms/api';
+const BASE_URL = 'http://cngqa-180-190-226-223.run.pinggy-free.link/api';
 let authToken = null;
 
 async function testAuth() {
