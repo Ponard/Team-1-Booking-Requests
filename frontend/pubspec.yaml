@@ -28,7 +28,7 @@ dependencies:
   provider: ^6.0.5
 
   # HTTP client
-  http: ^0.13.5
+  http: ^1.6.0
 
   # Local storage
   shared_preferences: ^2.2.2
