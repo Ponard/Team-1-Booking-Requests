@@ -70,7 +70,7 @@ flutter pub get
 
 ### 3. Configure API Base URL
 The app uses environment-based API configuration. By default, it points to:
-- Development: `http://10.0.2.2:3000` (for Android emulator)
+- Development: `http://localhost:3000` (for Android emulator)
 - You can change this in `lib/config/app_constants.dart`
 
 ### 4. Make sure you have a device/emulator running:
@@ -93,7 +93,7 @@ flutter run
 ### Important Configuration Notes:
 
 #### For Android Emulator:
-- The default API URL in the Flutter app is configured for Android emulator (`http://10.0.2.2:3000`)
+- The default API URL in the Flutter app is configured for Android emulator (`http://localhost:3000`)
 - No changes needed for default setup
 
 #### For iOS Simulator:

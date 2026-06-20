@@ -101,7 +101,7 @@ lib/
 Create a `.env` file in the project root with the following variables:
 
 ```
-API_BASE_URL=http://10.0.2.2:3000  # For Android emulator
+API_BASE_URL=http://localhost:3000  # For Android emulator
 # API_BASE_URL=http://127.0.0.1:3000  # For iOS simulator
 ```
 
@@ -110,7 +110,7 @@ API_BASE_URL=http://10.0.2.2:3000  # For Android emulator
 The app integrates with the Diocese backend API. All API endpoints are configured in `lib/config/api_config.dart`.
 
 ### Base URLs
-- **Development**: http://10.0.2.2:3000 (Android emulator) or http://127.0.0.1:3000 (iOS simulator)
+- **Development**: http://localhost:3000 (Android emulator) or http://127.0.0.1:3000 (iOS simulator)
 - **Production**: https://api.diocese-kalookan.com
 
 ### Authentication

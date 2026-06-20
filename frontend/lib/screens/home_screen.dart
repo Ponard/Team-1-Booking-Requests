@@ -96,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
             'approved': 0,
             'declined': 0,
             'completed': 0,
+            'cancelled': 0,
           };
           for (var booking in bookings) {
             final status = (booking['status'] ?? 'pending').toString().toLowerCase();
@@ -129,6 +130,8 @@ class _HomeScreenState extends State<HomeScreen> {
     required Color color,
     VoidCallback? onTap,
   }) {
+    final bool isWeb = MediaQuery.of(context).size.width > 600;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -136,37 +139,40 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
+          padding: EdgeInsets.symmetric(
+            vertical: isWeb ? 16 : 4,
+            horizontal: isWeb ? 16 : 8,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(icon, size: 28, color: color),
-              const SizedBox(height: 8),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                  maxLines: 1,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Flexible(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+              Icon(icon, size: isWeb ? 32 : 20, color: color),
+              SizedBox(width: isWeb ? 16 : 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: isWeb ? 24 : 14,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                      maxLines: 1,
+                    ),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: isWeb ? 14 : 10,
+                        color: Colors.grey.shade600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -423,13 +429,10 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 10),
           Text(
             isAdmin
-                ? 'Manage sacraments, bookings, and parish operations across ${isDioceseLevel ? 'all parishes' : 'your parish'}.'
-                '\nSelect a service below to begin.'
+                ? 'Manage sacraments, bookings, and parish operations across ${isDioceseLevel ? 'all parishes' : 'your parish'}.\nSelect a service below to begin.'
                 : isPriest
-                ? 'View your schedule of assigned sacraments and bookings.'
-                '\nClick below to see your monthly schedule.'
-                : 'Book sacraments and mass intentions across all parishes in the diocese.'
-                '\nSelect a service below to begin your booking request.',
+                ? 'View your schedule of assigned sacraments and bookings.\nClick below to see your monthly schedule.'
+                : 'Book sacraments and mass intentions across all parishes in the diocese.\nSelect a service below to begin your booking request.',
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 16),
           ),
@@ -598,7 +601,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -606,15 +609,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
-                    childAspectRatio: 1.3,
+                    childAspectRatio: 3.0,
                   ),
-                  itemCount: _bookingStats.entries.where((e) => e.key != 'total' && e.value > 0).length,
+                  itemCount: 5,
                   itemBuilder: (context, index) {
-                    final entries = _bookingStats.entries.where((e) => e.key != 'total' && e.value > 0).toList();
-                    if (index >= entries.length) return const SizedBox.shrink();
-                    final entry = entries[index];
-                    final status = entry.key;
-                    final count = entry.value;
+                    final statuses = ['pending', 'approved', 'declined', 'completed', 'cancelled'];
+                    final status = statuses[index];
+                    final count = _bookingStats[status] ?? 0;
+
                     Color color;
                     IconData icon;
                     switch (status) {
@@ -632,7 +634,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         break;
                       case 'completed':
                         color = Colors.blue;
-                        icon = Icons.done_all;
+                        icon = Icons.done_all;break;
+                                case 'cancelled':
+                                  color = Colors.blueGrey;
+                                  icon = Icons.info;
                         break;
                       default:
                         color = Colors.grey;
@@ -728,16 +733,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 1.3,
+                childAspectRatio: 3.0,
               ),
               itemBuilder: (context, index) {
                 final service = services[index];
+                final bool isWeb = MediaQuery.of(context).size.width > 600;
+
                 return InkWell(
                   onTap: () {
                     Navigator.pushNamed(context, service["route"]!);
                   },
                   child: Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(isWeb ? 16 : 6),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.grey.shade300),
@@ -749,30 +756,30 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Icon(
                           getSacramentIcon(_getServiceSacramentType(service["title"]!)),
-                          size: 32,
+                          size: isWeb ? 32 : 20,
                           color: Colors.blue.shade700,
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: isWeb ? 8 : 2),
                         Flexible(
                           child: Text(
                             service["title"]!,
-                            style: const TextStyle(
-                              fontSize: 14,
+                            style: TextStyle(
+                              fontSize: isWeb ? 18 : 12,
                               fontWeight: FontWeight.bold,
                             ),
-                            maxLines: 2,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: isWeb ? 4 : 1),
                         Flexible(
                           child: Text(
                             service["desc"]!,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey,
+                            style: TextStyle(
+                              fontSize: isWeb ? 13 : 10,
+                              color: Colors.grey.shade600,
                             ),
-                            maxLines: 2,
+                            maxLines: isWeb ? 2 : 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
