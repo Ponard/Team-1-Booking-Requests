@@ -7,10 +7,16 @@ class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
 
   bool _isLoading = false;
-  String? _errorMessage;
+  String? _loginErrorMessage;
+  String? _registerErrorMessage;
+  String? _profileErrorMessage;
+  String? _passwordErrorMessage;
 
   bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
+  String? get loginErrorMessage => _loginErrorMessage;
+  String? get registerErrorMessage => _registerErrorMessage;
+  String? get profileErrorMessage => _profileErrorMessage;
+  String? get passwordErrorMessage => _passwordErrorMessage;
   bool get isAuthenticated => _authService.isAuthenticated;
   User? get currentUser => _authService.currentUser;
   String? get token => _authService.accessToken;
@@ -28,7 +34,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> login(String email, String password) async {
     _setLoading(true);
-    _setErrorMessage(null);
+    _setLoginErrorMessage(null);
     
     final result = await _authService.login(
       email: email,
@@ -41,7 +47,7 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } else {
       _setLoading(false);
-      _setErrorMessage(result.message ?? 'Login failed');
+      _setLoginErrorMessage(result.message ?? 'Login failed');
       notifyListeners();
       return false;
     }
@@ -56,7 +62,7 @@ class AuthProvider extends ChangeNotifier {
     int? preferredParishId,
   }) async {
     _setLoading(true);
-    _setErrorMessage(null);
+    _setRegisterErrorMessage(null);
 
     final result = await _authService.register(
       email: email,
@@ -73,7 +79,7 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } else {
       _setLoading(false);
-      _setErrorMessage(result.message ?? 'Registration failed');
+      _setRegisterErrorMessage(result.message ?? 'Registration failed');
       notifyListeners();
       return false;
     }
@@ -82,7 +88,7 @@ class AuthProvider extends ChangeNotifier {
   // Sign in with Google
   Future<bool> signInWithGoogle() async {
     _setLoading(true);
-    _setErrorMessage(null);
+    _setLoginErrorMessage(null);
     
     final result = await _authService.signInWithGoogle();
     
@@ -92,7 +98,7 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } else {
       _setLoading(false);
-      _setErrorMessage(result.message ?? 'Google sign-in failed');
+      _setLoginErrorMessage(result.message ?? 'Google sign-in failed');
       notifyListeners();
       return false;
     }
@@ -110,7 +116,7 @@ class AuthProvider extends ChangeNotifier {
     String? address,
   }) async {
     _setLoading(true);
-    _setErrorMessage(null);
+    _setProfileErrorMessage(null);
     
     final result = await _authService.updateProfile(
       firstName: firstName,
@@ -125,7 +131,7 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } else {
       _setLoading(false);
-      _setErrorMessage(result.message ?? 'Failed to update profile');
+      _setProfileErrorMessage(result.message ?? 'Failed to update profile');
       notifyListeners();
       return false;
     }
@@ -136,7 +142,7 @@ class AuthProvider extends ChangeNotifier {
     required String newPassword,
   }) async {
     _setLoading(true);
-    _setErrorMessage(null);
+    _setPasswordErrorMessage(null);
     
     final result = await _authService.changePassword(
       oldPassword: oldPassword,
@@ -149,7 +155,7 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } else {
       _setLoading(false);
-      _setErrorMessage(result.message ?? 'Failed to change password');
+      _setPasswordErrorMessage(result.message ?? 'Failed to change password');
       notifyListeners();
       return false;
     }
@@ -160,7 +166,7 @@ class AuthProvider extends ChangeNotifier {
     required String newPassword,
   }) async {
     _setLoading(true);
-    _setErrorMessage(null);
+    _setPasswordErrorMessage(null);
     
     final result = await _authService.forcePasswordChange(
       newPassword: newPassword,
@@ -172,7 +178,7 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } else {
       _setLoading(false);
-      _setErrorMessage(result.message ?? 'Failed to change password');
+      _setPasswordErrorMessage(result.message ?? 'Failed to change password');
       notifyListeners();
       return false;
     }
@@ -183,13 +189,44 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _setErrorMessage(String? message) {
-    _errorMessage = message;
+  void _setLoginErrorMessage(String? message) {
+    _loginErrorMessage = message;
     notifyListeners();
   }
 
-  Future<void> clearError() async {
-    _setErrorMessage(null);
+  void _setRegisterErrorMessage(String? message) {
+    _registerErrorMessage = message;
+    notifyListeners();
+  }
+
+
+  void _setProfileErrorMessage(String? message) {
+    _profileErrorMessage = message;
+    notifyListeners();
+  }
+
+  void _setPasswordErrorMessage(String? message) {
+    _passwordErrorMessage = message;
+    notifyListeners();
+  }
+
+  Future<void> clearLoginErrorMessage() async {
+    _setLoginErrorMessage(null);
+    notifyListeners();
+  }
+
+  Future<void> clearRegisterErrorMessage() async {
+    _setRegisterErrorMessage(null);
+    notifyListeners();
+  }
+
+  Future<void> clearProfileErrorMessage() async {
+    _setProfileErrorMessage(null);
+    notifyListeners();
+  }
+
+  Future<void> clearPasswordErrorMessage() async {
+    _setPasswordErrorMessage(null);
     notifyListeners();
   }
 }

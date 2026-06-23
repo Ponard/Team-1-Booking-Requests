@@ -77,7 +77,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           Navigator.pop(context, true);
         } else {
           setState(() {
-            _errorMessage = authProvider.errorMessage ?? 'Failed to update profile';
+            _errorMessage = authProvider.profileErrorMessage ?? 'Failed to update profile';
           });
         }
         setState(() => _isLoading = false);
