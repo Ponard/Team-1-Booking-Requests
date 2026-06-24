@@ -189,6 +189,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   );
                 },
               ),
+              const SizedBox(height: 20),
+              Consumer<AuthProvider>(
+                builder: (context, authProvider, _) {
+                  if (authProvider.registerErrorMessage == null) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error, color: Colors.red, size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            authProvider.registerErrorMessage!,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 16),
+                          onPressed: () {
+                              authProvider.clearRegisterErrorMessage();
+                          },
+                        ),
+                      ],
+                    ),
+                    );
+                },
+              ),
               const SizedBox(height: 30),
               CustomButton(
                 text: 'Sign Up',

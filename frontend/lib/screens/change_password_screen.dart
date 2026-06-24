@@ -168,7 +168,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               const SizedBox(height: 20),
               
               // Error Message
-              if (authProvider.errorMessage != null)
+              if (authProvider.passwordErrorMessage != null)
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -182,14 +182,14 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          authProvider.errorMessage!,
+                          authProvider.passwordErrorMessage!,
                           style: const TextStyle(color: Colors.red),
                         ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.close, size: 16),
                         onPressed: () {
-                          authProvider.clearError();
+                          authProvider.clearPasswordErrorMessage();
                         },
                       )
                     ],
