@@ -174,7 +174,7 @@ async function seedDatabase() {
         role: 'parishioner',
         isActive: true,
       },
-    ]);
+    ], { individualHooks: true });
 
     console.log(`✅ Created ${users.length} users.`);
 
