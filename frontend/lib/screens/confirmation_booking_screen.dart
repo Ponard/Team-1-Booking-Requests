@@ -55,26 +55,25 @@ class _ConfirmationBookingScreenState
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final parishProvider = Provider.of<ParishProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final priestProvider = Provider.of<PriestProvider>(context, listen: false);
+      
+      await parishProvider.loadAllParishes();
+      
+      final userParishId = authProvider.currentUser?.preferredParishId;
 
-      parishProvider.loadAllParishes();
-
-      if (authProvider.currentUser?.preferredParishId != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final userParishId = authProvider.currentUser!.preferredParishId;
-          final userParish = parishProvider.parishes
-              .where((p) => p.id == userParishId)
-              .firstOrNull;
-          if (userParish != null) {
-            parishProvider.selectParish(userParish);
-            if (userParishId != null) {
-              priestProvider.loadPriestsByParish(userParishId);
-            }
-          }
-        });
+      // Default to user's preferred parish if available
+      if (userParishId != null) {
+        // This will be set once parishes are loaded
+        final userParish = parishProvider.parishes
+            .where((p) => p.id == userParishId)
+            .firstOrNull;
+        if (userParish != null) {
+          parishProvider.selectParish(userParish);
+          await priestProvider.loadPriestsByParish(userParishId);
+        }
       }
     });
   }
