@@ -403,9 +403,14 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                                 ))
                             .toList(),
                         onChanged: (value) {
+                          final authProvider = Provider.of<AuthProvider>(context, listen: false);
                           final parish = parishProvider.parishes
                               .firstWhere((p) => p.id == value);
                           parishProvider.selectParish(parish);
+                          Provider.of<PriestProvider>(
+                              context,
+                              listen: false,
+                            ).loadPriestsByParish(parish.id!, token: authProvider.token);
                         },
                         validator: (value) =>
                             value == null ? "Please select a parish" : null,
@@ -459,16 +464,8 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                     },
                   ),
                   const SizedBox(height: 12),
-                  Consumer2<ParishProvider, PriestProvider>(
-                  builder: (context, parishProvider, priestProvider, _) {
-                    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                    if (parishProvider.selectedParish != null) {
-                      priestProvider.loadPriestsByParish(
-                        parishProvider.selectedParish!.id!,
-                        token: authProvider.token,
-                      );
-                    }
-                      
+                  Consumer<PriestProvider>(
+                  builder: (context, priestProvider, _) {
                       return DropdownButtonFormField<int>(
                         value: _selectedPriestId,
                         decoration: const InputDecoration(

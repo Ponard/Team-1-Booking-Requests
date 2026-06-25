@@ -715,9 +715,14 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                           ))
                               .toList(),
                           onChanged: (value) {
+                            final authProvider = Provider.of<AuthProvider>(context, listen: false);
                             final parish = parishProvider.parishes
                                 .firstWhere((p) => p.id == value);
                             parishProvider.selectParish(parish);
+                            Provider.of<PriestProvider>(
+                                context,
+                                listen: false,
+                              ).loadPriestsByParish(parish.id!, token: authProvider.token);
                           },
                           validator: (value) => value == null ? "Please select a parish" : null,
                         );
@@ -791,18 +796,10 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                       },
                     ),
                     const SizedBox(height: 12),
-                    Consumer2<ParishProvider, PriestProvider>(
-                      builder: (context, parishProvider, priestProvider, _) {
-                        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                        if (parishProvider.selectedParish != null) {
-                          priestProvider.loadPriestsByParish(
-                            parishProvider.selectedParish!.id!,
-                            token: authProvider.token,
-                          );
-                        }
-
-                        final validPriestId = _selectedPriestId != null &&
-                            priestProvider.priests.any((p) => p.id == _selectedPriestId)
+                    Consumer<PriestProvider>(
+                      builder: (context, priestProvider, _) {
+                        final validPriestId = _selectedPriestId != null && 
+                            priestProvider.priests.any((p) => p.id == _selectedPriestId) 
                             ? _selectedPriestId : null;
                         return DropdownButtonFormField<int>(
                           value: validPriestId,
