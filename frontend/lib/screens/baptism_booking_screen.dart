@@ -436,6 +436,10 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                       onChanged: (value) {
                         final parish = parishProvider.parishes
                             .firstWhere((p) => p.id == value);
+                        // Clear any previously selected priest
+                        setState(() {
+                          _selectedPriestId = null;
+                        });
                         parishProvider.selectParish(parish);
                         Provider.of<PriestProvider>(
                             context,
