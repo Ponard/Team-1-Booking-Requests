@@ -47,7 +47,7 @@ class _ParishSelectionScreenState extends State<ParishSelectionScreen> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
-            
+
             if (parishProvider.isLoading)
               const Expanded(
                 child: Center(
@@ -83,72 +83,72 @@ class _ParishSelectionScreenState extends State<ParishSelectionScreen> {
                 ),
               )
             else if (parishes.isEmpty)
-              const Expanded(
-                child: Center(
-                  child: Text('No parishes available'),
-                ),
-              )
-            else
-              Expanded(
-                child: ListView.builder(
-                  itemCount: parishes.length,
-                  itemBuilder: (context, index) {
-                    final parish = parishes[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        leading: Icon(
-                          Icons.church,
-                          color: Theme.of(context).primaryColor,
+                const Expanded(
+                  child: Center(
+                    child: Text('No parishes available'),
+                  ),
+                )
+              else
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: parishes.length,
+                    itemBuilder: (context, index) {
+                      final parish = parishes[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          leading: Icon(
+                            Icons.church,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                          title: Text(parish.name),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(parish.address),
+                              if (parish.contactPhone != null)
+                                Text('Phone: ${parish.contactPhone}'),
+                              if (parish.contactEmail != null)
+                                Text('Email: ${parish.contactEmail}'),
+                              if (parish.servicesOffered != null && parish.servicesOffered!.isNotEmpty)
+                                Wrap(
+                                  spacing: 4,
+                                  children: parish.servicesOffered!
+                                      .map((service) => Chip(
+                                    label: Text(
+                                      service,
+                                      style: const TextStyle(fontSize: 10),
+                                    ),
+                                    backgroundColor: Colors.grey[200],
+                                  ))
+                                      .toList(),
+                                ),
+                            ],
+                          ),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          //2. MODIFIED: The locked onTap function
+                          // 2. MODIFIED: The locked onTap function
+                          onTap: () async {
+                            // If already processing a tap, ignore subsequent taps
+                            if (_isSelecting) return;
+
+                            // Lock the UI
+                            setState(() {
+                              _isSelecting = true;
+                            });
+
+                            // Update the provider state
+                            parishProvider.selectParish(parish);
+
+                            // 3. ADDED: Context safety check before navigation
+                            if (!context.mounted) return;
+                            Navigator.pop(context, parish);
+                          },
                         ),
-                        title: Text(parish.name),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(parish.address),
-                            if (parish.contactPhone != null)
-                              Text('Phone: ${parish.contactPhone}'),
-                            if (parish.contactEmail != null)
-                              Text('Email: ${parish.contactEmail}'),
-                            if (parish.servicesOffered != null && parish.servicesOffered!.isNotEmpty)
-                              Wrap(
-                                spacing: 4,
-                                children: parish.servicesOffered!
-                                    .map((service) => Chip(
-                                          label: Text(
-                                            service,
-                                            style: const TextStyle(fontSize: 10),
-                                          ),
-                                          backgroundColor: Colors.grey[200],
-                                        ))
-                                    .toList(),
-                              ),
-                          ],
-                        ),
-                        trailing: const Icon(Icons.arrow_forward_ios),
-                        //2. MODIFIED: The locked onTap function
-                        // 2. MODIFIED: The locked onTap function
-                        onTap: () async {
-                          // If already processing a tap, ignore subsequent taps
-                          if (_isSelecting) return;
-
-                          // Lock the UI
-                          setState(() {
-                            _isSelecting = true;
-                          });
-
-                          // Update the provider state
-                          parishProvider.selectParish(parish);
-
-                          // 3. ADDED: Context safety check before navigation
-                          if (!context.mounted) return;
-                          Navigator.pop(context, parish);
-                        },
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
           ],
         ),
       ),
