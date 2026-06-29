@@ -43,27 +43,25 @@ class _EucharistScreenState extends State<EucharistScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final parishProvider = Provider.of<ParishProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final priestProvider = Provider.of<PriestProvider>(context, listen: false);
-
-      parishProvider.loadAllParishes();
+      
+      await parishProvider.loadAllParishes();
+      
+      final userParishId = authProvider.currentUser?.preferredParishId;
 
       // Default to user's preferred parish if available
-      if (authProvider.currentUser?.preferredParishId != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final userParishId = authProvider.currentUser!.preferredParishId;
-          final userParish = parishProvider.parishes
-              .where((p) => p.id == userParishId)
-              .firstOrNull;
-          if (userParish != null) {
-            parishProvider.selectParish(userParish);
-            if (userParishId != null) {
-              priestProvider.loadPriestsByParish(userParishId, token: authProvider.token);
-            }
-          }
-        });
+      if (userParishId != null) {
+        // This will be set once parishes are loaded
+        final userParish = parishProvider.parishes
+            .where((p) => p.id == userParishId)
+            .firstOrNull;
+        if (userParish != null) {
+          parishProvider.selectParish(userParish);
+          await priestProvider.loadPriestsByParish(userParishId);
+        }
       }
 
       // Set default contact email to current user's email
@@ -561,9 +559,18 @@ class _EucharistScreenState extends State<EucharistScreen> {
                               ))
                           .toList(),
                       onChanged: (value) {
+                        final authProvider = Provider.of<AuthProvider>(context, listen: false);
                         final parish = parishProvider.parishes
                             .firstWhere((p) => p.id == value);
+                        // Clear any previously selected priest
+                        setState(() {
+                          _selectedPriestId = null;
+                        });
                         parishProvider.selectParish(parish);
+                        Provider.of<PriestProvider>(
+                            context,
+                            listen: false,
+                          ).loadPriestsByParish(parish.id!, token: authProvider.token);
                       },
                       validator: (value) =>
                           value == null ? "Please select a parish" : null,
@@ -618,16 +625,8 @@ class _EucharistScreenState extends State<EucharistScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
-                Consumer2<ParishProvider, PriestProvider>(
-                  builder: (context, parishProvider, priestProvider, _) {
-                    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                    if (parishProvider.selectedParish != null) {
-                      priestProvider.loadPriestsByParish(
-                        parishProvider.selectedParish!.id!,
-                        token: authProvider.token,
-                      );
-                    }
-                    
+                Consumer<PriestProvider>(
+                  builder: (context, priestProvider, _) {
                     final validPriestId = _selectedPriestId != null && 
                         priestProvider.priests.any((p) => p.id == _selectedPriestId) 
                         ? _selectedPriestId : null;
