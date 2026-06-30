@@ -104,7 +104,8 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  //fix this part of the code to manually erase the user's data before we refresh the screen
+  //fix this part of the code to manually erase the
+  // user's data before we refresh the screen
   Future<void> logout() async {
     //1. Tell the server we are logging out
     await _authService.logout();

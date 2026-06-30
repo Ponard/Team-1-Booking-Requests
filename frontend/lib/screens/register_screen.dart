@@ -65,11 +65,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    //added trim() method in these controllers below - s vitug
     final success = await authProvider.register(
-      email: _emailController.text,
+      email: _emailController.text.trim(),
       password: _passwordController.text,
-      firstName: _firstNameController.text,
-      lastName: _lastNameController.text,
+      firstName: _firstNameController.text.trim(),
+      lastName: _lastNameController.text.trim(),
       preferredParishId: _selectedParishId,
     );
 
