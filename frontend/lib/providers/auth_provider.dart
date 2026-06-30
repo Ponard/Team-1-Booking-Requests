@@ -104,8 +104,20 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  //fix this part of the code to manually erase the user's data before we refresh the screen
   Future<void> logout() async {
+    //1. Tell the server we are logging out
     await _authService.logout();
+
+    //2. Erase local data
+    //added this to kill the zombie state
+    _isLoading = false;
+    _loginErrorMessage = null;
+    _registerErrorMessage = null;
+    _profileErrorMessage = null;
+    _passwordErrorMessage = null;
+
+    //3. Notify the app to rebuild UI
     notifyListeners();
   }
 
