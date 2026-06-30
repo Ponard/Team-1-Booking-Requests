@@ -10,6 +10,7 @@ import '../utils/validators.dart';
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
+
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
@@ -23,6 +24,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   int? _selectedParishId;
   bool _isLoading = false;
+
+  //added two boolean lines
+  bool _obscurePassword =  true;
+  bool _obscureConfirmPassword = true;
+
 
   @override
   void initState() {
@@ -129,22 +135,45 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 keyboardType: TextInputType.emailAddress,
                 validator: Validators.emailValidator,
               ),
+              //updated this enter your password - s vitug
               const SizedBox(height: 16),
               CustomTextField(
                 controller: _passwordController,
                 labelText: 'Password',
                 hintText: 'Enter your password',
                 prefixIcon: Icons.lock,
-                obscureText: true,
-                validator: Validators.passwordValidator,
+                obscureText: _obscurePassword, //fix this part - svitug
+                suffixIcon: IconButton(
+                  icon:Icon(
+                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                    },
+                ),
+                  validator: Validators.passwordValidator,
               ),
+
               const SizedBox(height: 16),
+              //updated the confirm password
               CustomTextField(
                 controller: _confirmPasswordController,
                 labelText: 'Confirm Password',
                 hintText: 'Confirm your password',
                 prefixIcon: Icons.lock_outline,
-                obscureText: true,
+                obscureText: _obscureConfirmPassword,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureConfirmPassword = !_obscureConfirmPassword;
+                    });
+                  },
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please confirm your password';
@@ -152,6 +181,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   return null;
                 },
               ),
+
               const SizedBox(height: 16),
               Consumer<ParishProvider>(
                 builder: (context, parishProvider, _) {
