@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -50,7 +51,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.message ?? 'Failed to load dashboard')),
+          SnackBar(
+              content: Text(response.message ?? 'Failed to load dashboard')),
         );
       }
     }
@@ -115,6 +117,84 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final userRole = authProvider.currentUser?.role ?? Roles.parishioner;
     final isDioceseLevel = Roles.isDioceseLevel(userRole);
+    final statCards = [
+      _buildStatCard(
+        title: 'Total Bookings',
+        value: _stats['totalBookings']?.toString() ?? '0',
+        icon: Icons.calendar_today,
+        color: Colors.blue,
+        onTap: () {
+          Navigator.pushNamed(context, '/admin-bookings');
+        },
+      ),
+      _buildStatCard(
+        title: 'Pending',
+        value: _stats['pendingBookings']?.toString() ?? '0',
+        icon: Icons.pending,
+        color: Colors.orange,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AdminBookingsScreen(
+                initialStatus: 'pending',
+              ),
+            ),
+          );
+        },
+      ),
+      _buildStatCard(
+        title: 'Approved',
+        value: _stats['approvedBookings']?.toString() ?? '0',
+        icon: Icons.check_circle,
+        color: Colors.green,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AdminBookingsScreen(
+                initialStatus: 'approved',
+              ),
+            ),
+          );
+        },
+      ),
+      _buildStatCard(
+        title: 'Parishes',
+        value: _stats['totalParishes']?.toString() ?? '0',
+        icon: Icons.church,
+        color: Colors.purple,
+        onTap: () {
+          Navigator.pushNamed(context, '/admin-parishes');
+        },
+      ),
+      if (isDioceseLevel)
+        _buildStatCard(
+          title: 'Total Users',
+          value: _stats['totalUsers']?.toString() ?? '0',
+          icon: Icons.people,
+          color: Colors.teal,
+          onTap: () {
+            Navigator.pushNamed(context, '/admin-users');
+          },
+        ),
+      _buildStatCard(
+        title: 'This Month',
+        value: _stats['thisMonthBookings']?.toString() ?? '0',
+        icon: Icons.today,
+        color: Colors.indigo,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AdminBookingsScreen(
+                initialDateFilter: 'this_month',
+              ),
+            ),
+          );
+        },
+      ),
+    ];
 
     return Scaffold(
       appBar: AppBar(
@@ -157,91 +237,27 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   const SizedBox(height: 24),
 
                   // Stats Grid
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 1.3,
-                    children: [
-                      _buildStatCard(
-                        title: 'Total Bookings',
-                        value: _stats['totalBookings']?.toString() ?? '0',
-                        icon: Icons.calendar_today,
-                        color: Colors.blue,
-                        onTap: () {
-                          Navigator.pushNamed(context, '/admin-bookings');
-                        },
-                      ),
-                      _buildStatCard(
-                        title: 'Pending',
-                        value: _stats['pendingBookings']?.toString() ?? '0',
-                        icon: Icons.pending,
-                        color: Colors.orange,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AdminBookingsScreen(
-                                initialStatus: 'pending',
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildStatCard(
-                        title: 'Approved',
-                        value: _stats['approvedBookings']?.toString() ?? '0',
-                        icon: Icons.check_circle,
-                        color: Colors.green,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AdminBookingsScreen(
-                                initialStatus: 'approved',
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildStatCard(
-                        title: 'Parishes',
-                        value: _stats['totalParishes']?.toString() ?? '0',
-                        icon: Icons.church,
-                        color: Colors.purple,
-                        onTap: () {
-                          Navigator.pushNamed(context, '/admin-parishes');
-                        },
-                      ),
-                      if (isDioceseLevel)
-                        _buildStatCard(
-                          title: 'Total Users',
-                          value: _stats['totalUsers']?.toString() ?? '0',
-                          icon: Icons.people,
-                          color: Colors.teal,
-                          onTap: () {
-                            Navigator.pushNamed(context, '/admin-users');
-                          },
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      int crossAxisCount = (constraints.maxWidth / 200).floor();
+                      crossAxisCount =
+                          crossAxisCount.clamp(2, min(statCards.length, 6));
+
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: statCards.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          mainAxisExtent: 160,
                         ),
-                      _buildStatCard(
-                        title: 'This Month',
-                        value: _stats['thisMonthBookings']?.toString() ?? '0',
-                        icon: Icons.today,
-                        color: Colors.indigo,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AdminBookingsScreen(
-                                initialDateFilter: 'this_month',
-                              ),
-                            ),
-                          );
+                        itemBuilder: (context, index) {
+                          return statCards[index];
                         },
-                      ),
-                    ],
+                      );
+                    },
                   ),
 
                   const SizedBox(height: 24),
@@ -258,9 +274,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     child: Column(
                       children: [
                         ListTile(
-                          leading: const Icon(Icons.calendar_today, color: Colors.blue),
+                          leading: const Icon(Icons.calendar_today,
+                              color: Colors.blue),
                           title: const Text('Manage Bookings'),
-                          subtitle: const Text('Review and approve pending bookings'),
+                          subtitle:
+                              const Text('Review and approve pending bookings'),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () {
                             Navigator.pushNamed(context, '/admin-bookings');
@@ -269,9 +287,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         const Divider(height: 1),
                         if (isDioceseLevel)
                           ListTile(
-                            leading: const Icon(Icons.church, color: Colors.purple),
+                            leading:
+                                const Icon(Icons.church, color: Colors.purple),
                             title: const Text('Manage Parishes'),
-                            subtitle: const Text('Add or edit parish information'),
+                            subtitle:
+                                const Text('Add or edit parish information'),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () {
                               Navigator.pushNamed(context, '/admin-parishes');
@@ -280,9 +300,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         if (isDioceseLevel) ...[
                           const Divider(height: 1),
                           ListTile(
-                            leading: const Icon(Icons.people, color: Colors.teal),
+                            leading:
+                                const Icon(Icons.people, color: Colors.teal),
                             title: const Text('Manage Users'),
-                            subtitle: const Text('Create and manage user accounts'),
+                            subtitle:
+                                const Text('Create and manage user accounts'),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () {
                               Navigator.pushNamed(context, '/admin-users');
