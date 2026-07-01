@@ -2,9 +2,9 @@ class AppConstants {
   static const String appName = 'Diocese of Kalookan';
   static const String version = '1.0.0';
   static const String packageName = 'com.diocese.kalookan';
-  
+
   // API Configuration
-  static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://rcdok-booking-backend.up.railway.app');
+  static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:3000');
   static const Duration apiTimeout = Duration(seconds: 30);
   
   // Storage Keys
