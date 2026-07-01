@@ -15,7 +15,8 @@ class AdminMassIntentionsScreen extends StatefulWidget {
   const AdminMassIntentionsScreen({super.key});
 
   @override
-  State<AdminMassIntentionsScreen> createState() => _AdminMassIntentionsScreenState();
+  State<AdminMassIntentionsScreen> createState() =>
+      _AdminMassIntentionsScreenState();
 }
 
 class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
@@ -31,24 +32,41 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
 
   List<String> get _massTimes {
     if (_availableSchedules.isEmpty) {
-      return ['05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '16:00', '17:00', '18:00', '19:00'];
+      return [
+        '05:00',
+        '06:00',
+        '07:00',
+        '08:00',
+        '09:00',
+        '10:00',
+        '16:00',
+        '17:00',
+        '18:00',
+        '19:00'
+      ];
     }
-    return _availableSchedules.map((s) {
-      final parts = s.startTime.split(':');
-      return '${parts[0]}:${parts[1]}';
-    }).toList();
+    return _availableSchedules
+        .map((s) {
+          final parts = s.startTime.split(':');
+          return '${parts[0]}:${parts[1]}';
+        })
+        .toSet()
+        .toList();
   }
 
   @override
   void initState() {
     super.initState();
-    _initializeDefaults();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeDefaults();
+    });
   }
 
   Future<void> _initializeDefaults() async {
     final now = DateTime.now();
     setState(() {
-      _selectedDate = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      _selectedDate =
+          '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
     });
 
     await _loadSchedulesForDate(now);
@@ -66,7 +84,8 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
 
   Future<void> _loadSchedulesForDate(DateTime date) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final scheduleProvider = Provider.of<MassScheduleProvider>(context, listen: false);
+    final scheduleProvider =
+        Provider.of<MassScheduleProvider>(context, listen: false);
 
     int? parishId;
     if (_selectedParishId != null) {
@@ -116,7 +135,18 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
       return nearestTime;
     }
 
-    final fallbackTimes = ['05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '16:00', '17:00', '18:00', '19:00'];
+    final fallbackTimes = [
+      '05:00',
+      '06:00',
+      '07:00',
+      '08:00',
+      '09:00',
+      '10:00',
+      '16:00',
+      '17:00',
+      '18:00',
+      '19:00'
+    ];
     String nearestTime = fallbackTimes.first;
     int smallestDiff = 999999;
 
@@ -142,13 +172,16 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
   Future<void> _selectDate() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate != null ? DateTime.parse(_selectedDate!) : DateTime.now(),
+      initialDate: _selectedDate != null
+          ? DateTime.parse(_selectedDate!)
+          : DateTime.now(),
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
     if (picked != null) {
       setState(() {
-        _selectedDate = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+        _selectedDate =
+            '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
         _selectedTime = null;
         _availableSchedules.clear();
       });
@@ -198,18 +231,23 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
         massTime: _selectedTime,
       );
 
-      print('[MassIntentionsScreen] Request: parishId=$_selectedParishId, startDate=$_selectedDate, massTime=$_selectedTime');
+      print(
+          '[MassIntentionsScreen] Request: parishId=$_selectedParishId, startDate=$_selectedDate, massTime=$_selectedTime');
       print('[MassIntentionsScreen] Response success: ${response.success}');
       print('[MassIntentionsScreen] Response message: ${response.message}');
-      print('[MassIntentionsScreen] Response data keys: ${response.data?.keys.toList()}');
-      print('[MassIntentionsScreen] Mass intentions count: ${(response.data?['massIntentions'] as List?)?.length ?? 0}');
-      print('[MassIntentionsScreen] Mass intentions data: ${response.data?['massIntentions']}');
+      print(
+          '[MassIntentionsScreen] Response data keys: ${response.data?.keys.toList()}');
+      print(
+          '[MassIntentionsScreen] Mass intentions count: ${(response.data?['massIntentions'] as List?)?.length ?? 0}');
+      print(
+          '[MassIntentionsScreen] Mass intentions data: ${response.data?['massIntentions']}');
 
       if (mounted) {
         if (response.success && response.data != null) {
           final rawList = response.data!['massIntentions'] as List? ?? [];
           final mapped = rawList
-              .map((item) => MassIntention.fromJson(item as Map<String, dynamic>))
+              .map((item) =>
+                  MassIntention.fromJson(item as Map<String, dynamic>))
               .toList();
 
           setState(() {
@@ -219,7 +257,8 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
           });
         } else {
           setState(() {
-            _errorMessage = response.message ?? 'Failed to load mass intentions';
+            _errorMessage =
+                response.message ?? 'Failed to load mass intentions';
             _isLoading = false;
           });
         }
@@ -292,7 +331,8 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
               level: 0,
               child: pw.Text(
                 'Mass Intentions',
-                style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+                style:
+                    pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
               ),
             ),
           );
@@ -303,8 +343,10 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
-                pw.Text('Date: $dateDisplay', style: pw.TextStyle(fontSize: 14)),
-                pw.Text('Time: $timeDisplay', style: pw.TextStyle(fontSize: 14)),
+                pw.Text('Date: $dateDisplay',
+                    style: pw.TextStyle(fontSize: 14)),
+                pw.Text('Time: $timeDisplay',
+                    style: pw.TextStyle(fontSize: 14)),
               ],
             ),
           );
@@ -325,7 +367,8 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
             content.add(
               pw.Text(
                 'Intention Type $typeIndex: $type',
-                style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                style:
+                    pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
               ),
             );
             content.add(pw.SizedBox(height: 6));
@@ -354,7 +397,8 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
               pw.Center(
                 child: pw.Text(
                   'No mass intentions found for the selected date.',
-                  style: pw.TextStyle(fontSize: 14, fontStyle: pw.FontStyle.italic),
+                  style: pw.TextStyle(
+                      fontSize: 14, fontStyle: pw.FontStyle.italic),
                 ),
               ),
             );
@@ -372,10 +416,24 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
       final y = parts[0];
       final m = int.parse(parts[1]);
       final d = parts[2];
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ];
       dateStr = '${months[m - 1]}_${d}_$y';
     }
-    final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final timeStr =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
     await Printing.layoutPdf(
       onLayout: (format) async => pdf.save(),
@@ -433,18 +491,18 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
                           border: OutlineInputBorder(),
                           isDense: true,
                         ),
-                        items: _massTimes
-                            .map((time) {
-                              final hour = int.parse(time.split(':')[0]);
-                              final minute = int.parse(time.split(':')[1]);
-                              final period = hour >= 12 ? 'PM' : 'AM';
-                              final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-                              return DropdownMenuItem(
-                                value: time,
-                                child: Text('$displayHour:${minute.toString().padLeft(2, '0')} $period'),
-                              );
-                            })
-                            .toList(),
+                        items: _massTimes.map((time) {
+                          final hour = int.parse(time.split(':')[0]);
+                          final minute = int.parse(time.split(':')[1]);
+                          final period = hour >= 12 ? 'PM' : 'AM';
+                          final displayHour =
+                              hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+                          return DropdownMenuItem(
+                            value: time,
+                            child: Text(
+                                '$displayHour:${minute.toString().padLeft(2, '0')} $period'),
+                          );
+                        }).toList(),
                         onChanged: (value) {
                           setState(() => _selectedTime = value);
                           _loadIntentions();
@@ -456,10 +514,12 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
                 const SizedBox(height: 12),
                 Consumer<ParishProvider>(
                   builder: (context, parishProvider, _) {
-                    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                    final authProvider =
+                        Provider.of<AuthProvider>(context, listen: false);
                     final currentUser = authProvider.currentUser;
                     final isParishLevel = currentUser != null &&
-                        ['parish_admin', 'parish_staff'].contains(currentUser.role);
+                        ['parish_admin', 'parish_staff']
+                            .contains(currentUser.role);
 
                     if (isParishLevel) {
                       return InputDecorator(
@@ -481,14 +541,25 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
                         isDense: true,
                       ),
                       items: [
-                        const DropdownMenuItem(value: null, child: Text('All Parishes')),
-                        ...availableParishes.map((parish) => DropdownMenuItem<String>(
-                              value: parish.id.toString(),
-                              child: Text(parish.name),
-                            )),
+                        const DropdownMenuItem(
+                            value: null, child: Text('All Parishes')),
+                        ...availableParishes
+                            .map((parish) => DropdownMenuItem<String>(
+                                  value: parish.id.toString(),
+                                  child: Text(parish.name),
+                                )),
                       ],
-                      onChanged: (value) {
-                        setState(() => _selectedParishId = value);
+                      onChanged: (value) async {
+                        setState(() {
+                          _selectedParishId = value;
+                          _selectedTime = null;
+                          _availableSchedules.clear();
+                        });
+
+                        if (_selectedDate != null) {
+                          await _loadSchedulesForDate(
+                              DateTime.parse(_selectedDate!));
+                        }
                       },
                     );
                   },
@@ -505,7 +576,8 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                            const Icon(Icons.error_outline,
+                                size: 48, color: Colors.red),
                             const SizedBox(height: 16),
                             Text(_errorMessage!),
                             const SizedBox(height: 16),
@@ -521,7 +593,8 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.event_busy, size: 64, color: Colors.grey[400]),
+                                Icon(Icons.event_busy,
+                                    size: 64, color: Colors.grey[400]),
                                 const SizedBox(height: 16),
                                 Text(
                                   'No mass intentions for ${_formatDateDisplay(_selectedDate)}',
