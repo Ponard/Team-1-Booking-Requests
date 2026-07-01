@@ -55,3 +55,7 @@ ios/Runner.xcodeproj/project.xcworkspace/
 ios/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme
 ios/Flutter/ephemeral
 ios/.symlinks
+
+#ignore backup and artifiical files
+*.bak
+*.tmp
