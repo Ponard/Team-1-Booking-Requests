@@ -549,8 +549,17 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
                                   child: Text(parish.name),
                                 )),
                       ],
-                      onChanged: (value) {
-                        setState(() => _selectedParishId = value);
+                      onChanged: (value) async {
+                        setState(() {
+                          _selectedParishId = value;
+                          _selectedTime = null;
+                          _availableSchedules.clear();
+                        });
+
+                        if (_selectedDate != null) {
+                          await _loadSchedulesForDate(
+                              DateTime.parse(_selectedDate!));
+                        }
                       },
                     );
                   },
