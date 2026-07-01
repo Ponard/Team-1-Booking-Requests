@@ -69,6 +69,24 @@ exports.createMassSchedule = async (req, res, next) => {
       }
     }
 
+    // Check for duplicate schedule in the same parish
+    const existingSchedule = await MassSchedule.findOne({
+      where: {
+        parishId,
+        dayOfWeek,
+        startTime,
+        isActive: true,
+      },
+    });
+
+    if (existingSchedule) {
+      return res.status(409).json({
+        error: 'Duplicate mass schedule',
+        message:
+          'A mass schedule already exists for this parish on the selected day and time.',
+      });
+    }
+
     // Create mass schedule
     const massSchedule = await MassSchedule.create({
       parishId,
@@ -410,11 +428,11 @@ exports.generateMassIntentionPDF = async (req, res, next) => {
 
     // Create PDF document
     const doc = new PDFDocument();
-    
+
     // Set response headers for PDF download
     res.setHeader('Content-disposition', `attachment; filename="mass-intentions-${parish.name}-${date || 'all'}.pdf"`);
     res.setHeader('Content-type', 'application/pdf');
-    
+
     // Pipe PDF to response
     doc.pipe(res);
 
@@ -422,36 +440,36 @@ exports.generateMassIntentionPDF = async (req, res, next) => {
     const logoPath = path.join(__dirname, '../../assets/diocese-logo.png');
     if (fs.existsSync(logoPath)) {
       doc.image(logoPath, 50, 45, { width: 100 })
-         .fontSize(20)
-         .text('Diocese of Kalookan', 160, 57)
-         .fontSize(14)
-         .text('Office of Sacred Liturgy', 160, 80)
-         .moveDown();
+        .fontSize(20)
+        .text('Diocese of Kalookan', 160, 57)
+        .fontSize(14)
+        .text('Office of Sacred Liturgy', 160, 80)
+        .moveDown();
     } else {
       // Add header without logo
       doc.fontSize(20)
-         .text('Diocese of Kalookan', 50, 50)
-         .fontSize(14)
-         .text('Office of Sacred Liturgy', 50, 75)
-         .moveDown();
+        .text('Diocese of Kalookan', 50, 50)
+        .fontSize(14)
+        .text('Office of Sacred Liturgy', 50, 75)
+        .moveDown();
     }
 
     // Add title
     doc.fontSize(18)
-       .text(`Mass Intention List for ${parish.name}`, 50, 120)
-       .text(`Date: ${date || 'All Dates'}`, 50, 140)
-       .moveDown();
+      .text(`Mass Intention List for ${parish.name}`, 50, 120)
+      .text(`Date: ${date || 'All Dates'}`, 50, 140)
+      .moveDown();
 
     // Add table header
     let yPosition = 180;
     doc.fontSize(12)
-       .font('Helvetica-Bold')
-       .text('Date & Time', 50, yPosition)
-       .text('Type', 150, yPosition)
-       .text('Intention Details', 220, yPosition)
-       .text('Donor Name', 380, yPosition)
-       .text('Submitted By', 480, yPosition)
-       .font('Helvetica');
+      .font('Helvetica-Bold')
+      .text('Date & Time', 50, yPosition)
+      .text('Type', 150, yPosition)
+      .text('Intention Details', 220, yPosition)
+      .text('Donor Name', 380, yPosition)
+      .text('Submitted By', 480, yPosition)
+      .font('Helvetica');
 
     yPosition += 25;
 
@@ -471,10 +489,10 @@ exports.generateMassIntentionPDF = async (req, res, next) => {
 
         // Add row data
         doc.text(formattedDate, 50, yPosition)
-           .text(intention.type, 150, yPosition)
-           .text(intention.intentionDetails.substring(0, 30) + (intention.intentionDetails.length > 30 ? '...' : ''), 220, yPosition)
-           .text(intention.donorName, 380, yPosition)
-           .text(`${intention.submitter.firstName} ${intention.submitter.lastName}`, 480, yPosition);
+          .text(intention.type, 150, yPosition)
+          .text(intention.intentionDetails.substring(0, 30) + (intention.intentionDetails.length > 30 ? '...' : ''), 220, yPosition)
+          .text(intention.donorName, 380, yPosition)
+          .text(`${intention.submitter.firstName} ${intention.submitter.lastName}`, 480, yPosition);
 
         yPosition += 20;
 
@@ -488,8 +506,8 @@ exports.generateMassIntentionPDF = async (req, res, next) => {
 
     // Add footer
     doc.fontSize(10)
-       .text(`Page ${doc.bufferedPageRange().count || 1}`, 50, 780)
-       .text('Generated on: ' + new Date().toLocaleDateString(), 450, 780);
+      .text(`Page ${doc.bufferedPageRange().count || 1}`, 50, 780)
+      .text('Generated on: ' + new Date().toLocaleDateString(), 450, 780);
 
     // Finalize PDF
     doc.end();
@@ -610,7 +628,7 @@ exports.sendMassIntentionNotifications = async (req, res, next) => {
       <p>Date: ${date || 'All upcoming dates'}</p>
       <p>Dear Priest and Parish Staff,</p>
       <p>Please find below the mass intentions scheduled for your parish:</p>
-      
+
       <table border="1" cellpadding="10" cellspacing="0">
         <thead>
           <tr>
@@ -639,7 +657,7 @@ exports.sendMassIntentionNotifications = async (req, res, next) => {
     emailBody += `
         </tbody>
       </table>
-      
+
       <p>Please prepare for these masses accordingly.</p>
       <br>
       <p>Best regards,<br>
