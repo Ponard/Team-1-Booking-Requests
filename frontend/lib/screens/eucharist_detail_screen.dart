@@ -338,6 +338,9 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
       notes: notesToAdd,
     );
 
+    //QA FIX: Check if the widget is still mounted BEFORE calling setState
+    if (!mounted) return;
+
     setState(() => _isSaving = false);
 
     if (mounted) {
@@ -422,6 +425,8 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
       token: token,
       id: widget.eucharistId!,
     );
+
+    //QA FIX: Check if the widget is still mounted BEFORE calling setState
 
     setState(() => _isSaving = false);
 
