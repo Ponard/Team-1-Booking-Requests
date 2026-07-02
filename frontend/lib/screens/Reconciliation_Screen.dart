@@ -19,8 +19,10 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
   final TextEditingController _penitentNameController = TextEditingController();
   final TextEditingController _contactEmailController = TextEditingController();
   final TextEditingController _contactPhoneController = TextEditingController();
-  final TextEditingController _preferredDateController = TextEditingController();
-  final TextEditingController _preferredTimeController = TextEditingController();
+  final TextEditingController _preferredDateController =
+      TextEditingController();
+  final TextEditingController _preferredTimeController =
+      TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
   String _confessionType = 'Regular';
@@ -29,7 +31,8 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final parishProvider = Provider.of<ParishProvider>(context, listen: false);
+      final parishProvider =
+          Provider.of<ParishProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
       parishProvider.loadAllParishes();
@@ -68,8 +71,10 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final reconciliationProvider = Provider.of<ReconciliationProvider>(context, listen: false);
-      final parishProvider = Provider.of<ParishProvider>(context, listen: false);
+      final reconciliationProvider =
+          Provider.of<ReconciliationProvider>(context, listen: false);
+      final parishProvider =
+          Provider.of<ParishProvider>(context, listen: false);
 
       if (authProvider.currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -88,7 +93,9 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
       final token = authProvider.token;
       if (token == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Authentication token not found. Please login again.")),
+          const SnackBar(
+              content:
+                  Text("Authentication token not found. Please login again.")),
         );
         return;
       }
@@ -147,7 +154,9 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
         );
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(reconciliationProvider.errorMessage ?? "Failed to submit booking.")),
+          SnackBar(
+              content: Text(reconciliationProvider.errorMessage ??
+                  "Failed to submit booking.")),
         );
       }
     }
@@ -168,213 +177,234 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                "Fill out the form below to submit your reconciliation booking request. All fields marked with * are required.",
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 5),
-              const Text(
-                "Subject to availability. Parish will confirm your booking.",
-                style: TextStyle(
-                    fontSize: 14, fontStyle: FontStyle.italic, color: Colors.grey),
-              ),
-              const SizedBox(height: 20),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 450),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    "Fill out the form below to submit your reconciliation booking request. All fields marked with * are required.",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 5),
+                  const Text(
+                    "Subject to availability. Parish will confirm your booking.",
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey),
+                  ),
+                  const SizedBox(height: 20),
 
-              _buildSection(title: "Confession Request", children: [
-                const Text(
-                  "The Sacrament of Penance is the method by which individual men and women may confess sins committed after baptism and have them absolved by a priest.",
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _confessionType,
-                  decoration: const InputDecoration(
-                    labelText: "Type of Confession",
-                    border: OutlineInputBorder(),
-                  ),
-                  items: ['Regular', 'First Confession', 'Spiritual Direction']
-                      .map((label) => DropdownMenuItem(value: label, child: Text(label)))
-                      .toList(),
-                  onChanged: (val) => setState(() => _confessionType = val!),
-                ),
-              ]),
-
-              // Penitent Information
-              _buildSection(title: "Penitent Information", children: [
-                TextFormField(
-                  controller: _penitentNameController,
-                  decoration: const InputDecoration(
-                    labelText: "Penitent Name *",
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Required" : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _contactEmailController,
-                  decoration: const InputDecoration(
-                    labelText: "Contact Email *",
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return "Required";
-                    if (!value.contains('@')) return "Invalid email";
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _contactPhoneController,
-                  decoration: const InputDecoration(
-                    labelText: "Contact Phone *",
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.phone,
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Required" : null,
-                ),
-              ]),
-
-              // Booking Preferences
-              _buildSection(title: "Booking Preferences", children: [
-                Consumer<ParishProvider>(
-                  builder: (context, parishProvider, _) {
-                    return DropdownButtonFormField<int>(
-                      value: parishProvider.selectedParish?.id,
+                  _buildSection(title: "Confession Request", children: [
+                    const Text(
+                      "The Sacrament of Penance is the method by which individual men and women may confess sins committed after baptism and have them absolved by a priest.",
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _confessionType,
                       decoration: const InputDecoration(
-                        labelText: "Preferred Parish *",
+                        labelText: "Type of Confession",
                         border: OutlineInputBorder(),
                       ),
-                      items: parishProvider.parishes
-                          .map((parish) => DropdownMenuItem(
-                                value: parish.id,
-                                child: Text(parish.name),
-                              ))
+                      items: [
+                        'Regular',
+                        'First Confession',
+                        'Spiritual Direction'
+                      ]
+                          .map((label) => DropdownMenuItem(
+                              value: label, child: Text(label)))
                           .toList(),
-                      onChanged: (value) {
-                        final parish = parishProvider.parishes
-                            .firstWhere((p) => p.id == value);
-                        parishProvider.selectParish(parish);
-                      },
-                      validator: (value) =>
-                          value == null ? "Please select a parish" : null,
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _preferredDateController,
-                  decoration: const InputDecoration(
-                    labelText: "Preferred Date *",
-                    hintText: "YYYY-MM-DD",
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Required" : null,
-                  onTap: () async {
-                    FocusScope.of(context).requestFocus(FocusNode());
-                    DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 365)),
-                    );
-                    if (pickedDate != null) {
-                      _preferredDateController.text =
-                          "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-                    }
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _preferredTimeController,
-                  decoration: const InputDecoration(
-                    labelText: "Preferred Time Slot *",
-                    hintText: "HH:MM",
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Required" : null,
-                  onTap: () async {
-                    FocusScope.of(context).requestFocus(FocusNode());
-                    TimeOfDay? pickedTime = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.now(),
-                    );
-                    if (pickedTime != null) {
-                      _preferredTimeController.text =
-                          "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
-                    }
-                  },
-                ),
-              ]),
-
-              // Schedule Note
-              _buildSection(title: "Schedule Note", children: [
-                const ListTile(
-                  leading: Icon(Icons.info_outline, color: Colors.blue),
-                  title: Text("Regular Confession Hours"),
-                  subtitle: Text("Mon-Sat: 5:00 PM - 6:00 PM\nSundays: During all Masses"),
-                ),
-                const SizedBox(height: 12),
-                const Text("For private confession appointments, the parish office will contact you after submission."),
-              ]),
-
-              // Additional Notes
-              _buildSection(title: "Additional Information", children: [
-                TextFormField(
-                  controller: _notesController,
-                  decoration: const InputDecoration(
-                    labelText: "Additional Notes",
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
-                ),
-              ]),
-
-              const SizedBox(height: 24),
-              Consumer<ReconciliationProvider>(
-                builder: (context, reconciliationProvider, _) {
-                  return Center(
-                    child: ElevatedButton(
-                      onPressed: reconciliationProvider.isLoading ? null : _submitForm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor,
-                        foregroundColor: Colors.white,
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 14, horizontal: 28),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                      ),
-                      child: reconciliationProvider.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : const Text("Submit Request", style: TextStyle(fontSize: 16)),
+                      onChanged: (val) =>
+                          setState(() => _confessionType = val!),
                     ),
-                  );
-                },
+                  ]),
+
+                  // Penitent Information
+                  _buildSection(title: "Penitent Information", children: [
+                    TextFormField(
+                      controller: _penitentNameController,
+                      decoration: const InputDecoration(
+                        labelText: "Penitent Name *",
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Required" : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _contactEmailController,
+                      decoration: const InputDecoration(
+                        labelText: "Contact Email *",
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return "Required";
+                        if (!value.contains('@')) return "Invalid email";
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _contactPhoneController,
+                      decoration: const InputDecoration(
+                        labelText: "Contact Phone *",
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.phone,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Required" : null,
+                    ),
+                  ]),
+
+                  // Booking Preferences
+                  _buildSection(title: "Booking Preferences", children: [
+                    Consumer<ParishProvider>(
+                      builder: (context, parishProvider, _) {
+                        return DropdownButtonFormField<int>(
+                          value: parishProvider.selectedParish?.id,
+                          decoration: const InputDecoration(
+                            labelText: "Preferred Parish *",
+                            border: OutlineInputBorder(),
+                          ),
+                          items: parishProvider.parishes
+                              .map((parish) => DropdownMenuItem(
+                                    value: parish.id,
+                                    child: Text(parish.name),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            final parish = parishProvider.parishes
+                                .firstWhere((p) => p.id == value);
+                            parishProvider.selectParish(parish);
+                          },
+                          validator: (value) =>
+                              value == null ? "Please select a parish" : null,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _preferredDateController,
+                      decoration: const InputDecoration(
+                        labelText: "Preferred Date *",
+                        hintText: "YYYY-MM-DD",
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Required" : null,
+                      onTap: () async {
+                        FocusScope.of(context).requestFocus(FocusNode());
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime.now(),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
+                        );
+                        if (pickedDate != null) {
+                          _preferredDateController.text =
+                              "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _preferredTimeController,
+                      decoration: const InputDecoration(
+                        labelText: "Preferred Time Slot *",
+                        hintText: "HH:MM",
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Required" : null,
+                      onTap: () async {
+                        FocusScope.of(context).requestFocus(FocusNode());
+                        TimeOfDay? pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (pickedTime != null) {
+                          _preferredTimeController.text =
+                              "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
+                        }
+                      },
+                    ),
+                  ]),
+
+                  // Schedule Note
+                  _buildSection(title: "Schedule Note", children: [
+                    const ListTile(
+                      leading: Icon(Icons.info_outline, color: Colors.blue),
+                      title: Text("Regular Confession Hours"),
+                      subtitle: Text(
+                          "Mon-Sat: 5:00 PM - 6:00 PM\nSundays: During all Masses"),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                        "For private confession appointments, the parish office will contact you after submission."),
+                  ]),
+
+                  // Additional Notes
+                  _buildSection(title: "Additional Information", children: [
+                    TextFormField(
+                      controller: _notesController,
+                      decoration: const InputDecoration(
+                        labelText: "Additional Notes",
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                    ),
+                  ]),
+
+                  const SizedBox(height: 24),
+                  Consumer<ReconciliationProvider>(
+                    builder: (context, reconciliationProvider, _) {
+                      return Center(
+                        child: ElevatedButton(
+                          onPressed: reconciliationProvider.isLoading
+                              ? null
+                              : _submitForm,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 14, horizontal: 28),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                          ),
+                          child: reconciliationProvider.isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : const Text("Submit Request",
+                                  style: TextStyle(fontSize: 16)),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                ],
               ),
-              const SizedBox(height: 20),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildSection({required String title, required List<Widget> children}) {
+  Widget _buildSection(
+      {required String title, required List<Widget> children}) {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -386,7 +416,9 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
           children: [
             Text(title,
                 style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue)),
             const SizedBox(height: 12),
             ...children,
           ],
