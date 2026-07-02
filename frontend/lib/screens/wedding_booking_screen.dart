@@ -23,9 +23,12 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
   final TextEditingController _brideNameController = TextEditingController();
   final TextEditingController _godparentsController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
-  final TextEditingController _preferredDateController = TextEditingController();
-  final TextEditingController _preferredTimeController = TextEditingController();
-  final TextEditingController _seminarScheduleController = TextEditingController();
+  final TextEditingController _preferredDateController =
+      TextEditingController();
+  final TextEditingController _preferredTimeController =
+      TextEditingController();
+  final TextEditingController _seminarScheduleController =
+      TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
   // Priest selection state
@@ -52,9 +55,11 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final parishProvider = Provider.of<ParishProvider>(context, listen: false);
+      final parishProvider =
+          Provider.of<ParishProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final priestProvider = Provider.of<PriestProvider>(context, listen: false);
+      final priestProvider =
+          Provider.of<PriestProvider>(context, listen: false);
 
       await parishProvider.loadAllParishes();
 
@@ -231,7 +236,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
             _uploadedBirthData = response.data!['file'];
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Birth certificate uploaded successfully')),
+            const SnackBar(
+                content: Text('Birth certificate uploaded successfully')),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -311,7 +317,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
             _uploadedBaptismalData = response.data!['file'];
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Baptismal certificate uploaded successfully')),
+            const SnackBar(
+                content: Text('Baptismal certificate uploaded successfully')),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -391,7 +398,9 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
             _uploadedConfirmationData = response.data!['file'];
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Confirmation certificate uploaded successfully')),
+            const SnackBar(
+                content:
+                    Text('Confirmation certificate uploaded successfully')),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -415,9 +424,12 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final weddingProvider = Provider.of<WeddingProvider>(context, listen: false);
-      final parishProvider = Provider.of<ParishProvider>(context, listen: false);
-      final priestProvider = Provider.of<PriestProvider>(context, listen: false);
+      final weddingProvider =
+          Provider.of<WeddingProvider>(context, listen: false);
+      final parishProvider =
+          Provider.of<ParishProvider>(context, listen: false);
+      final priestProvider =
+          Provider.of<PriestProvider>(context, listen: false);
 
       if (authProvider.currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -442,19 +454,24 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
       }
       if (_uploadedBirthData == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please upload the required Birth Certificate.")),
+          const SnackBar(
+              content: Text("Please upload the required Birth Certificate.")),
         );
         return;
       }
       if (_uploadedBaptismalData == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please upload the required Baptismal Certificate.")),
+          const SnackBar(
+              content:
+                  Text("Please upload the required Baptismal Certificate.")),
         );
         return;
       }
       if (_uploadedConfirmationData == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please upload the required Confirmation Certificate.")),
+          const SnackBar(
+              content:
+                  Text("Please upload the required Confirmation Certificate.")),
         );
         return;
       }
@@ -535,8 +552,10 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
         brideFullName: _brideNameController.text.trim(),
         contactEmail: authProvider.currentUser!.email,
         contactPhone: _contactController.text.trim(),
-        preferredDate: formatDate(_preferredDateController.text.trim()), // Added .trim() here
-        preferredTimeSlot: formatTime(_preferredTimeController.text.trim()), // Added .trim() here
+        preferredDate: formatDate(
+            _preferredDateController.text.trim()), // Added .trim() here
+        preferredTimeSlot: formatTime(
+            _preferredTimeController.text.trim()), // Added .trim() here
         seminarSchedule: _seminarScheduleController.text.trim().isEmpty
             ? null
             : _seminarScheduleController.text.trim(),
@@ -565,13 +584,16 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
         );
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(weddingProvider.errorMessage ?? "Failed to submit booking.")),
+          SnackBar(
+              content: Text(
+                  weddingProvider.errorMessage ?? "Failed to submit booking.")),
         );
       }
     }
   }
 
-  Widget _buildSection({required String title, required List<Widget> children}) {
+  Widget _buildSection(
+      {required String title, required List<Widget> children}) {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -583,7 +605,10 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
           children: [
             Text(
               title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue),
+              style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue),
             ),
             const SizedBox(height: 12),
             ...children,
@@ -605,7 +630,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
     return _buildSection(
       title: title,
       children: [
-        Text(description, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(description,
+            style: const TextStyle(fontSize: 12, color: Colors.grey)),
         const SizedBox(height: 8),
         ElevatedButton.icon(
           onPressed: isUploading ? null : onPick,
@@ -615,7 +641,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
         ),
         if (file != null) ...[
           const SizedBox(height: 8),
-          Text("Selected: ${file.name}", style: const TextStyle(color: Colors.blue)),
+          Text("Selected: ${file.name}",
+              style: const TextStyle(color: Colors.blue)),
         ],
         if (uploadedData != null) ...[
           const SizedBox(height: 8),
@@ -633,7 +660,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
             onPressed: onUpload,
             icon: const Icon(Icons.cloud_upload),
             label: const Text("Upload"),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue, foregroundColor: Colors.white),
           ),
         ],
         if (isUploading) ...[
@@ -659,11 +687,11 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 450),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 450),
+            child: Form(
+              key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -674,7 +702,10 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                   const SizedBox(height: 5),
                   const Text(
                     "Subject to availability. Parish will confirm your booking and selected priest.",
-                    style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic, color: Colors.grey),
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey),
                   ),
                   const SizedBox(height: 20),
 
@@ -686,7 +717,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                         labelText: "Groom's Full Name *",
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value == null || value.isEmpty ? "Required" : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Required" : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -695,7 +727,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                         labelText: "Bride's Full Name *",
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value == null || value.isEmpty ? "Required" : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Required" : null,
                     ),
                   ]),
 
@@ -711,12 +744,14 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                           ),
                           items: parishProvider.parishes
                               .map((parish) => DropdownMenuItem(
-                            value: parish.id,
-                            child: Text(parish.name),
-                          ))
+                                    value: parish.id,
+                                    child: Text(parish.name),
+                                  ))
                               .toList(),
                           onChanged: (value) {
-                            final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                            final authProvider = Provider.of<AuthProvider>(
+                                context,
+                                listen: false);
                             final parish = parishProvider.parishes
                                 .firstWhere((p) => p.id == value);
                             // Clear any previously selected priest
@@ -725,11 +760,13 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                             });
                             parishProvider.selectParish(parish);
                             Provider.of<PriestProvider>(
-                                context,
-                                listen: false,
-                              ).loadPriestsByParish(parish.id!, token: authProvider.token);
+                              context,
+                              listen: false,
+                            ).loadPriestsByParish(parish.id!,
+                                token: authProvider.token);
                           },
-                          validator: (value) => value == null ? "Please select a parish" : null,
+                          validator: (value) =>
+                              value == null ? "Please select a parish" : null,
                         );
                       },
                     ),
@@ -741,18 +778,20 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                         hintText: "YYYY-MM-DD",
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value == null || value.isEmpty ? "Required" : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Required" : null,
                       onTap: () async {
                         FocusScope.of(context).requestFocus(FocusNode());
                         DateTime? pickedDate = await showDatePicker(
                           context: context,
                           initialDate: DateTime.now(),
                           firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
                         );
                         if (pickedDate != null) {
                           _preferredDateController.text =
-                          "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+                              "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
                         }
                       },
                     ),
@@ -764,7 +803,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                         hintText: "HH:MM",
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value == null || value.isEmpty ? "Required" : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Required" : null,
                       onTap: () async {
                         FocusScope.of(context).requestFocus(FocusNode());
                         TimeOfDay? pickedTime = await showTimePicker(
@@ -773,7 +813,7 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                         );
                         if (pickedTime != null) {
                           _preferredTimeController.text =
-                          "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
+                              "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
                         }
                       },
                     ),
@@ -785,31 +825,36 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                         hintText: "YYYY-MM-DD",
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value == null || value.isEmpty ? "Required" : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Required" : null,
                       onTap: () async {
                         FocusScope.of(context).requestFocus(FocusNode());
                         DateTime? pickedDate = await showDatePicker(
                           context: context,
                           initialDate: DateTime.now(),
                           firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 730)),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 730)),
                         );
                         if (pickedDate != null) {
                           _seminarScheduleController.text =
-                          "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+                              "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
                         }
                       },
                     ),
                     const SizedBox(height: 12),
                     Consumer<PriestProvider>(
                       builder: (context, priestProvider, _) {
-                        final validPriestId = _selectedPriestId != null && 
-                            priestProvider.priests.any((p) => p.id == _selectedPriestId) 
-                            ? _selectedPriestId : null;
+                        final validPriestId = _selectedPriestId != null &&
+                                priestProvider.priests
+                                    .any((p) => p.id == _selectedPriestId)
+                            ? _selectedPriestId
+                            : null;
                         return DropdownButtonFormField<int>(
                           value: validPriestId,
                           decoration: const InputDecoration(
-                            labelText: "Preferred Priest (Optional) - Subject to availability",
+                            labelText:
+                                "Preferred Priest (Optional) - Subject to availability",
                             border: OutlineInputBorder(),
                           ),
                           items: [
@@ -817,10 +862,11 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                               value: null,
                               child: Text("No preference"),
                             ),
-                            ...priestProvider.priests.map((priest) => DropdownMenuItem<int>(
-                              value: priest.id,
-                              child: Text(priest.fullName),
-                            )),
+                            ...priestProvider.priests
+                                .map((priest) => DropdownMenuItem<int>(
+                                      value: priest.id,
+                                      child: Text(priest.fullName),
+                                    )),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -840,7 +886,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                         labelText: "Contact Number / Email *",
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value == null || value.isEmpty ? "Required" : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Required" : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -849,14 +896,16 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                         labelText: "Godparents' Details *",
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value == null || value.isEmpty ? "Required" : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Required" : null,
                     ),
                   ]),
 
                   // Required Documents - Separate uploads
                   _buildDocumentUploadSection(
                     title: "CENOMAR",
-                    description: "Upload CENOMAR (Certificate of No Marriage) *",
+                    description:
+                        "Upload CENOMAR (Certificate of No Marriage) *",
                     file: _cenomarFile,
                     isUploading: _isUploadingCenomar,
                     uploadedData: _uploadedCenomarData,
@@ -865,7 +914,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                   ),
                   _buildDocumentUploadSection(
                     title: "Birth Certificate",
-                    description: "Upload birth certificate of either the groom or bride *",
+                    description:
+                        "Upload birth certificate of either the groom or bride *",
                     file: _birthCertificateFile,
                     isUploading: _isUploadingBirth,
                     uploadedData: _uploadedBirthData,
@@ -874,7 +924,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                   ),
                   _buildDocumentUploadSection(
                     title: "Baptismal Certificate",
-                    description: "Upload baptismal certificate of either the groom or bride *",
+                    description:
+                        "Upload baptismal certificate of either the groom or bride *",
                     file: _baptismalCertificateFile,
                     isUploading: _isUploadingBaptismal,
                     uploadedData: _uploadedBaptismalData,
@@ -883,7 +934,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                   ),
                   _buildDocumentUploadSection(
                     title: "Confirmation Certificate",
-                    description: "Upload confirmation certificate of either the groom or bride *",
+                    description:
+                        "Upload confirmation certificate of either the groom or bride *",
                     file: _confirmationCertificateFile,
                     isUploading: _isUploadingConfirmation,
                     uploadedData: _uploadedConfirmationData,
@@ -908,23 +960,28 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                     builder: (context, weddingProvider, _) {
                       return Center(
                         child: ElevatedButton(
-                          onPressed: weddingProvider.isLoading ? null : _submitForm,
+                          onPressed:
+                              weddingProvider.isLoading ? null : _submitForm,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Theme.of(context).primaryColor,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 28),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 14, horizontal: 28),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
                           ),
                           child: weddingProvider.isLoading
                               ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                              : const Text("Submit Booking", style: TextStyle(fontSize: 16)),
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : const Text("Submit Booking",
+                                  style: TextStyle(fontSize: 16)),
                         ),
                       );
                     },
