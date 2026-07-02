@@ -74,10 +74,12 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
             .where((p) => p.id == userParishId)
             .firstOrNull;
 
+        //UI/UX Fix: Fixed this part of the code to verify the initState logic
+
         if (userParish != null) {
           // Check if the parish is active and offers weddings
-          bool offersWeddings = userParish.servicesOffered == null ||
-              userParish.servicesOffered!.contains('wedding');
+          //Logic: Only hide the dropdown if the parish is active AND offers weddings
+          bool offersWeddings = userParish.servicesOffered?.contains('wedding') ?? false;
           bool isUnavailable = !userParish.isActive || !offersWeddings;
 
           // Happy Path: Home parish is available.
@@ -85,8 +87,7 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
           if (!isUnavailable) {
             // Happy Path: Parish is available. Auto-select and hide dropdown.
             parishProvider.selectParish(userParish);
-            await priestProvider.loadPriestsByParish(userParishId, token: authProvider.token);
-
+          //  await priestProvider.loadPriestsByParish(userParishId, token: authProvider.token);
             setState(() {
               _showParishDropdown = false;
               _assignedHomeParishName = userParish.name;
@@ -748,7 +749,7 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                               filled: true,
                             ),
                             readOnly: true,
-                            enabled: false,
+                           // enabled: false, //UI Logic: remove this because user cannot edit this
                           );
                         }
 
