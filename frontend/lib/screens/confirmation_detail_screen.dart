@@ -367,7 +367,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
   String get _displayStatus {
     if (_booking == null) return 'PENDING';
-    final status = _booking!.status.toUpperCase();
+    final status = _booking?.status?.toUpperCase() ?? 'PENDING'; // fix to safely handle null
     if (status == 'APPROVED') {
       final scheduledDate = _booking!.preferredDate;
       if (scheduledDate != null && scheduledDate.isNotEmpty) {
@@ -389,7 +389,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
   bool get _canChangeStatus {
     if (_booking == null) return false;
-    final status = _booking!.status.toLowerCase();
+    final status = _booking?.status.toLowerCase() ?? 'pending';  //fix to safely handle null
     if (status == 'pending') {
       return true;
     } else if (status == 'approved') {
@@ -412,7 +412,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
   String get _actionButtonText {
     if (_booking == null) return 'Approve';
-    final status = _booking!.status.toLowerCase();
+    final status = _booking?.status.toLowerCase() ??
+    'pending'; //fix to safely handle null
     if (status == 'pending') return 'Approve';
     if (status == 'approved') return 'Mark as Completed';
     return 'Approve';
@@ -564,14 +565,11 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
               ),
             if (_isEditMode) ...[
               const SizedBox(height: 8),
-              TextField(
-                controller: _newNoteController,
-                decoration: const InputDecoration(
-                  labelText: "Add a note",
-                  border: OutlineInputBorder(),
-                  hintText: "Enter your note here...",
-                ),
-                maxLines: 2,
+              _textField(
+                  "Add a note",
+                  _newNoteController,
+                  enabled: _isEditMode,
+                  maxLines: 2
               ),
             ],
 
@@ -736,7 +734,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     final displayStatus = _displayStatus;
     final canChangeStatus = _canChangeStatus;
     final actionButtonText = _actionButtonText;
-    final status = _booking?.status.toLowerCase();
+   // final status = _booking?.status.toLowerCase();
+    final status = _booking?.status?.toLowerCase(); //added safe navigation operator
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
