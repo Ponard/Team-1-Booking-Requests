@@ -24,7 +24,8 @@ class ConfirmationDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<ConfirmationDetailScreen> createState() => _ConfirmationDetailScreenState();
+  State<ConfirmationDetailScreen> createState() =>
+      _ConfirmationDetailScreenState();
 }
 
 class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
@@ -39,13 +40,16 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
   ConfirmationBooking? _booking;
 
-  final TextEditingController _confirmandNameController = TextEditingController();
+  final TextEditingController _confirmandNameController =
+      TextEditingController();
   final TextEditingController _fatherNameController = TextEditingController();
   final TextEditingController _motherNameController = TextEditingController();
   final TextEditingController _contactEmailController = TextEditingController();
   final TextEditingController _contactPhoneController = TextEditingController();
-  final TextEditingController _preferredDateController = TextEditingController();
-  final TextEditingController _preferredTimeController = TextEditingController();
+  final TextEditingController _preferredDateController =
+      TextEditingController();
+  final TextEditingController _preferredTimeController =
+      TextEditingController();
   int? _selectedPriestId;
   final TextEditingController _newNoteController = TextEditingController();
 
@@ -60,14 +64,16 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
   Future<void> _loadBooking() async {
     if (widget.confirmationId == null || widget.confirmationId == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid booking ID')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Invalid booking ID')));
       return;
     }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Authentication required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Authentication required')));
       return;
     }
 
@@ -87,15 +93,20 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         _motherNameController.text = booking.motherName ?? '';
         _contactEmailController.text = booking.contactEmail ?? '';
         _contactPhoneController.text = booking.contactPhone ?? '';
-        _preferredDateController.text = booking.preferredDate?.split('T')[0] ?? '';
+        _preferredDateController.text =
+            booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
         if (booking.priestId != null) {
           _selectedPriestId = booking.priestId;
           // Load priests for dropdown
-          final priestProvider = Provider.of<PriestProvider>(context, listen: false);
-          final parishProvider = Provider.of<ParishProvider>(context, listen: false);
+          final priestProvider =
+              Provider.of<PriestProvider>(context, listen: false);
+          final parishProvider =
+              Provider.of<ParishProvider>(context, listen: false);
           if (parishProvider.selectedParish != null) {
-            priestProvider.loadPriestsByParish(parishProvider.selectedParish!.id!, token: token);
+            priestProvider.loadPriestsByParish(
+                parishProvider.selectedParish!.id!,
+                token: token);
           }
         }
         _documents = booking.documents ?? [];
@@ -111,7 +122,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         }
       }
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed to load booking')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result.message ?? 'Failed to load booking')));
     }
   }
 
@@ -142,7 +154,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
   }
 
   Future<void> _uploadBaptismalCertificate() async {
-    if (_baptismalCertificateFile == null || widget.confirmationId == null) return;
+    if (_baptismalCertificateFile == null || widget.confirmationId == null)
+      return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
@@ -163,11 +176,13 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     if (result.success) {
       await _loadBooking();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Baptismal certificate uploaded successfully')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Baptismal certificate uploaded successfully')));
       }
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Upload failed')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result.message ?? 'Upload failed')));
       }
     }
   }
@@ -194,11 +209,13 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     if (result.success) {
       await _loadBooking();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Birth certificate uploaded successfully')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Birth certificate uploaded successfully')));
       }
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Upload failed')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result.message ?? 'Upload failed')));
       }
     }
   }
@@ -223,7 +240,9 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
       if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to open document. Please check if the file exists.')),
+          const SnackBar(
+              content: Text(
+                  'Failed to open document. Please check if the file exists.')),
         );
       }
     } catch (e) {
@@ -237,27 +256,33 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
   bool _validateForm() {
     if (_confirmandNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Confirmand\'s name is required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Confirmand\'s name is required')));
       return false;
     }
     if (_fatherNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Father\'s name is required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Father\'s name is required')));
       return false;
     }
     if (_motherNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mother\'s name is required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Mother\'s name is required')));
       return false;
     }
     if (_contactPhoneController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Contact phone is required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Contact phone is required')));
       return false;
     }
     if (_preferredDateController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferred date is required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Preferred date is required')));
       return false;
     }
     if (_preferredTimeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferred time slot is required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Preferred time slot is required')));
       return false;
     }
     return true;
@@ -267,7 +292,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     if (!_validateForm()) return;
 
     if (widget.confirmationId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid booking ID')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Invalid booking ID')));
       return;
     }
 
@@ -278,7 +304,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
       final token = authProvider.token;
       if (token == null) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Authentication required')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Authentication required')));
         }
         return;
       }
@@ -304,7 +331,9 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         confirmandName: _confirmandNameController.text.trim(),
         fatherName: _fatherNameController.text.trim(),
         motherName: _motherNameController.text.trim(),
-        contactEmail: _contactEmailController.text.trim().isEmpty ? null : _contactEmailController.text.trim(),
+        contactEmail: _contactEmailController.text.trim().isEmpty
+            ? null
+            : _contactEmailController.text.trim(),
         contactPhone: _contactPhoneController.text.trim(),
         preferredDate: _preferredDateController.text,
         preferredTimeSlot: _preferredTimeController.text,
@@ -316,18 +345,21 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         setState(() => _isSaving = false);
 
         if (result.success) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking updated successfully')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Booking updated successfully')));
           _newNoteController.clear();
           _toggleEditMode();
           Navigator.pop(context, true);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(result.message ?? 'Failed')));
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -345,7 +377,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Authentication required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Authentication required')));
       return;
     }
 
@@ -357,17 +390,19 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
     if (mounted) {
       if (result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Booking marked as $status')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Booking marked as $status')));
         Navigator.pop(context, true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
       }
     }
   }
 
   String get _displayStatus {
     if (_booking == null) return 'PENDING';
-    final status = _booking?.status?.toUpperCase() ?? 'PENDING'; // fix to safely handle null
+    final status = _booking!.status.toUpperCase();
     if (status == 'APPROVED') {
       final scheduledDate = _booking!.preferredDate;
       if (scheduledDate != null && scheduledDate.isNotEmpty) {
@@ -375,7 +410,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
           final now = DateTime.now();
           final bookingDate = DateTime.parse(scheduledDate);
           final today = DateTime(now.year, now.month, now.day);
-          final eventDate = DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
+          final eventDate =
+              DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
           if (eventDate.isBefore(today)) {
             return 'COMPLETED';
           }
@@ -389,7 +425,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
   bool get _canChangeStatus {
     if (_booking == null) return false;
-    final status = _booking?.status.toLowerCase() ?? 'pending';  //fix to safely handle null
+    final status = _booking!.status.toLowerCase();
     if (status == 'pending') {
       return true;
     } else if (status == 'approved') {
@@ -399,7 +435,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
           final now = DateTime.now();
           final bookingDate = DateTime.parse(scheduledDate);
           final today = DateTime(now.year, now.month, now.day);
-          final eventDate = DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
+          final eventDate =
+              DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
           return eventDate.isBefore(today);
         } catch (e) {
           return false;
@@ -412,8 +449,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
   String get _actionButtonText {
     if (_booking == null) return 'Approve';
-    final status = _booking?.status.toLowerCase() ??
-    'pending'; //fix to safely handle null
+    final status = _booking!.status.toLowerCase();
     if (status == 'pending') return 'Approve';
     if (status == 'approved') return 'Mark as Completed';
     return 'Approve';
@@ -428,7 +464,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final token = authProvider.token;
       if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not authenticated')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Not authenticated')));
         setState(() => _isSaving = false);
         return;
       }
@@ -442,16 +479,19 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         setState(() => _isSaving = false);
 
         if (result.success) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking resubmitted successfully')));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Booking resubmitted successfully')));
           await _loadBooking();
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed to resubmit')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(result.message ?? 'Failed to resubmit')));
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -461,10 +501,16 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUser = authProvider.currentUser;
     final role = currentUser?.role;
-    final isAdmin = ['parish_admin', 'parish_staff', 'diocese_admin', 'diocese_staff'].contains(role);
+    final isAdmin = [
+      'parish_admin',
+      'parish_staff',
+      'diocese_admin',
+      'diocese_staff'
+    ].contains(role);
     final isOwner = _booking?.userId == currentUser?.id;
     final status = _booking?.status?.toLowerCase();
-    final canEdit = isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
+    final canEdit =
+        isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
 
     return Scaffold(
       appBar: AppBar(
@@ -494,37 +540,60 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             _buildSectionTitle('Confirmand Information'),
-            _textField('Confirmand\'s Full Name *', _confirmandNameController, enabled: _isEditMode),
+            _textField('Confirmand\'s Full Name *', _confirmandNameController,
+                enabled: _isEditMode),
             _buildSectionTitle('Parents'),
             Row(children: [
-              Expanded(child: _textField("Father's Name *", _fatherNameController, enabled: _isEditMode)),
+              Expanded(
+                  child: _textField("Father's Name *", _fatherNameController,
+                      enabled: _isEditMode)),
               const SizedBox(width: 12),
-              Expanded(child: _textField("Mother's Name *", _motherNameController, enabled: _isEditMode)),
+              Expanded(
+                  child: _textField("Mother's Name *", _motherNameController,
+                      enabled: _isEditMode)),
             ]),
-            _textField("Contact Email", _contactEmailController, enabled: _isEditMode),
-            _textField("Contact Phone *", _contactPhoneController, enabled: _isEditMode),
+            _textField("Contact Email", _contactEmailController,
+                enabled: _isEditMode),
+            _textField("Contact Phone *", _contactPhoneController,
+                enabled: _isEditMode),
 
             _buildSectionTitle('Booking Details'),
-            _textField("Parish", TextEditingController(text: _booking?.parishName ?? ''), enabled: false),
-            _textField("Preferred Date *", _preferredDateController, enabled: _isEditMode, readOnly: _isEditMode, onTap: _selectDate),
-            _textField("Time Slot *", _preferredTimeController, enabled: _isEditMode, readOnly: _isEditMode, onTap: _selectTime),
+            _textField("Parish",
+                TextEditingController(text: _booking?.parishName ?? ''),
+                enabled: false),
+            _textField("Preferred Date *", _preferredDateController,
+                enabled: _isEditMode,
+                readOnly: _isEditMode,
+                onTap: _selectDate),
+            _textField("Time Slot *", _preferredTimeController,
+                enabled: _isEditMode,
+                readOnly: _isEditMode,
+                onTap: _selectTime),
             // Preferred Priest dropdown
             Consumer<PriestProvider>(
               builder: (context, priestProvider, child) {
                 if (priestProvider.priests.isEmpty && _booking != null) {
-                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                  final parishProvider = Provider.of<ParishProvider>(context, listen: false);
-                  if (parishProvider.selectedParish != null && authProvider.token != null) {
+                  final authProvider =
+                      Provider.of<AuthProvider>(context, listen: false);
+                  final parishProvider =
+                      Provider.of<ParishProvider>(context, listen: false);
+                  if (parishProvider.selectedParish != null &&
+                      authProvider.token != null) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                      priestProvider.loadPriestsByParish(parishProvider.selectedParish!.id!, token: authProvider.token);
+                      priestProvider.loadPriestsByParish(
+                          parishProvider.selectedParish!.id!,
+                          token: authProvider.token);
                     });
                   }
                 }
-                final validPriestId = _selectedPriestId != null && 
-                    priestProvider.priests.any((p) => p.id == _selectedPriestId) 
-                    ? _selectedPriestId : null;
+                final validPriestId = _selectedPriestId != null &&
+                        priestProvider.priests
+                            .any((p) => p.id == _selectedPriestId)
+                    ? _selectedPriestId
+                    : null;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: DropdownButtonFormField<int>(
@@ -538,16 +607,19 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
                         value: null,
                         child: Text("No preference"),
                       ),
-                      ...priestProvider.priests.map((priest) => DropdownMenuItem<int>(
-                        value: priest.id,
-                        child: Text(priest.fullName),
-                      )),
+                      ...priestProvider.priests
+                          .map((priest) => DropdownMenuItem<int>(
+                                value: priest.id,
+                                child: Text(priest.fullName),
+                              )),
                     ],
-                    onChanged: _isEditMode ? (value) {
-                      setState(() {
-                        _selectedPriestId = value;
-                      });
-                    } : null,
+                    onChanged: _isEditMode
+                        ? (value) {
+                            setState(() {
+                              _selectedPriestId = value;
+                            });
+                          }
+                        : null,
                   ),
                 );
               },
@@ -565,93 +637,110 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
               ),
             if (_isEditMode) ...[
               const SizedBox(height: 8),
-              _textField(
-                  "Add a note",
-                  _newNoteController,
-                  enabled: _isEditMode,
-                  maxLines: 2
-              ),
+              _textField("Add a note", _newNoteController,
+                  enabled: _isEditMode, maxLines: 2),
             ],
 
             const SizedBox(height: 16),
-            Text('Documents', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
-            Card(child: Padding(
+            Text('Documents',
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue)),
+            Card(
+                child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                // Display all documents
-                if (_documents.isNotEmpty) ...[
-                  for (final doc in _documents)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
-                        title: Text(doc.documentType?.toUpperCase().replaceAll('_', ' ') ?? 'DOCUMENT'),
-                        subtitle: Text(doc.fileName ?? 'File'),
-                        trailing: doc.isVerified == true
-                            ? Icon(Icons.check_circle, color: Colors.green[600])
-                            : Icon(Icons.pending, color: Colors.orange),
-                        onTap: () => _openDocument(doc),
-                      ),
-                    )
-                ] else ...[
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 8),
-                    child: Text('No documents uploaded', style: TextStyle(color: Colors.grey)),
-                  )
-                ],
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Display all documents
+                    if (_documents.isNotEmpty) ...[
+                      for (final doc in _documents)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            leading: const Icon(Icons.picture_as_pdf,
+                                color: Colors.red),
+                            title: Text(doc.documentType
+                                    ?.toUpperCase()
+                                    .replaceAll('_', ' ') ??
+                                'DOCUMENT'),
+                            subtitle: Text(doc.fileName ?? 'File'),
+                            trailing: doc.isVerified == true
+                                ? Icon(Icons.check_circle,
+                                    color: Colors.green[600])
+                                : Icon(Icons.pending, color: Colors.orange),
+                            onTap: () => _openDocument(doc),
+                          ),
+                        )
+                    ] else ...[
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 8),
+                        child: Text('No documents uploaded',
+                            style: TextStyle(color: Colors.grey)),
+                      )
+                    ],
 
-                // Edit mode actions
-                if (_isEditMode) ...[
-                  const SizedBox(height: 12),
-                  // Baptismal Certificate upload
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.attach_file),
-                    label: const Text('Select Baptismal Certificate'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[200]),
-                    onPressed: _pickBaptismalCertificateFile,
-                  ),
-                  if (_baptismalCertificateFile != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                        Text(_baptismalCertificateFile!.name),
-                        const SizedBox(width: 8),
-                        if (_isUploading)
-                          const CircularProgressIndicator(strokeWidth: 2)
-                        else
-                          ElevatedButton.icon(
-                            icon: const Icon(Icons.cloud_upload),
-                            label: const Text('Upload Baptismal'),
-                            onPressed: _uploadBaptismalCertificate,
-                          ),
-                      ]),
-                    ),
-                  const SizedBox(height: 12),
-                  // Birth Certificate upload
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.attach_file),
-                    label: const Text('Select Birth Certificate'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[200]),
-                    onPressed: _pickBirthCertificateFile,
-                  ),
-                  if (_birthCertificateFile != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                        Text(_birthCertificateFile!.name),
-                        const SizedBox(width: 8),
-                        if (_isUploading)
-                          const CircularProgressIndicator(strokeWidth: 2)
-                        else
-                          ElevatedButton.icon(
-                            icon: const Icon(Icons.cloud_upload),
-                            label: const Text('Upload Birth'),
-                            onPressed: _uploadBirthCertificate,
-                          ),
-                      ]),
-                    ),
-                ],
-              ]),
+                    // Edit mode actions
+                    if (_isEditMode) ...[
+                      const SizedBox(height: 12),
+                      // Baptismal Certificate upload
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.attach_file),
+                        label: const Text('Select Baptismal Certificate'),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[200]),
+                        onPressed: _pickBaptismalCertificateFile,
+                      ),
+                      if (_baptismalCertificateFile != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(_baptismalCertificateFile!.name),
+                                const SizedBox(width: 8),
+                                if (_isUploading)
+                                  const CircularProgressIndicator(
+                                      strokeWidth: 2)
+                                else
+                                  ElevatedButton.icon(
+                                    icon: const Icon(Icons.cloud_upload),
+                                    label: const Text('Upload Baptismal'),
+                                    onPressed: _uploadBaptismalCertificate,
+                                  ),
+                              ]),
+                        ),
+                      const SizedBox(height: 12),
+                      // Birth Certificate upload
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.attach_file),
+                        label: const Text('Select Birth Certificate'),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[200]),
+                        onPressed: _pickBirthCertificateFile,
+                      ),
+                      if (_birthCertificateFile != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(_birthCertificateFile!.name),
+                                const SizedBox(width: 8),
+                                if (_isUploading)
+                                  const CircularProgressIndicator(
+                                      strokeWidth: 2)
+                                else
+                                  ElevatedButton.icon(
+                                    icon: const Icon(Icons.cloud_upload),
+                                    label: const Text('Upload Birth'),
+                                    onPressed: _uploadBirthCertificate,
+                                  ),
+                              ]),
+                        ),
+                    ],
+                  ]),
             )),
 
             if (status == 'declined' && isOwner) ...[
@@ -664,7 +753,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
                     children: [
                       const Text(
                         'Your booking was declined. Please make the necessary changes and resubmit.',
-                        style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                            color: Colors.orange, fontWeight: FontWeight.w500),
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
@@ -693,7 +783,11 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     );
   }
 
-  Widget _textField(String label, TextEditingController controller, {bool enabled = true, bool readOnly = false, VoidCallback? onTap, int maxLines = 1}) {
+  Widget _textField(String label, TextEditingController controller,
+      {bool enabled = true,
+      bool readOnly = false,
+      VoidCallback? onTap,
+      int maxLines = 1}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
@@ -704,10 +798,12 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         onTap: onTap,
         decoration: InputDecoration(
           labelText: label,
-          border: enabled ? const OutlineInputBorder() : OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none,
-          ),
+          border: enabled
+              ? const OutlineInputBorder()
+              : OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
           filled: enabled,
           fillColor: enabled ? null : Colors.grey[100],
         ),
@@ -715,17 +811,29 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) => Padding(padding: const EdgeInsets.only(top: 16, bottom: 8),
-      child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)));
+  Widget _buildSectionTitle(String title) => Padding(
+      padding: const EdgeInsets.only(top: 16, bottom: 8),
+      child: Text(title,
+          style: const TextStyle(
+              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)));
 
   void _selectDate() async {
-    DateTime? picked = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now().add(const Duration(days: -7)), lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
-    if (picked != null) setState(() => _preferredDateController.text = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
+    DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime.now().add(const Duration(days: -7)),
+        lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
+    if (picked != null)
+      setState(() => _preferredDateController.text =
+          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
   }
 
   void _selectTime() async {
-    TimeOfDay? picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (picked != null) setState(() => _preferredTimeController.text = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}');
+    TimeOfDay? picked =
+        await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    if (picked != null)
+      setState(() => _preferredTimeController.text =
+          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}');
   }
 
   Widget _buildStatusSection(bool isAdmin, int bookingId) {
@@ -734,8 +842,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     final displayStatus = _displayStatus;
     final canChangeStatus = _canChangeStatus;
     final actionButtonText = _actionButtonText;
-   // final status = _booking?.status.toLowerCase();
-    final status = _booking?.status?.toLowerCase(); //added safe navigation operator
+    final status = _booking?.status.toLowerCase();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -777,7 +884,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.check_circle),
                   label: const Text('Approve'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
                   onPressed: () => _updateStatus('approved'),
                 ),
               ),
@@ -800,7 +908,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
                   icon: const Icon(Icons.check_circle_outline),
                   label: Text(actionButtonText),
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                  onPressed: canChangeStatus ? () => _updateStatus('completed') : null,
+                  onPressed:
+                      canChangeStatus ? () => _updateStatus('completed') : null,
                 ),
               ),
             ],
