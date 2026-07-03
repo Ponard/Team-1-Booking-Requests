@@ -47,7 +47,13 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
               .where((p) => p.id == userParishId)
               .firstOrNull;
           if (userParish != null) {
-            parishProvider.selectParish(userParish);
+            final bool offersService =
+                userParish.servicesOffered?.contains('mass_intention') ?? false;
+            final bool isAvailable = userParish.isActive && offersService;
+
+            if (isAvailable) {
+              parishProvider.selectParish(userParish);
+            }
           }
         });
       }

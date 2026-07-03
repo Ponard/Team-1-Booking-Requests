@@ -56,9 +56,15 @@ class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
             .where((p) => p.id == userParishId)
             .firstOrNull;
         if (userParish != null) {
-          parishProvider.selectParish(userParish);
-          await priestProvider.loadPriestsByParish(userParishId,
-              token: authProvider.token);
+          final bool offersService =
+              userParish.servicesOffered?.contains('anointing_sick') ?? false;
+          final bool isAvailable = userParish.isActive && offersService;
+
+          if (isAvailable) {
+            parishProvider.selectParish(userParish);
+            await priestProvider.loadPriestsByParish(userParishId,
+                token: authProvider.token);
+          }
         }
       }
 

@@ -65,8 +65,15 @@ class _EucharistScreenState extends State<EucharistScreen> {
             .where((p) => p.id == userParishId)
             .firstOrNull;
         if (userParish != null) {
-          parishProvider.selectParish(userParish);
-          await priestProvider.loadPriestsByParish(userParishId);
+          final bool offersService =
+              userParish.servicesOffered?.contains('eucharist') ?? false;
+          final bool isAvailable = userParish.isActive && offersService;
+
+          if (isAvailable) {
+            parishProvider.selectParish(userParish);
+            await priestProvider.loadPriestsByParish(userParishId,
+                token: authProvider.token);
+          }
         }
       }
 
