@@ -134,10 +134,6 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
     if (parishId != null && authProvider.token != null) {
       await priestProvider.loadPriestsByParish(parishId, token: authProvider.token);
       if (mounted && _preferredPriestController.text.isNotEmpty) {
-        final matchingPriest = priestProvider.priests.firstWhere(
-          (p) => p.fullName == _preferredPriestController.text,
-          orElse: () => priestProvider.priests.isNotEmpty ? priestProvider.priests.first : priestProvider.priests.first,
-        );
         if (priestProvider.priests.any((p) => p.fullName == _preferredPriestController.text)) {
           setState(() {
             _selectedPriestId = priestProvider.priests
@@ -183,10 +179,10 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
             ],
             onChanged: _isEditMode
                 ? (value) {
-                    setState(() {
-                      _selectedPriestId = value;
-                    });
-                  }
+              setState(() {
+                _selectedPriestId = value;
+              });
+            }
                 : null,
           ),
         );
@@ -196,119 +192,77 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
 
   Future<void> _saveChanges() async {
     if (!_validateForm()) return;
-
-    if (widget.funeralMassId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid booking ID')));
-      return;
-    }
+    if (widget.funeralMassId == null) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
-    if (token == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Authentication required')));
-      }
-      return;
-    }
+    if (token == null) return;
 
     setState(() => _isSaving = true);
 
-    // Prepare notes array if a new note was added
+    // --- Sanitization Block ---
+    final cleanDeceased = _deceasedNameController.text.trim();
+    final cleanDateOfDeath = _dateOfDeathController.text.trim();
+    final cleanRepresentative = _representativeNameController.text.trim();
+    final cleanEmail = _contactEmailController.text.trim();
+    final cleanPhone = _contactPhoneController.text.trim();
+    final cleanWakeStart = _wakeStartDateController.text.trim();
+    final cleanWakeEnd = _wakeEndDateController.text.trim();
+    final cleanWakeLocation = _wakeLocationController.text.trim();
+    final cleanDate = _preferredDateController.text.trim();
+    final cleanTime = _preferredTimeController.text.trim();
+    final cleanNotes = _newNoteController.text.trim();
+
     List<Map<String, dynamic>>? notesToAdd;
-    if (_newNoteController.text.trim().isNotEmpty) {
+    if (cleanNotes.isNotEmpty) {
       final currentUser = authProvider.currentUser;
       final isParishioner = currentUser?.role == 'parishioner';
-      notesToAdd = [
-        {
-          'author': isParishioner ? 'parishioner' : 'admin',
-          'content': _newNoteController.text.trim(),
-          'authorId': currentUser?.id,
-        }
-      ];
+      notesToAdd = [{
+        'author': isParishioner ? 'parishioner' : 'admin',
+        'content': cleanNotes,
+        'authorId': currentUser?.id,
+      }];
     }
 
     final priestProvider = Provider.of<PriestProvider>(context, listen: false);
+    // Null-safe lookup to prevent crashes
     final selectedPriestName = _selectedPriestId != null
-        ? priestProvider.priests.firstWhere(
-            (p) => p.id == _selectedPriestId,
-            orElse: () => priestProvider.priests.isNotEmpty
-                ? priestProvider.priests.first
-                : throw Exception('No priests available'),
-          ).fullName
+        ? priestProvider.priests.where((p) => p.id == _selectedPriestId).firstOrNull?.fullName
         : null;
 
     try {
       final result = await _funeralMassService.updateFuneralMassBooking(
         token: token,
         id: widget.funeralMassId!,
-        deceasedFullName: _deceasedNameController.text.trim(),
-        dateOfDeath: _dateOfDeathController.text.trim().isEmpty ? null : _dateOfDeathController.text.trim(),
-        representativeName: _representativeNameController.text.trim(),
-        contactEmail: _contactEmailController.text.trim().isEmpty ? null : _contactEmailController.text.trim(),
-        contactPhone: _contactPhoneController.text.trim(),
-
-        //QA fix: Ensure the final payload is actually trimmed.
-        wakeStartDate: _wakeStartDateController.text.trim().isEmpty ? null : _wakeStartDateController.text.trim(),
-        wakeEndDate: _wakeEndDateController.text.trim().isEmpty ? null : _wakeEndDateController.text.trim(),
-        wakeLocation: _wakeLocationController.text.trim().isEmpty ? null : _wakeLocationController.text.trim(),
-
-        //QA fix: trimmed required date and time fields
-        preferredDate: _preferredDateController.text.trim(),
-        preferredTimeSlot: _preferredTimeController.text.trim(),
+        deceasedFullName: cleanDeceased,
+        dateOfDeath: cleanDateOfDeath.isEmpty ? null : cleanDateOfDeath,
+        representativeName: cleanRepresentative,
+        contactEmail: cleanEmail.isEmpty ? null : cleanEmail,
+        contactPhone: cleanPhone,
+        wakeStartDate: cleanWakeStart.isEmpty ? null : cleanWakeStart,
+        wakeEndDate: cleanWakeEnd.isEmpty ? null : cleanWakeEnd,
+        wakeLocation: cleanWakeLocation.isEmpty ? null : cleanWakeLocation,
+        preferredDate: cleanDate,
+        preferredTimeSlot: cleanTime,
         preferredPriest: selectedPriestName,
         notes: notesToAdd,
       );
 
-      if (mounted) {
-        setState(() => _isSaving = false);
+      if (!mounted) return;
+      setState(() => _isSaving = false);
 
-        if (result.success) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking updated successfully')));
-          _newNoteController.clear();
-          _toggleEditMode();
-          Navigator.pop(context, true);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
-    }
-  }
-
-  void _toggleEditMode() {
-    setState(() {
-      _isEditMode = !_isEditMode;
-      if (!_isEditMode) _showStatusButtons = true;
-    });
-  }
-
-  void _updateStatus(String status) async {
-    if (widget.funeralMassId == null) return;
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final token = authProvider.token;
-    if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Authentication required')));
-      return;
-    }
-
-    final result = await _funeralMassService.updateFuneralMassStatus(
-      token: token,
-      id: widget.funeralMassId!,
-      status: status,
-    );
-
-    if (mounted) {
       if (result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Booking marked as $status')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking updated successfully')));
+        _newNoteController.clear();
+        _toggleEditMode();
         Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
       }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -398,6 +352,39 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  void _toggleEditMode() {
+    setState(() {
+      _isEditMode = !_isEditMode;
+      if (!_isEditMode) _showStatusButtons = true;
+    });
+  }
+
+  void _updateStatus(String status) async {
+    if (widget.funeralMassId == null) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Authentication required')));
+      return;
+    }
+
+    final result = await _funeralMassService.updateFuneralMassStatus(
+      token: token,
+      id: widget.funeralMassId!,
+      status: status,
+    );
+
+    if (mounted) {
+      if (result.success) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Booking marked as $status')));
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
       }
     }
   }
@@ -559,6 +546,16 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
   Widget _buildStatusSection(bool isAdmin, int bookingId) {
     if (!isAdmin || _showStatusButtons) return const SizedBox.shrink();
 
+    // 1. Fetch user role
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUserRole = authProvider.currentUser?.role;
+
+    // 2. Restrict approval permissions (block parish_staff)
+    final canApprove = currentUserRole == 'priest' ||
+        currentUserRole == 'parish_admin' ||
+        currentUserRole == 'diocese_admin' ||
+        currentUserRole == 'diocese_staff';
+
     final displayStatus = _displayStatus;
     final canChangeStatus = _canChangeStatus;
     final actionButtonText = _actionButtonText;
@@ -568,9 +565,9 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        Text(
+        const Text(
           'Status',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.blue,
@@ -581,9 +578,9 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 120,
-                child: const Text(
+                child: Text(
                   'Status',
                   style: TextStyle(fontWeight: FontWeight.w500),
                 ),
@@ -598,40 +595,51 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
           ),
         ),
         if (status == 'pending') ...[
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.check_circle),
-                  label: const Text('Approve'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  onPressed: () => _updateStatus('approved'),
+          // 3. Conditionally render buttons based on the role flag
+          if (canApprove)
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.check_circle),
+                    label: const Text('Approve'),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    onPressed: () => _updateStatus('approved'),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.cancel),
-                  label: const Text('Decline'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  onPressed: () => _updateStatus('declined'),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.cancel),
+                    label: const Text('Decline'),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    onPressed: () => _updateStatus('declined'),
+                  ),
                 ),
+              ],
+            )
+          else
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8.0),
+              child: Text(
+                "Pending Priest Approval",
+                style: TextStyle(color: Colors.orange, fontStyle: FontStyle.italic, fontWeight: FontWeight.w500),
               ),
-            ],
-          ),
+            ),
         ] else if (status == 'approved') ...[
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: Text(actionButtonText),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                  onPressed: canChangeStatus ? () => _updateStatus('completed') : null,
+          if (canApprove)
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.check_circle_outline),
+                    label: Text(actionButtonText),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                    onPressed: canChangeStatus ? () => _updateStatus('completed') : null,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ],
     );

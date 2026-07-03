@@ -93,40 +93,69 @@ class _ReconciliationDetailScreenState extends State<ReconciliationDetailScreen>
     });
   }
 
+
+//fixed the save changes method
   Future<void> _saveChanges() async {
     if (widget.reconciliationId == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid booking ID')));
       return;
     }
 
-    if (_penitentNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Penitent name is required')));
-      return;
-    }
-    if (_contactPhoneController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Contact phone is required')));
-      return;
-    }
-    if (_preferredDateController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferred date is required')));
-      return;
-    }
-    if (_preferredTimeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferred time slot is required')));
+    // --- NEW: Sanitization Block ---
+    final cleanPenitent = _penitentNameController.text.trim();
+    final cleanEmail = _contactEmailController.text.trim();
+    final cleanPhone = _contactPhoneController.text.trim();
+    final cleanDate = _preferredDateController.text.trim();
+    final cleanTime = _preferredTimeController.text.trim();
+    final cleanNotes = _notesController.text.trim();
+
+    if (cleanPenitent.isEmpty || cleanPhone.isEmpty || cleanDate.isEmpty || cleanTime.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill out all required fields')));
       return;
     }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
-    if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Authentication required')));
-      return;
+    if (token == null) return;
+
+    setState(() => _isSaving = true);
+
+    List<Map<String, dynamic>>? notesToAdd;
+    if (cleanNotes.isNotEmpty) {
+      final currentUser = authProvider.currentUser;
+      final isParishioner = currentUser?.role == 'parishioner';
+      notesToAdd = [{
+        'author': isParishioner ? 'parishioner' : 'admin',
+        'content': cleanNotes,
+        'authorId': currentUser!.id,
+      }];
+    }
+
+    final result = await _reconciliationService.updateReconciliationBooking(
+      token: token,
+      id: widget.reconciliationId!,
+      penitentName: cleanPenitent,
+      contactEmail: cleanEmail,
+      contactPhone: cleanPhone,
+      preferredDate: cleanDate,
+      preferredTimeSlot: cleanTime,
+      notes: notesToAdd,
+    );
+
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+
+    if (result.success) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking updated successfully')));
+      _toggleEditMode();
+      Navigator.pop(context, true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed to update booking')));
     }
 
     setState(() => _isSaving = true);
 
     //QA FIX: Dynamic role check for notes
-    List<Map<String, dynamic>>? notesToAdd;
     if (_notesController.text.trim().isNotEmpty) {
       final currentUser =  authProvider.currentUser;
       final isParishioner = currentUser?.role == 'parishioner'; //for logic checking
@@ -140,7 +169,7 @@ class _ReconciliationDetailScreenState extends State<ReconciliationDetailScreen>
     }
 
     //QA FIX: Added .trim() to date and time fields
-    final result = await _reconciliationService.updateReconciliationBooking(
+    await _reconciliationService.updateReconciliationBooking(
       token: token,
       id: widget.reconciliationId!,
       penitentName: _penitentNameController.text.trim(),
