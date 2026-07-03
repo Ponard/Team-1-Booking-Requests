@@ -18,7 +18,10 @@ class BaptismBookingScreen extends StatefulWidget {
 class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers
+  // --- Double-Submission Guardrail State ---
+  bool _isSubmitting = false;
+
+  // --- Controllers ---
   final TextEditingController _childNameController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _fatherNameController = TextEditingController();
@@ -26,12 +29,9 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
   final TextEditingController _godparentsController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
-  final TextEditingController _preferredParishController =
-      TextEditingController();
-  final TextEditingController _preferredDateController =
-      TextEditingController();
-  final TextEditingController _preferredTimeController =
-      TextEditingController();
+  final TextEditingController _preferredParishController = TextEditingController();
+  final TextEditingController _preferredDateController = TextEditingController();
+  final TextEditingController _preferredTimeController = TextEditingController();
 
   // Priest selection state
   int? _selectedPriestId;
@@ -46,11 +46,9 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
     super.initState();
     // Load parishes for selection
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final parishProvider =
-          Provider.of<ParishProvider>(context, listen: false);
+      final parishProvider = Provider.of<ParishProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final priestProvider =
-          Provider.of<PriestProvider>(context, listen: false);
+      final priestProvider = Provider.of<PriestProvider>(context, listen: false);
 
       parishProvider.clearSelection();
       await parishProvider.loadAllParishes();
@@ -59,14 +57,12 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
 
       // Default to user's preferred parish if available
       if (userParishId != null) {
-        // This will be set once parishes are loaded
         final userParish = parishProvider.parishes
             .where((p) => p.id == userParishId)
             .firstOrNull;
         if (userParish != null) {
           parishProvider.selectParish(userParish);
-          await priestProvider.loadPriestsByParish(userParishId,
-              token: authProvider.token);
+          await priestProvider.loadPriestsByParish(userParishId, token: authProvider.token);
         }
       }
     });
@@ -88,18 +84,14 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error selecting file: $e')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error selecting file: $e')));
       }
     }
   }
 
   Future<void> _uploadBirthCertificate() async {
     if (_birthCertificateFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a file first')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a file first')));
       return;
     }
 
@@ -107,15 +99,11 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
     final token = authProvider.token;
 
     if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please login to upload files')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please login to upload files')));
       return;
     }
 
-    setState(() {
-      _isUploadingFile = true;
-    });
+    setState(() => _isUploadingFile = true);
 
     try {
       final fileService = FileService();
@@ -133,37 +121,23 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
           _uploadedFileData = response.data!['file'];
         });
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Birth certificate uploaded successfully')),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Birth certificate uploaded successfully')));
         }
       } else {
         if (mounted) {
-          // Show detailed error message
           final errorMsg = response.errors?.isNotEmpty == true
               ? '${response.message}: ${response.errors!.first}'
               : (response.message ?? 'Upload failed');
-          print('Upload error details: $errorMsg');
-          print('Response status code: ${response.statusCode}');
-          print('Response data: ${response.data}');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(errorMsg)),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMsg)));
         }
       }
     } catch (e) {
       if (mounted) {
-        print('Upload exception: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error uploading file: $e')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error uploading file: $e')));
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isUploadingFile = false;
-        });
+        setState(() => _isUploadingFile = false);
       }
     }
   }
@@ -183,116 +157,128 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
     super.dispose();
   }
 
+  // --- Modernized Submission Logic ---
   Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final baptismProvider =
-          Provider.of<BaptismProvider>(context, listen: false);
-      final parishProvider =
-          Provider.of<ParishProvider>(context, listen: false);
+    if (!_formKey.currentState!.validate()) return;
 
-      if (authProvider.currentUser == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please login to submit a booking.")),
-        );
-        return;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final baptismProvider = Provider.of<BaptismProvider>(context, listen: false);
+    final parishProvider = Provider.of<ParishProvider>(context, listen: false);
+
+    // 1. Initial State Requirements Validation
+    if (authProvider.currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please login to submit a booking.")));
+      return;
+    }
+
+    if (parishProvider.selectedParish == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please select a parish.")));
+      return;
+    }
+
+    // Explicit Document Requirement Check
+    if (_uploadedFileData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please upload the required PSA Birth Certificate.")));
+      return;
+    }
+
+    // Trigger double-submission guardrail
+    setState(() => _isSubmitting = true);
+
+    String formatDate(String date) {
+      final parts = date.split('-');
+      if (parts.length == 3) {
+        return '${parts[0]}-${parts[1].padLeft(2, '0')}-${parts[2].padLeft(2, '0')}';
       }
+      return date;
+    }
 
-      if (parishProvider.selectedParish == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select a parish.")),
-        );
-        return;
-      }
+    // --- Sanitization Block ---
+    final cleanChildName = _childNameController.text.trim();
+    final cleanDob = formatDate(_dobController.text.trim());
+    final cleanFatherName = _fatherNameController.text.trim();
+    final cleanMotherName = _motherNameController.text.trim();
+    final cleanContact = _contactController.text.trim();
+    final cleanPreferredDate = formatDate(_preferredDateController.text.trim());
+    final cleanPreferredTime = _preferredTimeController.text.trim();
+    final cleanNotes = _notesController.text.trim();
 
-      // Format dates to ISO format (YYYY-MM-DD)
-      String formatDate(String date) {
-        final parts = date.split('-');
-        if (parts.length == 3) {
-          return '${parts[0]}-${parts[1].padLeft(2, '0')}-${parts[2].padLeft(2, '0')}';
+    // Safely parse godparents (prevents empty array items)
+    List<Map<String, String>> godparents = [];
+    if (_godparentsController.text.trim().isNotEmpty) {
+      final godparentsList = _godparentsController.text.split(';');
+      for (var godparent in godparentsList) {
+        if (godparent.trim().isNotEmpty) {
+          godparents.add({'fullName': godparent.trim()});
         }
-        return date;
       }
+    }
 
-      // Parse godparents
-      List<Map<String, String>> godparents = [];
-      if (_godparentsController.text.isNotEmpty) {
-        final godparentsList = _godparentsController.text.split(';');
-        for (var godparent in godparentsList) {
-          if (godparent.trim().isNotEmpty) {
-            godparents.add({'fullName': godparent.trim()});
-          }
+    // Safely parse notes
+    List<Map<String, dynamic>>? notesToAdd;
+    if (cleanNotes.isNotEmpty) {
+      notesToAdd = [
+        {
+          'author': 'parishioner',
+          'content': cleanNotes,
+          'authorId': authProvider.currentUser!.id,
         }
-      }
+      ];
+    }
 
-      // Prepare notes array if a note was added
-      List<Map<String, dynamic>>? notesToAdd;
-      if (_notesController.text.trim().isNotEmpty) {
-        notesToAdd = [
-          {
-            'author': 'parishioner',
-            'content': _notesController.text.trim(),
-            'authorId': authProvider.currentUser!.id,
-          }
-        ];
-      }
+    // 2. Execute API Call
+    final success = await baptismProvider.createBaptismBooking(
+      parishId: parishProvider.selectedParish!.id!,
+      childFullName: cleanChildName,
+      dateOfBirth: cleanDob,
+      fatherName: cleanFatherName,
+      motherName: cleanMotherName,
+      contactEmail: authProvider.currentUser!.email,
+      contactPhone: cleanContact,
+      preferredDate: cleanPreferredDate,
+      preferredTimeSlot: cleanPreferredTime,
+      priestId: _selectedPriestId,
+      notes: notesToAdd,
+      godparents: godparents.isEmpty ? null : godparents,
+      uploadedFile: _uploadedFileData!['filename'],
+      filePath: _uploadedFileData!['path'],
+      fileUrl: _uploadedFileData!['url'],
+      fileSize: _uploadedFileData!['size'],
+      mimeType: _uploadedFileData!['mimeType'],
+      documentType: 'birth_certificate',
+    );
 
-      //implemented the trim method
-      final success = await baptismProvider.createBaptismBooking(
-        parishId: parishProvider.selectedParish!.id!,
-        childFullName: _childNameController.text.trim(),
-        dateOfBirth: formatDate(_dobController.text.trim()), // Added .trim()
-        fatherName: _fatherNameController.text.trim(),
-        motherName: _motherNameController.text.trim(),
-        contactEmail: authProvider.currentUser!.email,
-        contactPhone: _contactController.text.trim(),
-        preferredDate:
-            formatDate(_preferredDateController.text.trim()), // Added .trim()
-        preferredTimeSlot:
-            _preferredTimeController.text.trim(), // Added .trim()
-        priestId: _selectedPriestId,
-        notes: notesToAdd,
-        godparents: godparents.isEmpty ? null : godparents,
-        uploadedFile:
-            _uploadedFileData != null ? _uploadedFileData!['filename'] : null,
-        filePath: _uploadedFileData != null ? _uploadedFileData!['path'] : null,
-        fileUrl: _uploadedFileData != null ? _uploadedFileData!['url'] : null,
-        fileSize: _uploadedFileData != null ? _uploadedFileData!['size'] : null,
-        mimeType:
-            _uploadedFileData != null ? _uploadedFileData!['mimeType'] : null,
-        documentType: 'birth_certificate',
+    if (!mounted) return;
+
+    // Release double-submission guardrail
+    setState(() => _isSubmitting = false);
+
+    // 3. Handle UI Response
+    if (success) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Booking Submitted"),
+          content: const Text("Your baptism booking request has been submitted. Parish will confirm availability."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop(); // Go back to home
+              },
+              child: const Text("OK"),
+            )
+          ],
+        ),
       );
-
-      if (success && mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text("Booking Submitted"),
-            content: const Text(
-                "Your baptism booking request has been submitted. Parish will confirm availability."),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close dialog
-                  Navigator.of(context).pop(); // Go back to home
-                },
-                child: const Text("OK"),
-              )
-            ],
-          ),
-        );
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  baptismProvider.errorMessage ?? "Failed to submit booking.")),
-        );
-      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(baptismProvider.errorMessage ?? "Failed to submit booking.")),
+      );
     }
   }
 
-  Widget _buildSection(
-      {required String title, required List<Widget> children}) {
+  Widget _buildSection({required String title, required List<Widget> children}) {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -322,9 +308,7 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
         title: const Text("Baptism Booking"),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop(); // Back to Home
-          },
+          onPressed: () => Navigator.of(context).pop(), // Back to Home
         ),
         centerTitle: true,
       ),
@@ -361,7 +345,7 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
+                      value == null || value.trim().isEmpty ? "Required" : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -372,7 +356,8 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
+                      value == null || value.isEmpty ? "Required" : null,
+                      readOnly: true,
                       onTap: () async {
                         FocusScope.of(context).requestFocus(FocusNode());
                         DateTime? pickedDate = await showDatePicker(
@@ -383,7 +368,7 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                         );
                         if (pickedDate != null) {
                           _dobController.text =
-                              "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+                          "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
                         }
                       },
                     ),
@@ -400,7 +385,7 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                               labelText: "Father's Name *",
                               border: OutlineInputBorder(),
                             ),
-                            validator: (value) => value == null || value.isEmpty
+                            validator: (value) => value == null || value.trim().isEmpty
                                 ? "Required"
                                 : null,
                           ),
@@ -413,7 +398,7 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                               labelText: "Mother's Name *",
                               border: OutlineInputBorder(),
                             ),
-                            validator: (value) => value == null || value.isEmpty
+                            validator: (value) => value == null || value.trim().isEmpty
                                 ? "Required"
                                 : null,
                           ),
@@ -424,8 +409,7 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                     TextFormField(
                       controller: _godparentsController,
                       decoration: const InputDecoration(
-                        labelText:
-                            "Godparents' Names (separate with semicolon)",
+                        labelText: "Godparents' Names (separate with semicolon)",
                         border: OutlineInputBorder(),
                       ),
                     ),
@@ -438,7 +422,7 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                       ),
                       keyboardType: TextInputType.phone,
                       validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
+                      value == null || value.trim().isEmpty ? "Required" : null,
                     ),
                   ]),
 
@@ -454,14 +438,13 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                           ),
                           items: parishProvider.parishes
                               .map((parish) => DropdownMenuItem(
-                                    value: parish.id,
-                                    child: Text(parish.name),
-                                  ))
+                            value: parish.id,
+                            child: Text(parish.name),
+                          ))
                               .toList(),
                           onChanged: (value) {
                             final parish = parishProvider.parishes
                                 .firstWhere((p) => p.id == value);
-                            // Clear any previously selected priest
                             setState(() {
                               _selectedPriestId = null;
                             });
@@ -472,7 +455,7 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                             ).loadPriestsByParish(parish.id!);
                           },
                           validator: (value) =>
-                              value == null ? "Please select a parish" : null,
+                          value == null ? "Please select a parish" : null,
                         );
                       },
                     ),
@@ -485,19 +468,19 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
+                      value == null || value.isEmpty ? "Required" : null,
+                      readOnly: true,
                       onTap: () async {
                         FocusScope.of(context).requestFocus(FocusNode());
                         DateTime? pickedDate = await showDatePicker(
                           context: context,
                           initialDate: DateTime.now(),
                           firstDate: DateTime.now(),
-                          lastDate:
-                              DateTime.now().add(const Duration(days: 365)),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
                         );
                         if (pickedDate != null) {
                           _preferredDateController.text =
-                              "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+                          "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
                         }
                       },
                     ),
@@ -510,16 +493,17 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
+                      value == null || value.isEmpty ? "Required" : null,
+                      readOnly: true,
                       onTap: () async {
                         FocusScope.of(context).requestFocus(FocusNode());
                         TimeOfDay? pickedTime = await showTimePicker(
                           context: context,
                           initialTime: TimeOfDay.now(),
                         );
-                        if (pickedTime != null) {
+                        if (pickedTime != null && mounted) {
                           _preferredTimeController.text =
-                              "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
+                          "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
                         }
                       },
                     ),
@@ -527,15 +511,15 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                     Consumer<PriestProvider>(
                       builder: (context, priestProvider, _) {
                         final validPriestId = _selectedPriestId != null &&
-                                priestProvider.priests
-                                    .any((p) => p.id == _selectedPriestId)
+                            priestProvider.priests
+                                .any((p) => p.id == _selectedPriestId)
                             ? _selectedPriestId
                             : null;
                         return DropdownButtonFormField<int>(
                           value: validPriestId,
                           decoration: const InputDecoration(
                             labelText:
-                                "Preferred Priest (Optional) - Subject to availability",
+                            "Preferred Priest (Optional) - Subject to availability",
                             border: OutlineInputBorder(),
                           ),
                           items: [
@@ -545,9 +529,9 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                             ),
                             ...priestProvider.priests
                                 .map((priest) => DropdownMenuItem<int>(
-                                      value: priest.id,
-                                      child: Text(priest.fullName),
-                                    )),
+                              value: priest.id,
+                              child: Text(priest.fullName),
+                            )),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -575,8 +559,7 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                   _buildSection(title: "Required Documents", children: [
                     const Text(
                       "PSA Birth Certificate *",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -603,47 +586,50 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                       const SizedBox(height: 12),
                       _isUploadingFile
                           ? const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2),
-                                ),
-                                SizedBox(width: 12),
-                                Text('Uploading...'),
-                              ],
-                            )
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          SizedBox(width: 12),
+                          Text('Uploading...'),
+                        ],
+                      )
                           : ElevatedButton.icon(
-                              onPressed: _uploadedFileData == null
-                                  ? _uploadBirthCertificate
-                                  : null,
-                              icon: const Icon(Icons.cloud_upload),
-                              label: Text(
-                                _uploadedFileData != null
-                                    ? 'Uploaded Successfully'
-                                    : 'Upload Birth Certificate',
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _uploadedFileData != null
-                                    ? Colors.green
-                                    : null,
-                                foregroundColor: _uploadedFileData != null
-                                    ? Colors.white
-                                    : null,
-                              ),
-                            ),
+                        onPressed: _uploadedFileData == null
+                            ? _uploadBirthCertificate
+                            : null,
+                        icon: const Icon(Icons.cloud_upload),
+                        label: Text(
+                          _uploadedFileData != null
+                              ? 'Uploaded Successfully'
+                              : 'Upload Birth Certificate',
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _uploadedFileData != null
+                              ? Colors.green
+                              : null,
+                          foregroundColor: _uploadedFileData != null
+                              ? Colors.white
+                              : null,
+                        ),
+                      ),
                     ],
                   ]),
 
                   const SizedBox(height: 20),
+
+                  // --- Main Submission Button with State Checking ---
                   Consumer<BaptismProvider>(
                     builder: (context, baptismProvider, _) {
+                      final bool isProcessing = baptismProvider.isLoading || _isSubmitting;
+
                       return Center(
                         child: ElevatedButton(
-                          onPressed:
-                              baptismProvider.isLoading ? null : _submitForm,
+                          // Disable button if processing or waiting for API
+                          onPressed: isProcessing ? null : _submitForm,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Theme.of(context).primaryColor,
                             foregroundColor: Colors.white,
@@ -652,18 +638,16 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8)),
                           ),
-                          child: baptismProvider.isLoading
+                          child: isProcessing
                               ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
-                                  ),
-                                )
-                              : const Text("Submit Request",
-                                  style: TextStyle(fontSize: 16)),
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                              : const Text("Submit Request", style: TextStyle(fontSize: 16)),
                         ),
                       );
                     },
