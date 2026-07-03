@@ -18,12 +18,6 @@ class WeddingBookingScreen extends StatefulWidget {
 class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // UI/UX IMPROVEMENT: State variables for Conditional Parish Selection.
-  // Determines if the user must manually select a parish (fallback) or
-  // if their home parish is automatically assigned (happy path).
-  bool _showParishDropdown = true;
-  String? _assignedHomeParishName;
-
   // Controllers
   final TextEditingController _groomNameController = TextEditingController();
   final TextEditingController _brideNameController = TextEditingController();
@@ -95,16 +89,6 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
             parishProvider.selectParish(userParish);
             await priestProvider.loadPriestsByParish(userParishId,
                 token: authProvider.token);
-            setState(() {
-              _showParishDropdown = true;
-              _assignedHomeParishName = userParish.name;
-            });
-          } else {
-            // Edge Case: Home parish is inactive/unavailable.
-            // Forces the fallback dropdown menu to render so the user can pick an alternate.
-            setState(() {
-              _showParishDropdown = true;
-            });
           }
         }
       }
@@ -768,27 +752,6 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                   _buildSection(title: "Booking Preferences", children: [
                     Consumer<ParishProvider>(
                       builder: (context, parishProvider, _) {
-                        // UI/UX IMPROVEMENT: Read-Only State
-                        // If the home parish is active, display it as a read-only field.
-                        // This prevents layout overflow/shifting by keeping the component footprint
-                        // mathematically identical to the dropdown.
-                        if (!_showParishDropdown &&
-                            _assignedHomeParishName != null) {
-                          return TextFormField(
-                            initialValue: _assignedHomeParishName,
-                            decoration: const InputDecoration(
-                              labelText: "Assigned Parish",
-                              border: OutlineInputBorder(),
-                              fillColor: Color(
-                                  0xFFF5F5F5), // Light grey to indicate read-only
-                              filled: true,
-                            ),
-                            readOnly: true,
-                            // enabled: false, //UI Logic: remove this because user cannot edit this
-                          );
-                        }
-
-                        // Fallback: Show the dropdown if no home parish or if it's inactive/unavailable
                         return DropdownButtonFormField<int>(
                           value: parishProvider.selectedParish?.id,
                           decoration: const InputDecoration(
