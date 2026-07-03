@@ -79,13 +79,13 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
         if (userParish != null) {
           // Check if the parish is active and offers weddings
           //Logic: Only hide the dropdown if the parish is active AND offers weddings
-          bool offersWeddings =
+          final bool offersWeddings =
               userParish.servicesOffered?.contains('wedding') ?? false;
-          bool isUnavailable = !userParish.isActive || !offersWeddings;
+          final bool isAvailable = userParish.isActive && offersWeddings;
 
           // Happy Path: Home parish is available.
           // Binds data in the background and sets flag to hide the selection UI.
-          if (!isUnavailable) {
+          if (isAvailable) {
             // Happy Path: Parish is available. Auto-select and hide dropdown.
             parishProvider.selectParish(userParish);
             await priestProvider.loadPriestsByParish(userParishId,
