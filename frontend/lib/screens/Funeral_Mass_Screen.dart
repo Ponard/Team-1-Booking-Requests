@@ -57,9 +57,15 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
             .where((p) => p.id == userParishId)
             .firstOrNull;
         if (userParish != null) {
-          parishProvider.selectParish(userParish);
-          await priestProvider.loadPriestsByParish(userParishId,
-              token: authProvider.token);
+          final bool offersService =
+              userParish.servicesOffered?.contains('funeral_mass') ?? false;
+          final bool isAvailable = userParish.isActive && offersService;
+
+          if (isAvailable) {
+            parishProvider.selectParish(userParish);
+            await priestProvider.loadPriestsByParish(userParishId,
+                token: authProvider.token);
+          }
         }
       }
 
