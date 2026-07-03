@@ -128,64 +128,67 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
 
   Future<void> _saveChanges() async {
     if (!_validateForm()) return;
-    if (widget.anointingSickId == null) return;
+
+    if (widget.anointingSickId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid booking ID')));
+      return;
+    }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
-    if (token == null) return;
+    if (token == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Authentication required')));
+      }
+      return;
+    }
 
     setState(() => _isSaving = true);
 
-    // --- Sanitization Block ---
-    final cleanSickPerson = _sickPersonNameController.text.trim();
-    final cleanContactPerson = _contactPersonNameController.text.trim();
-    final cleanEmail = _contactEmailController.text.trim();
-    final cleanPhone = _contactPhoneController.text.trim();
-    final cleanLocation = _locationController.text.trim();
-    final cleanLocationAddress = _locationAddressController.text.trim();
-    final cleanDate = _preferredDateController.text.trim();
-    final cleanTime = _preferredTimeController.text.trim();
-    final cleanNotes = _notesController.text.trim();
-
     try {
       List<Map<String, dynamic>>? notesToAdd;
-      if (cleanNotes.isNotEmpty) {
-        notesToAdd = [{
-          'author': 'parishioner',
-          'content': cleanNotes,
-          'authorId': authProvider.currentUser!.id,
-        }];
+      if (_notesController.text.trim().isNotEmpty) {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        notesToAdd = [
+          {
+            'author': 'parishioner',
+            'content': _notesController.text.trim(),
+            'authorId': authProvider.currentUser!.id,
+          }
+        ];
       }
 
       final result = await _anointingSickService.updateAnointingSickBooking(
         token: token,
         id: widget.anointingSickId!,
-        sickPersonName: cleanSickPerson,
-        contactPersonName: cleanContactPerson,
-        contactEmail: cleanEmail.isEmpty ? null : cleanEmail,
-        contactPhone: cleanPhone,
-        location: cleanLocation,
-        locationAddress: cleanLocationAddress.isEmpty ? null : cleanLocationAddress,
-        preferredDate: cleanDate,
-        preferredTimeSlot: cleanTime,
+        sickPersonName: _sickPersonNameController.text.trim(),
+        contactPersonName: _contactPersonNameController.text.trim(),
+        contactEmail: _contactEmailController.text.trim().isEmpty ? null : _contactEmailController.text.trim(),
+        contactPhone: _contactPhoneController.text.trim(),
+        location: _locationController.text.trim(),
+        locationAddress: _locationAddressController.text.trim().isEmpty ? null : _locationAddressController.text.trim(),
+        preferredDate: _preferredDateController.text,
+        preferredTimeSlot: _preferredTimeController.text,
         priestId: _selectedPriestId,
         notes: notesToAdd,
       );
 
-      if (!mounted) return;
-      setState(() => _isSaving = false);
+      if (mounted) {
+        setState(() => _isSaving = false);
 
-      if (result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking updated successfully')));
-        _toggleEditMode();
-        Navigator.pop(context, true);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
+        if (result.success) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking updated successfully')));
+          _toggleEditMode();
+          Navigator.pop(context, true);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
+        }
       }
     } catch (e) {
-      if (!mounted) return;
-      setState(() => _isSaving = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 
@@ -224,9 +227,9 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
 
   String get _displayStatus {
     if (_booking == null) return 'PENDING';
-    final status = (_booking?.status?.toUpperCase() ?? 'PENDING');
+    final status = _booking!.status.toUpperCase();
     if (status == 'APPROVED') {
-      final scheduledDate = _booking?.preferredDate;
+      final scheduledDate = _booking!.preferredDate;
       if (scheduledDate != null && scheduledDate.isNotEmpty) {
         try {
           final now = DateTime.now();
@@ -246,11 +249,11 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
 
   bool get _canChangeStatus {
     if (_booking == null) return false;
-    final status = _booking?.status?.toLowerCase() ?? 'pending';
+    final status = _booking!.status.toLowerCase();
     if (status == 'pending') {
       return true;
     } else if (status == 'approved') {
-      final scheduledDate = _booking?.preferredDate;
+      final scheduledDate = _booking!.preferredDate;
       if (scheduledDate != null && scheduledDate.isNotEmpty) {
         try {
           final now = DateTime.now();
@@ -269,7 +272,7 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
 
   String get _actionButtonText {
     if (_booking == null) return 'Approve';
-    final status = _booking?.status?.toLowerCase() ?? 'pending';
+    final status = _booking!.status.toLowerCase();
     if (status == 'pending') return 'Approve';
     if (status == 'approved') return 'Mark as Completed';
     return 'Approve';
@@ -444,9 +447,9 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
         if (parishId != null) {
           priestProvider.loadPriestsByParish(parishId, token: authProvider.token);
         }
-
-        final validPriestId = _selectedPriestId != null &&
-            priestProvider.priests.any((p) => p.id == _selectedPriestId)
+        
+        final validPriestId = _selectedPriestId != null && 
+            priestProvider.priests.any((p) => p.id == _selectedPriestId) 
             ? _selectedPriestId : null;
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
@@ -490,28 +493,18 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
   Widget _buildStatusSection(bool isAdmin, int bookingId) {
     if (!isAdmin || _showStatusButtons) return const SizedBox.shrink();
 
-    // 1. Fetch user role
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final currentUserRole = authProvider.currentUser?.role;
-
-    // 2. Restrict approval permissions (block parish_staff)
-    final canApprove = currentUserRole == 'priest' ||
-        currentUserRole == 'parish_admin' ||
-        currentUserRole == 'diocese_admin' ||
-        currentUserRole == 'diocese_staff';
-
     final displayStatus = _displayStatus;
     final canChangeStatus = _canChangeStatus;
     final actionButtonText = _actionButtonText;
-    final status = _booking?.status?.toLowerCase();
+    final status = _booking?.status.toLowerCase();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'Status',
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.blue,
@@ -522,9 +515,9 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(
+              SizedBox(
                 width: 120,
-                child: Text(
+                child: const Text(
                   'Status',
                   style: TextStyle(fontWeight: FontWeight.w500),
                 ),
@@ -539,51 +532,40 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
           ),
         ),
         if (status == 'pending') ...[
-          // 3. Conditionally render buttons based on the role flag
-          if (canApprove)
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.check_circle),
-                    label: const Text('Approve'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                    onPressed: () => _updateStatus('approved'),
-                  ),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.check_circle),
+                  label: const Text('Approve'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  onPressed: () => _updateStatus('approved'),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.cancel),
-                    label: const Text('Decline'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                    onPressed: () => _updateStatus('declined'),
-                  ),
-                ),
-              ],
-            )
-          else
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Text(
-                "Pending Priest Approval",
-                style: TextStyle(color: Colors.orange, fontStyle: FontStyle.italic, fontWeight: FontWeight.w500),
               ),
-            ),
-        ] else if (status == 'approved') ...[
-          if (canApprove)
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.check_circle_outline),
-                    label: Text(actionButtonText),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                    onPressed: canChangeStatus ? () => _updateStatus('completed') : null,
-                  ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.cancel),
+                  label: const Text('Decline'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  onPressed: () => _updateStatus('declined'),
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
+        ] else if (status == 'approved') ...[
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: Text(actionButtonText),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                  onPressed: canChangeStatus ? () => _updateStatus('completed') : null,
+                ),
+              ),
+            ],
+          ),
         ],
       ],
     );
