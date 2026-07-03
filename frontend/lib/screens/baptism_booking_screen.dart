@@ -52,6 +52,7 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
       final priestProvider =
           Provider.of<PriestProvider>(context, listen: false);
 
+      parishProvider.clearSelection();
       await parishProvider.loadAllParishes();
 
       final userParishId = authProvider.currentUser?.preferredParishId;

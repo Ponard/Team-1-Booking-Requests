@@ -35,6 +35,7 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
           Provider.of<ParishProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
+      parishProvider.clearSelection();
       parishProvider.loadAllParishes();
 
       // Default to user's preferred parish if available

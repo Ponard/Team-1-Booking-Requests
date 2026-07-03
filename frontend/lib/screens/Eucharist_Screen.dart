@@ -53,6 +53,7 @@ class _EucharistScreenState extends State<EucharistScreen> {
       final priestProvider =
           Provider.of<PriestProvider>(context, listen: false);
 
+      parishProvider.clearSelection();
       await parishProvider.loadAllParishes();
 
       final userParishId = authProvider.currentUser?.preferredParishId;

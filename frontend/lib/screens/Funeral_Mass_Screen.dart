@@ -45,6 +45,7 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
       final priestProvider =
           Provider.of<PriestProvider>(context, listen: false);
 
+      parishProvider.clearSelection();
       await parishProvider.loadAllParishes();
 
       final userParishId = authProvider.currentUser?.preferredParishId;

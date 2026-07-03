@@ -55,6 +55,7 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
       final priestProvider =
           Provider.of<PriestProvider>(context, listen: false);
 
+      parishProvider.clearSelection();
       await parishProvider.loadAllParishes();
 
       final userParishId = authProvider.currentUser?.preferredParishId;

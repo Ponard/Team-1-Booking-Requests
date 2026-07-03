@@ -32,7 +32,25 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ParishProvider>(context, listen: false).loadAllParishes();
+      final parishProvider =
+          Provider.of<ParishProvider>(context, listen: false);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      parishProvider.clearSelection();
+      parishProvider.loadAllParishes();
+
+      // Default to user's preferred parish if available
+      if (authProvider.currentUser?.preferredParishId != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final userParishId = authProvider.currentUser!.preferredParishId;
+          final userParish = parishProvider.parishes
+              .where((p) => p.id == userParishId)
+              .firstOrNull;
+          if (userParish != null) {
+            parishProvider.selectParish(userParish);
+          }
+        });
+      }
     });
   }
 
