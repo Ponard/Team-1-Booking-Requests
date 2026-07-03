@@ -46,7 +46,13 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
               .where((p) => p.id == userParishId)
               .firstOrNull;
           if (userParish != null) {
-            parishProvider.selectParish(userParish);
+            final bool offersService =
+                userParish.servicesOffered?.contains('reconciliation') ?? false;
+            final bool isAvailable = userParish.isActive && offersService;
+
+            if (isAvailable) {
+              parishProvider.selectParish(userParish);
+            }
           }
         });
       }
