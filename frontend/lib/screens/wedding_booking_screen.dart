@@ -592,7 +592,7 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop(); // Close dialog
-                  Navigator.of(context).pop(); // Go back to home
+                  Navigator.of(context).pop(true); // Go back to home
                 },
                 child: const Text("OK"),
               )
