@@ -236,7 +236,7 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(true);
                 },
                 child: const Text("OK"),
               ),

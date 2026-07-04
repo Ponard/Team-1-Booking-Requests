@@ -769,8 +769,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   final service = services[index];
 
                   return InkWell(
-                    onTap: () {
-                      Navigator.pushNamed(context, service["route"]!);
+                    onTap: () async {
+                      final submitted =
+                          await Navigator.pushNamed(context, service["route"]!);
+
+                      if (submitted == true) {
+                        await _loadBookingStats();
+                      }
                     },
                     child: Container(
                       padding: EdgeInsets.all(isWeb ? 16 : 6),

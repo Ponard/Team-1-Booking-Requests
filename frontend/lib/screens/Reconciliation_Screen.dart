@@ -152,7 +152,7 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop(); // Close dialog
-                  Navigator.of(context).pop(); // Go back
+                  Navigator.of(context).pop(true); // Go back
                 },
                 child: const Text("OK"),
               )

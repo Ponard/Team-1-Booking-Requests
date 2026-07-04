@@ -369,7 +369,7 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(true);
                 },
                 child: const Text("OK"),
               )
