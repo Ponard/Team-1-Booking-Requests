@@ -63,12 +63,8 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: 16
-            ),
+            padding:
+                const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16),
             child: Form(
               key: _formKey,
               child: Center(
@@ -121,6 +117,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         obscureText: _obscurePassword,
                         validator: Validators.passwordValidator,
                         prefixIcon: Icons.lock,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) {
+                          if (!authProvider.isLoading) {
+                            _submitForm();
+                          }
+                        },
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
