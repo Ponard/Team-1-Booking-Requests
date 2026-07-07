@@ -19,7 +19,8 @@ class MassIntentionDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<MassIntentionDetailScreen> createState() => _MassIntentionDetailScreenState();
+  State<MassIntentionDetailScreen> createState() =>
+      _MassIntentionDetailScreenState();
 }
 
 class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
@@ -33,7 +34,8 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
   final TextEditingController _intentionForController = TextEditingController();
   final TextEditingController _offeredByController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _preferredTimeController = TextEditingController();
+  final TextEditingController _preferredTimeController =
+      TextEditingController();
   final TextEditingController _newNoteController = TextEditingController();
   final TextEditingController _parishNameController = TextEditingController();
 
@@ -51,12 +53,14 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
 
   Future<void> _loadMassIntention() async {
     if (widget.massIntentionId == null || widget.massIntentionId == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid ID')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Invalid ID')));
       return;
     }
 
     print('=== Loading mass intention ID: ${widget.massIntentionId} ===');
-    final result = await _massIntentionService.getMassIntentionById(id: widget.massIntentionId!);
+    final result = await _massIntentionService.getMassIntentionById(
+        id: widget.massIntentionId!);
     print('Result success: ${result.success}');
     print('Result data: ${result.data}');
     print('Result message: ${result.message}');
@@ -92,13 +96,16 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         if (massSchedule.isNotEmpty && massSchedule.contains('T')) {
           final utcDate = DateTime.parse(massSchedule);
           final phDate = utcDate.add(const Duration(hours: 8));
-          _dateController.text = '${phDate.year}-${phDate.month.toString().padLeft(2, '0')}-${phDate.day.toString().padLeft(2, '0')}';
+          _dateController.text =
+              '${phDate.year}-${phDate.month.toString().padLeft(2, '0')}-${phDate.day.toString().padLeft(2, '0')}';
           _selectedTime = _normalizeTime(intention.preferredTime);
-          print('[MassIntentionDetail] Parsed date (PH): "${_dateController.text}", time: "$_selectedTime"');
+          print(
+              '[MassIntentionDetail] Parsed date (PH): "${_dateController.text}", time: "$_selectedTime"');
         } else {
           _dateController.text = intention.dateRequested ?? '';
           _selectedTime = _normalizeTime(intention.preferredTime);
-          print('[MassIntentionDetail] Fallback date: "${_dateController.text}", time: "$_selectedTime"');
+          print(
+              '[MassIntentionDetail] Fallback date: "${_dateController.text}", time: "$_selectedTime"');
         }
         _preferredTimeController.text = _selectedTime ?? '';
 
@@ -125,7 +132,8 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
       }
     } else if (mounted) {
       print('Failed to load: ${result.message}');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed to load mass intention')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(result.message ?? 'Failed to load mass intention')));
     }
   }
 
@@ -139,29 +147,36 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
   }
 
   Future<void> _loadSchedulesForDate(DateTime date) async {
-    final scheduleProvider = Provider.of<MassScheduleProvider>(context, listen: false);
+    final scheduleProvider =
+        Provider.of<MassScheduleProvider>(context, listen: false);
     int? parishId = _intention?.parishId;
 
-    print('[MassIntentionDetail] Loading schedules for parishId: $parishId, date: $date (${_getDayName(date.weekday)})');
+    print(
+        '[MassIntentionDetail] Loading schedules for parishId: $parishId, date: $date (${_getDayName(date.weekday)})');
     print('[MassIntentionDetail] _intention.parishId: ${_intention?.parishId}');
 
     await scheduleProvider.loadSchedules(parishId: parishId);
 
-    print('[MassIntentionDetail] All loaded schedules: ${scheduleProvider.schedules.length}');
+    print(
+        '[MassIntentionDetail] All loaded schedules: ${scheduleProvider.schedules.length}');
     for (final s in scheduleProvider.schedules) {
-      print('  - ${s.dayOfWeek} ${s.startTime} active: ${s.isActive} parishId: ${s.parishId}');
+      print(
+          '  - ${s.dayOfWeek} ${s.startTime} active: ${s.isActive} parishId: ${s.parishId}');
     }
 
     final schedules = scheduleProvider.getSchedulesForDate(date);
-    print('[MassIntentionDetail] Filtered schedules for ${_getDayName(date.weekday)}: ${schedules.length}');
+    print(
+        '[MassIntentionDetail] Filtered schedules for ${_getDayName(date.weekday)}: ${schedules.length}');
 
     final normalizedSelectedTime = _normalizeTime(_selectedTime);
 
     setState(() {
       _availableSchedules = schedules;
       if (schedules.isNotEmpty) {
-        final availableTimes = schedules.map((s) => _normalizeTime(s.startTime)).toSet();
-        if (normalizedSelectedTime.isNotEmpty && !availableTimes.contains(normalizedSelectedTime)) {
+        final availableTimes =
+            schedules.map((s) => _normalizeTime(s.startTime)).toSet();
+        if (normalizedSelectedTime.isNotEmpty &&
+            !availableTimes.contains(normalizedSelectedTime)) {
           _availableSchedules = [
             MassSchedule(
               parishId: _intention?.parishId ?? 0,
@@ -173,10 +188,13 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
             ...schedules,
           ];
         }
-        _selectedTime = normalizedSelectedTime.isNotEmpty ? normalizedSelectedTime : _normalizeTime(schedules.first.startTime);
+        _selectedTime = normalizedSelectedTime.isNotEmpty
+            ? normalizedSelectedTime
+            : _normalizeTime(schedules.first.startTime);
         _preferredTimeController.text = _selectedTime!;
       } else {
-        _selectedTime = normalizedSelectedTime.isNotEmpty ? normalizedSelectedTime : null;
+        _selectedTime =
+            normalizedSelectedTime.isNotEmpty ? normalizedSelectedTime : null;
         _preferredTimeController.text = _selectedTime ?? '';
       }
     });
@@ -192,7 +210,8 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
-        _dateController.text = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+        _dateController.text =
+            '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
         _selectedTime = null;
         _preferredTimeController.text = '';
         _availableSchedules.clear();
@@ -203,23 +222,28 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
 
   bool _validateForm() {
     if (_intentionForController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name of person/intention is required')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Name of person/intention is required')));
       return false;
     }
     if (_offeredByController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Offered by is required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Offered by is required')));
       return false;
     }
     if (_dateController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferred date is required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Preferred date is required')));
       return false;
     }
     if (_preferredTimeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferred time is required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Preferred time is required')));
       return false;
     }
     if (_selectedType == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Intention type is required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Intention type is required')));
       return false;
     }
     return true;
@@ -228,7 +252,8 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
   Future<void> _saveChanges() async {
     if (!_validateForm()) return;
     if (widget.massIntentionId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid ID')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Invalid ID')));
       return;
     }
 
@@ -275,27 +300,32 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         dateRequested: _dateController.text,
         parishId: _intention?.parishId ?? 0,
         massSchedule: _dateController.text,
-        preferredTime: _preferredTimeController.text.trim().isEmpty ? null : _normalizeTime(_preferredTimeController.text.trim()),
+        preferredTime: _preferredTimeController.text.trim().isEmpty
+            ? null
+            : _normalizeTime(_preferredTimeController.text.trim()),
         notes: notesToAdd,
       );
 
       if (mounted) {
         setState(() => _isSaving = false);
         if (result.success) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mass intention updated successfully')));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Mass intention updated successfully')));
           _newNoteController.clear();
           // Reload data to get updated preferredTime
           await _loadMassIntention();
           _toggleEditMode();
           Navigator.pop(context, true);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed to update')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(result.message ?? 'Failed to update')));
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -317,10 +347,12 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
 
     if (mounted) {
       if (result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Mass intention marked as $status')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Mass intention marked as $status')));
         Navigator.pop(context, true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
       }
     }
   }
@@ -335,11 +367,13 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
 
       List<Map<String, dynamic>>? notes;
       if (_newNoteController.text.trim().isNotEmpty) {
-        notes = [{
-          'author': isParishioner ? 'parishioner' : 'user',
-          'content': _newNoteController.text.trim(),
-          'authorId': currentUser?.id,
-        }];
+        notes = [
+          {
+            'author': isParishioner ? 'parishioner' : 'user',
+            'content': _newNoteController.text.trim(),
+            'authorId': currentUser?.id,
+          }
+        ];
       }
 
       // Use updateMassIntention with status='pending' to resubmit
@@ -367,7 +401,9 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         dateRequested: _dateController.text,
         parishId: _intention?.parishId ?? 0,
         massSchedule: _dateController.text,
-        preferredTime: _preferredTimeController.text.trim().isEmpty ? null : _normalizeTime(_preferredTimeController.text.trim()),
+        preferredTime: _preferredTimeController.text.trim().isEmpty
+            ? null
+            : _normalizeTime(_preferredTimeController.text.trim()),
         notes: notes,
         status: 'pending',
       );
@@ -376,17 +412,20 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         setState(() => _isSaving = false);
 
         if (result.success) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mass intention resubmitted successfully')));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Mass intention resubmitted successfully')));
           _newNoteController.clear();
           await _loadMassIntention();
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed to resubmit')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(result.message ?? 'Failed to resubmit')));
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -394,21 +433,6 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
   String get _displayStatus {
     if (_intention == null) return 'PENDING';
     final status = (_intention?.status?.toUpperCase() ?? 'PENDING');
-    if (status == 'APPROVED') {
-      final scheduledDate = _intention?.massSchedule;
-      if (scheduledDate != null && scheduledDate.isNotEmpty) {
-        try {
-          final nowPh = DateTime.now().add(const Duration(hours: 8));
-          final bookingDateUtc = DateTime.parse(scheduledDate);
-          final bookingDatePh = bookingDateUtc.add(const Duration(hours: 8));
-          final todayPh = DateTime(nowPh.year, nowPh.month, nowPh.day);
-          final eventDatePh = DateTime(bookingDatePh.year, bookingDatePh.month, bookingDatePh.day);
-          if (eventDatePh.isBefore(todayPh)) {
-            return 'COMPLETED';
-          }
-        } catch (e) {}
-      }
-    }
     return status;
   }
 
@@ -425,7 +449,8 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
           final bookingDateUtc = DateTime.parse(scheduledDate);
           final bookingDatePh = bookingDateUtc.add(const Duration(hours: 8));
           final todayPh = DateTime(nowPh.year, nowPh.month, nowPh.day);
-          final eventDatePh = DateTime(bookingDatePh.year, bookingDatePh.month, bookingDatePh.day);
+          final eventDatePh = DateTime(
+              bookingDatePh.year, bookingDatePh.month, bookingDatePh.day);
           return eventDatePh.isBefore(todayPh);
         } catch (e) {
           return false;
@@ -458,7 +483,15 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
   }
 
   String _getDayName(int weekday) {
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
+    ];
     return days[weekday - 1];
   }
 
@@ -466,12 +499,16 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         padding: const EdgeInsets.only(top: 16, bottom: 8),
         child: Text(
           title,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
+          style: const TextStyle(
+              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
         ),
       );
 
   Widget _textField(String label, TextEditingController controller,
-      {bool enabled = true, bool readOnly = false, VoidCallback? onTap, int maxLines = 1}) {
+      {bool enabled = true,
+      bool readOnly = false,
+      VoidCallback? onTap,
+      int maxLines = 1}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
@@ -482,10 +519,12 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         onTap: onTap,
         decoration: InputDecoration(
           labelText: label,
-          border: enabled ? const OutlineInputBorder() : OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none,
-          ),
+          border: enabled
+              ? const OutlineInputBorder()
+              : OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
           filled: enabled,
           fillColor: enabled ? null : Colors.grey[100],
         ),
@@ -553,7 +592,8 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.check_circle),
                     label: const Text('Approve'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
                     onPressed: () => _updateStatus('approved'),
                   ),
                 ),
@@ -562,19 +602,23 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.cancel),
                     label: const Text('Decline'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.red),
                     onPressed: () => _updateStatus('declined'),
                   ),
                 ),
               ],
             )
           else
-          // Fallback UI for parish_staff
+            // Fallback UI for parish_staff
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 8.0),
               child: Text(
                 "Pending Priest Approval",
-                style: TextStyle(color: Colors.orange, fontStyle: FontStyle.italic, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                    color: Colors.orange,
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w500),
               ),
             ),
         ] else if (status == 'approved') ...[
@@ -585,8 +629,11 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.check_circle_outline),
                     label: Text(actionButtonText),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                    onPressed: canChangeStatus ? () => _updateStatus('completed') : null,
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                    onPressed: canChangeStatus
+                        ? () => _updateStatus('completed')
+                        : null,
                   ),
                 ),
               ],
@@ -601,10 +648,16 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUser = authProvider.currentUser;
     final role = currentUser?.role;
-    final isAdmin = ['parish_admin', 'parish_staff', 'diocese_admin', 'diocese_staff'].contains(role);
+    final isAdmin = [
+      'parish_admin',
+      'parish_staff',
+      'diocese_admin',
+      'diocese_staff'
+    ].contains(role);
     final isOwner = _intention?.submittedBy == currentUser?.id;
     final status = _intention?.status?.toLowerCase();
-    final canEdit = isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
+    final canEdit =
+        isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
 
     return Scaffold(
       appBar: AppBar(
@@ -634,28 +687,43 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             _buildSectionTitle('Intention Details'),
             if (_isEditMode)
               DropdownButtonFormField<String>(
                 value: _selectedType,
-                decoration: const InputDecoration(labelText: "Intention Type *", border: OutlineInputBorder()),
-                items: ['Thanksgiving', 'Petition', 'Soul / Death Anniversary', 'Healing', 'Special Intention']
-                    .map((label) => DropdownMenuItem(value: label, child: Text(label)))
+                decoration: const InputDecoration(
+                    labelText: "Intention Type *",
+                    border: OutlineInputBorder()),
+                items: [
+                  'Thanksgiving',
+                  'Petition',
+                  'Soul / Death Anniversary',
+                  'Healing',
+                  'Special Intention'
+                ]
+                    .map((label) =>
+                        DropdownMenuItem(value: label, child: Text(label)))
                     .toList(),
                 onChanged: (value) => setState(() => _selectedType = value!),
               )
             else
-              _textField('Intention Type', TextEditingController(text: _selectedType ?? ''), enabled: false),
+              _textField('Intention Type',
+                  TextEditingController(text: _selectedType ?? ''),
+                  enabled: false),
             const SizedBox(height: 12),
             _textField('Parish', _parishNameController, enabled: false),
             const SizedBox(height: 12),
-            _textField('Name of Person / Intention *', _intentionForController, enabled: _isEditMode),
+            _textField('Name of Person / Intention *', _intentionForController,
+                enabled: _isEditMode),
             const SizedBox(height: 12),
 
             _buildSectionTitle('Schedule & Offering'),
             _textField('Preferred Date *', _dateController,
-                enabled: _isEditMode, readOnly: _isEditMode, onTap: _selectDate),
+                enabled: _isEditMode,
+                readOnly: _isEditMode,
+                onTap: _selectDate),
             const SizedBox(height: 12),
             if (_isEditMode) ...[
               if (_selectedDate != null && _availableSchedules.isEmpty)
@@ -669,12 +737,14 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.info_outline, color: Colors.orange.shade700, size: 16),
+                      Icon(Icons.info_outline,
+                          color: Colors.orange.shade700, size: 16),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           'No mass schedules for ${_getDayName(_selectedDate!.weekday)}',
-                          style: TextStyle(color: Colors.orange.shade700, fontSize: 12),
+                          style: TextStyle(
+                              color: Colors.orange.shade700, fontSize: 12),
                         ),
                       ),
                     ],
@@ -682,32 +752,35 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
                 ),
               if (_availableSchedules.isNotEmpty)
                 DropdownButtonFormField<String>(
-                  value: _selectedTime != null ? _normalizeTime(_selectedTime) : null,
+                  value: _selectedTime != null
+                      ? _normalizeTime(_selectedTime)
+                      : null,
                   decoration: const InputDecoration(
                     labelText: 'Mass Time *',
                     border: OutlineInputBorder(),
                   ),
-                  items: _availableSchedules
-                      .map((s) {
-                        final normalizedTime = _normalizeTime(s.startTime);
-                        return DropdownMenuItem(
-                          value: normalizedTime,
-                          child: Text(_formatTimeDisplay(s.startTime)),
-                        );
-                      })
-                      .toList(),
+                  items: _availableSchedules.map((s) {
+                    final normalizedTime = _normalizeTime(s.startTime);
+                    return DropdownMenuItem(
+                      value: normalizedTime,
+                      child: Text(_formatTimeDisplay(s.startTime)),
+                    );
+                  }).toList(),
                   onChanged: (value) {
                     setState(() {
                       _selectedTime = value;
                       _preferredTimeController.text = value ?? '';
                     });
                   },
-                  validator: (value) => value == null ? 'Please select a mass time' : null,
+                  validator: (value) =>
+                      value == null ? 'Please select a mass time' : null,
                 ),
             ] else
-              _textField('Preferred Time *', _preferredTimeController, enabled: false),
+              _textField('Preferred Time *', _preferredTimeController,
+                  enabled: false),
             const SizedBox(height: 12),
-            _textField('Offered By (Name/Family) *', _offeredByController, enabled: _isEditMode),
+            _textField('Offered By (Name/Family) *', _offeredByController,
+                enabled: _isEditMode),
             const SizedBox(height: 12),
 
             // Display existing notes
@@ -718,7 +791,8 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
             if (_isEditMode) ...[
               const SizedBox(height: 16),
               _buildSectionTitle('Add Note (Optional)'),
-              _textField('Add a note', _newNoteController, maxLines: 3, enabled: true),
+              _textField('Add a note', _newNoteController,
+                  maxLines: 3, enabled: true),
             ],
 
             const SizedBox(height: 20),
@@ -742,21 +816,33 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
                             children: [
                               const Text(
                                 'Your mass intention was declined. Please make the necessary changes and resubmit.',
-                                style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w500),
+                                style: TextStyle(
+                                    color: Colors.orange,
+                                    fontWeight: FontWeight.w500),
                               ),
                               const SizedBox(height: 16),
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
                                   icon: _isSaving
-                                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white))
                                       : const Icon(Icons.refresh),
-                                  label: Text(_isSaving ? 'Resubmitting...' : 'Resubmit'),
+                                  label: Text(_isSaving
+                                      ? 'Resubmitting...'
+                                      : 'Resubmit'),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.orange,
                                     foregroundColor: Colors.white,
                                   ),
-                                  onPressed: _isSaving ? null : () => _resubmitMassIntention(currentUser),
+                                  onPressed: _isSaving
+                                      ? null
+                                      : () =>
+                                          _resubmitMassIntention(currentUser),
                                 ),
                               ),
                             ],
