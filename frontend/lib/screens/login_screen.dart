@@ -19,12 +19,14 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -63,12 +65,8 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: 16
-            ),
+            padding:
+                const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16),
             child: Form(
               key: _formKey,
               child: Center(
@@ -111,16 +109,28 @@ class _LoginScreenState extends State<LoginScreen> {
                         keyboardType: TextInputType.emailAddress,
                         validator: Validators.emailValidator,
                         prefixIcon: Icons.email,
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context)
+                              .requestFocus(_passwordFocusNode);
+                        },
                       ),
                       const SizedBox(height: 16),
 
                       // Password Field
                       CustomTextField(
                         controller: _passwordController,
+                        focusNode: _passwordFocusNode,
                         labelText: 'Password',
                         obscureText: _obscurePassword,
                         validator: Validators.passwordValidator,
                         prefixIcon: Icons.lock,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) {
+                          if (!authProvider.isLoading) {
+                            _submitForm();
+                          }
+                        },
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
