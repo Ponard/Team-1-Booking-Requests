@@ -18,7 +18,8 @@ class AnointingSickDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<AnointingSickDetailScreen> createState() => _AnointingSickDetailScreenState();
+  State<AnointingSickDetailScreen> createState() =>
+      _AnointingSickDetailScreenState();
 }
 
 class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
@@ -30,14 +31,19 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
   AnointingSickBooking? _booking;
   int? _selectedPriestId;
 
-  final TextEditingController _sickPersonNameController = TextEditingController();
-  final TextEditingController _contactPersonNameController = TextEditingController();
+  final TextEditingController _sickPersonNameController =
+      TextEditingController();
+  final TextEditingController _contactPersonNameController =
+      TextEditingController();
   final TextEditingController _contactEmailController = TextEditingController();
   final TextEditingController _contactPhoneController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _locationAddressController = TextEditingController();
-  final TextEditingController _preferredDateController = TextEditingController();
-  final TextEditingController _preferredTimeController = TextEditingController();
+  final TextEditingController _locationAddressController =
+      TextEditingController();
+  final TextEditingController _preferredDateController =
+      TextEditingController();
+  final TextEditingController _preferredTimeController =
+      TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
   @override
@@ -49,14 +55,16 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
 
   Future<void> _loadBooking() async {
     if (widget.anointingSickId == null || widget.anointingSickId == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid booking ID')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Invalid booking ID')));
       return;
     }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Authentication required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Authentication required')));
       return;
     }
 
@@ -77,7 +85,8 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
         _contactPhoneController.text = booking.contactPhone ?? '';
         _locationController.text = booking.location ?? '';
         _locationAddressController.text = booking.locationAddress ?? '';
-        _preferredDateController.text = booking.preferredDate?.split('T')[0] ?? '';
+        _preferredDateController.text =
+            booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
         if (booking.priestId != null) {
           _selectedPriestId = booking.priestId;
@@ -94,33 +103,40 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
         }
       }
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed to load booking')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result.message ?? 'Failed to load booking')));
     }
   }
 
   bool _validateForm() {
     if (_sickPersonNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sick person\'s name is required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sick person\'s name is required')));
       return false;
     }
     if (_contactPersonNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Contact person name is required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Contact person name is required')));
       return false;
     }
     if (_contactPhoneController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Contact phone is required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Contact phone is required')));
       return false;
     }
     if (_locationController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location is required')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Location is required')));
       return false;
     }
     if (_preferredDateController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferred date is required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Preferred date is required')));
       return false;
     }
     if (_preferredTimeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferred time slot is required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Preferred time slot is required')));
       return false;
     }
     return true;
@@ -130,7 +146,8 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
     if (!_validateForm()) return;
 
     if (widget.anointingSickId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid booking ID')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Invalid booking ID')));
       return;
     }
 
@@ -138,7 +155,8 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
     final token = authProvider.token;
     if (token == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Authentication required')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Authentication required')));
       }
       return;
     }
@@ -163,10 +181,14 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
         id: widget.anointingSickId!,
         sickPersonName: _sickPersonNameController.text.trim(),
         contactPersonName: _contactPersonNameController.text.trim(),
-        contactEmail: _contactEmailController.text.trim().isEmpty ? null : _contactEmailController.text.trim(),
+        contactEmail: _contactEmailController.text.trim().isEmpty
+            ? null
+            : _contactEmailController.text.trim(),
         contactPhone: _contactPhoneController.text.trim(),
         location: _locationController.text.trim(),
-        locationAddress: _locationAddressController.text.trim().isEmpty ? null : _locationAddressController.text.trim(),
+        locationAddress: _locationAddressController.text.trim().isEmpty
+            ? null
+            : _locationAddressController.text.trim(),
         preferredDate: _preferredDateController.text,
         preferredTimeSlot: _preferredTimeController.text,
         priestId: _selectedPriestId,
@@ -177,17 +199,20 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
         setState(() => _isSaving = false);
 
         if (result.success) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking updated successfully')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Booking updated successfully')));
           _toggleEditMode();
           Navigator.pop(context, true);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(result.message ?? 'Failed')));
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -205,7 +230,8 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Authentication required')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Authentication required')));
       return;
     }
 
@@ -217,10 +243,12 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
 
     if (mounted) {
       if (result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Booking marked as $status')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Booking marked as $status')));
         Navigator.pop(context, true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
       }
     }
   }
@@ -228,22 +256,6 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
   String get _displayStatus {
     if (_booking == null) return 'PENDING';
     final status = _booking!.status.toUpperCase();
-    if (status == 'APPROVED') {
-      final scheduledDate = _booking!.preferredDate;
-      if (scheduledDate != null && scheduledDate.isNotEmpty) {
-        try {
-          final now = DateTime.now();
-          final bookingDate = DateTime.parse(scheduledDate);
-          final today = DateTime(now.year, now.month, now.day);
-          final eventDate = DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
-          if (eventDate.isBefore(today)) {
-            return 'COMPLETED';
-          }
-        } catch (e) {
-          // ignore
-        }
-      }
-    }
     return status;
   }
 
@@ -259,7 +271,8 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
           final now = DateTime.now();
           final bookingDate = DateTime.parse(scheduledDate);
           final today = DateTime(now.year, now.month, now.day);
-          final eventDate = DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
+          final eventDate =
+              DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
           return eventDate.isBefore(today);
         } catch (e) {
           return false;
@@ -287,7 +300,8 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final token = authProvider.token;
       if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not authenticated')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Not authenticated')));
         setState(() => _isSaving = false);
         return;
       }
@@ -301,16 +315,19 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
         setState(() => _isSaving = false);
 
         if (result.success) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking resubmitted successfully')));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Booking resubmitted successfully')));
           await _loadBooking();
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed to resubmit')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(result.message ?? 'Failed to resubmit')));
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -320,10 +337,16 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUser = authProvider.currentUser;
     final role = currentUser?.role;
-    final isAdmin = ['parish_admin', 'parish_staff', 'diocese_admin', 'diocese_staff'].contains(role);
+    final isAdmin = [
+      'parish_admin',
+      'parish_staff',
+      'diocese_admin',
+      'diocese_staff'
+    ].contains(role);
     final isOwner = _booking?.userId == currentUser?.id;
     final status = _booking?.status?.toLowerCase();
-    final canEdit = isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
+    final canEdit =
+        isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
 
     return Scaffold(
       appBar: AppBar(
@@ -353,7 +376,8 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             if (status == 'declined' && isOwner) ...[
               Card(
                 color: Colors.orange.shade50,
@@ -364,7 +388,8 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
                     children: [
                       const Text(
                         'Your booking was declined. Please make the necessary changes and resubmit.',
-                        style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                            color: Colors.orange, fontWeight: FontWeight.w500),
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
@@ -386,27 +411,41 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
               const SizedBox(height: 16),
             ],
             _buildSectionTitle('Sick Person Information'),
-            _textField('Sick Person\'s Name *', _sickPersonNameController, enabled: _isEditMode),
+            _textField('Sick Person\'s Name *', _sickPersonNameController,
+                enabled: _isEditMode),
             _buildSectionTitle('Contact Person'),
-            _textField('Contact Person Name *', _contactPersonNameController, enabled: _isEditMode),
-            _textField('Contact Email', _contactEmailController, enabled: _isEditMode),
-            _textField('Contact Phone *', _contactPhoneController, enabled: _isEditMode),
-
+            _textField('Contact Person Name *', _contactPersonNameController,
+                enabled: _isEditMode),
+            _textField('Contact Email', _contactEmailController,
+                enabled: _isEditMode),
+            _textField('Contact Phone *', _contactPhoneController,
+                enabled: _isEditMode),
             _buildSectionTitle('Location'),
             _textField('Location *', _locationController, enabled: _isEditMode),
-            _textField('Location Address', _locationAddressController, enabled: _isEditMode, maxLines: 2),
-
+            _textField('Location Address', _locationAddressController,
+                enabled: _isEditMode, maxLines: 2),
             _buildSectionTitle('Booking Details'),
-            _textField("Parish", TextEditingController(text: _booking?.parishName ?? ''), enabled: false),
-            _textField("Preferred Date *", _preferredDateController, enabled: _isEditMode, readOnly: _isEditMode, onTap: _selectDate),
-            _textField("Time Slot *", _preferredTimeController, enabled: _isEditMode, readOnly: _isEditMode, onTap: _selectTime),
+            _textField("Parish",
+                TextEditingController(text: _booking?.parishName ?? ''),
+                enabled: false),
+            _textField("Preferred Date *", _preferredDateController,
+                enabled: _isEditMode,
+                readOnly: _isEditMode,
+                onTap: _selectDate),
+            _textField("Time Slot *", _preferredTimeController,
+                enabled: _isEditMode,
+                readOnly: _isEditMode,
+                onTap: _selectTime),
             if (_isEditMode)
               _buildPriestDropdown()
             else
-              _textField("Preferred Priest", TextEditingController(text: _booking?.priestName ?? ''), enabled: false),
+              _textField("Preferred Priest",
+                  TextEditingController(text: _booking?.priestName ?? ''),
+                  enabled: false),
             NotesDisplay(notes: _booking?.notes),
-            if (_isEditMode) _textField("Add Note", _notesController, maxLines: 3, enabled: _isEditMode),
-
+            if (_isEditMode)
+              _textField("Add Note", _notesController,
+                  maxLines: 3, enabled: _isEditMode),
             _buildStatusSection(isAdmin, widget.anointingSickId ?? 0),
           ]),
         ),
@@ -414,7 +453,11 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
     );
   }
 
-  Widget _textField(String label, TextEditingController controller, {bool enabled = true, bool readOnly = false, VoidCallback? onTap, int maxLines = 1}) {
+  Widget _textField(String label, TextEditingController controller,
+      {bool enabled = true,
+      bool readOnly = false,
+      VoidCallback? onTap,
+      int maxLines = 1}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
@@ -425,10 +468,12 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
         onTap: onTap,
         decoration: InputDecoration(
           labelText: label,
-          border: enabled ? const OutlineInputBorder() : OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none,
-          ),
+          border: enabled
+              ? const OutlineInputBorder()
+              : OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
           filled: enabled,
           fillColor: enabled ? null : Colors.grey[100],
         ),
@@ -436,21 +481,27 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) => Padding(padding: const EdgeInsets.only(top: 16, bottom: 8),
-      child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)));
+  Widget _buildSectionTitle(String title) => Padding(
+      padding: const EdgeInsets.only(top: 16, bottom: 8),
+      child: Text(title,
+          style: const TextStyle(
+              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)));
 
   Widget _buildPriestDropdown() {
     return Consumer2<ParishProvider, PriestProvider>(
       builder: (context, parishProvider, priestProvider, _) {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        final parishId = _booking?.parishId ?? parishProvider.selectedParish?.id;
+        final parishId =
+            _booking?.parishId ?? parishProvider.selectedParish?.id;
         if (parishId != null) {
-          priestProvider.loadPriestsByParish(parishId, token: authProvider.token);
+          priestProvider.loadPriestsByParish(parishId,
+              token: authProvider.token);
         }
-        
-        final validPriestId = _selectedPriestId != null && 
-            priestProvider.priests.any((p) => p.id == _selectedPriestId) 
-            ? _selectedPriestId : null;
+
+        final validPriestId = _selectedPriestId != null &&
+                priestProvider.priests.any((p) => p.id == _selectedPriestId)
+            ? _selectedPriestId
+            : null;
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: DropdownButtonFormField<int>(
@@ -465,9 +516,9 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
                 child: Text("No preference"),
               ),
               ...priestProvider.priests.map((priest) => DropdownMenuItem<int>(
-                value: priest.id,
-                child: Text(priest.fullName),
-              )),
+                    value: priest.id,
+                    child: Text(priest.fullName),
+                  )),
             ],
             onChanged: (value) {
               setState(() {
@@ -481,13 +532,22 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
   }
 
   void _selectDate() async {
-    DateTime? picked = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now().add(const Duration(days: -7)), lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
-    if (picked != null) setState(() => _preferredDateController.text = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
+    DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime.now().add(const Duration(days: -7)),
+        lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
+    if (picked != null)
+      setState(() => _preferredDateController.text =
+          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
   }
 
   void _selectTime() async {
-    TimeOfDay? picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (picked != null) setState(() => _preferredTimeController.text = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}');
+    TimeOfDay? picked =
+        await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    if (picked != null)
+      setState(() => _preferredTimeController.text =
+          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}');
   }
 
   Widget _buildStatusSection(bool isAdmin, int bookingId) {
@@ -538,7 +598,8 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.check_circle),
                   label: const Text('Approve'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
                   onPressed: () => _updateStatus('approved'),
                 ),
               ),
@@ -561,7 +622,8 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
                   icon: const Icon(Icons.check_circle_outline),
                   label: Text(actionButtonText),
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                  onPressed: canChangeStatus ? () => _updateStatus('completed') : null,
+                  onPressed:
+                      canChangeStatus ? () => _updateStatus('completed') : null,
                 ),
               ),
             ],
