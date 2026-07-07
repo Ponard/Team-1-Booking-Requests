@@ -84,7 +84,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Viewing/editing this sacrament is not yet supported. Please contact the parish office.'),
+            content: Text(
+                'Viewing/editing this sacrament is not yet supported. Please contact the parish office.'),
             duration: Duration(seconds: 3),
           ),
         );
@@ -111,7 +112,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Viewing this sacrament is not yet supported. Please contact the parish office.'),
+            content: Text(
+                'Viewing this sacrament is not yet supported. Please contact the parish office.'),
             duration: Duration(seconds: 3),
           ),
         );
@@ -133,12 +135,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   }
 
   Future<void> _deleteBooking(int bookingId, String sacramentType) async {
-    print('[my_bookings] _deleteBooking called with id: $bookingId, type: $sacramentType');
+    print(
+        '[my_bookings] _deleteBooking called with id: $bookingId, type: $sacramentType');
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Booking'),
-        content: const Text('Are you sure you want to delete this booking? This action cannot be undone.'),
+        content: const Text(
+            'Are you sure you want to delete this booking? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -161,7 +165,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
     setState(() => _isLoading = true);
 
-    final result = await _bookingService.deleteUserBooking(token: token, id: bookingId, sacramentType: sacramentType);
+    final result = await _bookingService.deleteUserBooking(
+        token: token, id: bookingId, sacramentType: sacramentType);
 
     if (mounted) {
       setState(() => _isLoading = false);
@@ -220,7 +225,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final userRole = authProvider.currentUser?.role ?? 'parishioner';
-    final isAdmin = ['parish_admin', 'parish_staff', 'diocese_admin', 'diocese_staff'].contains(userRole);
+    final isAdmin = [
+      'parish_admin',
+      'parish_staff',
+      'diocese_admin',
+      'diocese_staff'
+    ].contains(userRole);
 
     return Scaffold(
       appBar: AppBar(
@@ -234,7 +244,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                      Text(_errorMessage!,
+                          style: const TextStyle(color: Colors.red)),
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _loadBookings,
@@ -245,18 +256,19 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                 )
               : _bookings.isEmpty
                   ? Center(
-        //add an icon to make it visually engaging - s vitug
+                      //add an icon to make it visually engaging - s vitug
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.event_busy, size: 64, color: Colors.grey[400]),
+                          Icon(Icons.event_busy,
+                              size: 64, color: Colors.grey[400]),
                           const SizedBox(height: 16),
                           const Text(
-                        'No bookings found.\nStart by booking a sacrament!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
-                     ],
+                            'No bookings found.\nStart by booking a sacrament!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
+                        ],
                       ),
                     )
                   : RefreshIndicator(
@@ -267,29 +279,23 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                         itemBuilder: (context, index) {
                           final booking = _bookings[index];
                           final id = booking['id'];
-                          final sacramentType = booking['sacramentType'] ?? 'unknown';
-                          var status = booking['status']?.toLowerCase() ?? 'pending';
+                          final sacramentType =
+                              booking['sacramentType'] ?? 'unknown';
+                          var status =
+                              booking['status']?.toLowerCase() ?? 'pending';
                           // Determine the appropriate date field based on sacrament type
-                          final dateField = sacramentType == 'mass_intention' ? 'massSchedule' : 'preferredDate';
+                          final dateField = sacramentType == 'mass_intention'
+                              ? 'massSchedule'
+                              : 'preferredDate';
                           final scheduledDate = booking[dateField];
-                          // Compute effective status: if approved but date has passed, treat as completed
-                          if (status == 'approved' && scheduledDate != null) {
-                            try {
-                              final now = DateTime.now();
-                              final bookingDate = DateTime.parse(scheduledDate);
-                              final today = DateTime(now.year, now.month, now.day);
-                              final eventDate = DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
-                              if (eventDate.isBefore(today)) {
-                                status = 'completed';
-                              }
-                            } catch (e) {
-                              // ignore, keep as approved
-                            }
-                          }
-                          // Determine edit and delete permissions based on effective status
-                          final canEdit = status == 'pending' || status == 'declined';
-                          final canDelete = status != 'approved'; // pending, declined, completed can delete
-                          final hasEditSupport = _getDetailRouteForSacrament(sacramentType) != null;
+                          // Determine edit and delete permissions based on status
+                          final canEdit =
+                              status == 'pending' || status == 'declined';
+                          final canDelete = status !=
+                              'approved'; // pending, declined, completed can delete
+                          final hasEditSupport =
+                              _getDetailRouteForSacrament(sacramentType) !=
+                                  null;
 
                           return Card(
                             margin: const EdgeInsets.only(bottom: 12),
@@ -299,7 +305,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Expanded(
                                         child: Row(
@@ -307,12 +314,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                             Icon(
                                               getSacramentIcon(sacramentType),
                                               size: 20,
-                                              color: Theme.of(context).primaryColor,
+                                              color: Theme.of(context)
+                                                  .primaryColor,
                                             ),
                                             const SizedBox(width: 8),
                                             Expanded(
                                               child: Text(
-                                                _getSacramentDisplayName(sacramentType),
+                                                _getSacramentDisplayName(
+                                                    sacramentType),
                                                 style: const TextStyle(
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.bold,
@@ -323,11 +332,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                         ),
                                       ),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
-                                          color: _getStatusColor(status).withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(12),
-                                          border: Border.all(color: _getStatusColor(status)),
+                                          color: _getStatusColor(status)
+                                              .withOpacity(0.2),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                              color: _getStatusColor(status)),
                                         ),
                                         child: Text(
                                           status.toUpperCase(),
@@ -342,9 +355,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   if (booking['preferredDate'] != null)
-                                    Text('Date: ${formatDateMMDDYYYY(booking['preferredDate'])}'),
+                                    Text(
+                                        'Date: ${formatDateMMDDYYYY(booking['preferredDate'])}'),
                                   if (booking['preferredTimeSlot'] != null)
-                                    Text('Time: ${booking['preferredTimeSlot']}'),
+                                    Text(
+                                        'Time: ${booking['preferredTimeSlot']}'),
                                   if (booking['parishName'] != null)
                                     Text('Parish: ${booking['parishName']}'),
                                   const SizedBox(height: 12),
@@ -354,8 +369,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                       // Edit button for editable bookings
                                       if (canEdit && hasEditSupport)
                                         ElevatedButton.icon(
-                                          onPressed: () => _navigateToBookingDetails(id, sacramentType),
-                                          icon: const Icon(Icons.edit, size: 16),
+                                          onPressed: () =>
+                                              _navigateToBookingDetails(
+                                                  id, sacramentType),
+                                          icon:
+                                              const Icon(Icons.edit, size: 16),
                                           label: const Text('Edit'),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.blue,
@@ -365,23 +383,28 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                       // View button for non-editable bookings that have detail support
                                       if (!canEdit && hasEditSupport)
                                         ElevatedButton.icon(
-                                          onPressed: () => _viewBookingDetails(id, sacramentType),
-                                          icon: const Icon(Icons.visibility, size: 16),
+                                          onPressed: () => _viewBookingDetails(
+                                              id, sacramentType),
+                                          icon: const Icon(Icons.visibility,
+                                              size: 16),
                                           label: const Text('View'),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.grey,
                                           ),
                                         ),
                                       // Spacing before delete if we have a preceding button (edit or view) and delete is present
-                                      if (hasEditSupport && canDelete) const SizedBox(width: 8),
-                                        // Delete button for deletable bookings
+                                      if (hasEditSupport && canDelete)
+                                        const SizedBox(width: 8),
+                                      // Delete button for deletable bookings
                                       if (canDelete)
                                         ElevatedButton.icon(
                                           onPressed: () {
-                                            print('[my_bookings] Delete button pressed - id: $id, sacramentType: $sacramentType');
+                                            print(
+                                                '[my_bookings] Delete button pressed - id: $id, sacramentType: $sacramentType');
                                             _deleteBooking(id, sacramentType);
                                           },
-                                          icon: const Icon(Icons.delete, size: 16),
+                                          icon: const Icon(Icons.delete,
+                                              size: 16),
                                           label: const Text('Delete'),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.red,
@@ -389,10 +412,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                           ),
                                         ),
                                       // Fallback message if no actions available
-                                      if (!canEdit && !canDelete && !hasEditSupport)
+                                      if (!canEdit &&
+                                          !canDelete &&
+                                          !hasEditSupport)
                                         const Text(
                                           'No actions available',
-                                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                                          style: TextStyle(
+                                              fontSize: 12, color: Colors.grey),
                                         ),
                                     ],
                                   ),
