@@ -45,9 +45,12 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   final TextEditingController _groomNameController = TextEditingController();
   final TextEditingController _brideNameController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
-  final TextEditingController _preferredDateController = TextEditingController();
-  final TextEditingController _preferredTimeController = TextEditingController();
-  final TextEditingController _seminarScheduleController = TextEditingController();
+  final TextEditingController _preferredDateController =
+      TextEditingController();
+  final TextEditingController _preferredTimeController =
+      TextEditingController();
+  final TextEditingController _seminarScheduleController =
+      TextEditingController();
   int? _selectedPriestId;
   final TextEditingController _newNoteController = TextEditingController();
 
@@ -81,10 +84,12 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
 
     if (mounted) {
       if (result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Booking marked as $status')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Booking marked as $status')));
         Navigator.pop(context, true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
       }
     }
   }
@@ -92,20 +97,6 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   String get _displayBookingStatus {
     if (_booking == null) return 'PENDING';
     final status = (_booking?.status?.toUpperCase() ?? 'PENDING');
-    if (status == 'APPROVED') {
-      final scheduledDate = _booking?.preferredDate;
-      if (scheduledDate != null && scheduledDate.isNotEmpty) {
-        try {
-          final now = DateTime.now();
-          final bookingDate = DateTime.parse(scheduledDate);
-          final today = DateTime(now.year, now.month, now.day);
-          final eventDate = DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
-          if (eventDate.isBefore(today)) {
-            return 'COMPLETED';
-          }
-        } catch (e) {}
-      }
-    }
     return status;
   }
 
@@ -121,7 +112,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
           final now = DateTime.now();
           final bookingDate = DateTime.parse(scheduledDate);
           final today = DateTime(now.year, now.month, now.day);
-          final eventDate = DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
+          final eventDate =
+              DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
           return eventDate.isBefore(today);
         } catch (e) {
           return false;
@@ -188,7 +180,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.check_circle),
                   label: const Text('Approve'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
                   onPressed: () => _updateBookingStatus('approved'),
                 ),
               ),
@@ -211,7 +204,9 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                   icon: const Icon(Icons.check_circle_outline),
                   label: Text(actionButtonText),
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                  onPressed: canChangeStatus ? () => _updateBookingStatus('completed') : null,
+                  onPressed: canChangeStatus
+                      ? () => _updateBookingStatus('completed')
+                      : null,
                 ),
               ),
             ],
@@ -279,16 +274,21 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
         _groomNameController.text = booking.groomFullName ?? '';
         _brideNameController.text = booking.brideFullName ?? '';
         _contactController.text = booking.contactEmail ?? '';
-        _preferredDateController.text = booking.preferredDate?.split('T')[0] ?? '';
+        _preferredDateController.text =
+            booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
         _seminarScheduleController.text = booking.seminarSchedule ?? '';
         if (booking.priestId != null) {
           _selectedPriestId = booking.priestId;
           // Load priests for dropdown
-          final priestProvider = Provider.of<PriestProvider>(context, listen: false);
-          final parishProvider = Provider.of<ParishProvider>(context, listen: false);
+          final priestProvider =
+              Provider.of<PriestProvider>(context, listen: false);
+          final parishProvider =
+              Provider.of<ParishProvider>(context, listen: false);
           if (parishProvider.selectedParish != null) {
-            priestProvider.loadPriestsByParish(parishProvider.selectedParish!.id!, token: token);
+            priestProvider.loadPriestsByParish(
+                parishProvider.selectedParish!.id!,
+                token: token);
           }
         }
         _documents = booking.documents ?? [];
@@ -431,7 +431,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
             _uploadedBirthData = response.data!['file'];
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Birth certificate uploaded successfully')),
+            const SnackBar(
+                content: Text('Birth certificate uploaded successfully')),
           );
           await _loadBooking();
         } else {
@@ -501,7 +502,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
             _uploadedBaptismalData = response.data!['file'];
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Baptismal certificate uploaded successfully')),
+            const SnackBar(
+                content: Text('Baptismal certificate uploaded successfully')),
           );
           await _loadBooking();
         } else {
@@ -546,7 +548,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   }
 
   Future<void> _uploadConfirmationCertificate() async {
-    if (_confirmationCertificateFile == null || widget.weddingId == null) return;
+    if (_confirmationCertificateFile == null || widget.weddingId == null)
+      return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
@@ -571,7 +574,9 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
             _uploadedConfirmationData = response.data!['file'];
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Confirmation certificate uploaded successfully')),
+            const SnackBar(
+                content:
+                    Text('Confirmation certificate uploaded successfully')),
           );
           await _loadBooking();
         } else {
@@ -645,7 +650,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
     if (mounted) {
       if (result.success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.message ?? 'Booking updated successfully')),
+          SnackBar(
+              content: Text(result.message ?? 'Booking updated successfully')),
         );
         _newNoteController.clear();
         setState(() => _isEditMode = false);
@@ -667,7 +673,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final token = authProvider.token;
       if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not authenticated')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Not authenticated')));
         setState(() => _isSaving = false);
         return;
       }
@@ -681,16 +688,19 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
         setState(() => _isSaving = false);
 
         if (result.success) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking resubmitted successfully')));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Booking resubmitted successfully')));
           await _loadBooking();
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message ?? 'Failed to resubmit')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(result.message ?? 'Failed to resubmit')));
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -769,7 +779,9 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
       ).then((success) {
         if (!success && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to open document. Please check if the file exists.')),
+            const SnackBar(
+                content: Text(
+                    'Failed to open document. Please check if the file exists.')),
           );
         }
       });
@@ -783,27 +795,34 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   }
 
   Widget _buildSectionTitle(String title) => Padding(
-    padding: const EdgeInsets.only(top: 16, bottom: 8),
-    child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
-  );
+        padding: const EdgeInsets.only(top: 16, bottom: 8),
+        child: Text(title,
+            style: const TextStyle(
+                fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
+      );
 
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUser = authProvider.currentUser;
     final role = currentUser?.role;
-    final isAdmin = ['parish_admin', 'parish_staff', 'diocese_admin', 'diocese_staff'].contains(role);
+    final isAdmin = [
+      'parish_admin',
+      'parish_staff',
+      'diocese_admin',
+      'diocese_staff'
+    ].contains(role);
     final isOwner = _booking?.userId == currentUser?.id;
     final status = _booking?.status?.toLowerCase();
-    final canEdit = isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
+    final canEdit =
+        isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
     final effectiveStatus = _displayBookingStatus.toLowerCase();
     final canDelete = isAdmin || (isOwner && effectiveStatus != 'approved');
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_booking != null
-            ? 'Wedding #${_booking!.id}'
-            : 'Wedding Details'),
+        title: Text(
+            _booking != null ? 'Wedding #${_booking!.id}' : 'Wedding Details'),
         actions: [
           if (_booking != null && !_isEditMode && _showStatusButtons && canEdit)
             IconButton(
@@ -844,9 +863,9 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 12, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: _getStatusColor(
-                                                _booking!.status?.toLowerCase() ??
-                                                    'pending')
+                                        color: _getStatusColor(_booking!.status
+                                                    ?.toLowerCase() ??
+                                                'pending')
                                             .withOpacity(0.2),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
@@ -854,7 +873,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                         _displayBookingStatus,
                                         style: TextStyle(
                                           color: _getStatusColor(
-                                              _displayBookingStatus.toLowerCase()),
+                                              _displayBookingStatus
+                                                  .toLowerCase()),
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -867,8 +887,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                       if (_booking!.status?.toLowerCase() ==
                                           'pending')
                                         ElevatedButton(
-                                          onPressed: () => _updateBookingStatus(
-                                              'declined'),
+                                          onPressed: () =>
+                                              _updateBookingStatus('declined'),
                                           style: ElevatedButton.styleFrom(
                                               backgroundColor: Colors.red),
                                           child: const Text('Decline'),
@@ -901,7 +921,9 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                 children: [
                                   const Text(
                                     'Your booking was declined. Please make the necessary changes and resubmit.',
-                                    style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w500),
+                                    style: TextStyle(
+                                        color: Colors.orange,
+                                        fontWeight: FontWeight.w500),
                                   ),
                                   const SizedBox(height: 16),
                                   SizedBox(
@@ -1022,11 +1044,11 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                             onTap: () async {
                               final date = await showDatePicker(
                                 context: context,
-                                initialDate: DateTime.now().add(
-                                    const Duration(days: 7)),
+                                initialDate:
+                                    DateTime.now().add(const Duration(days: 7)),
                                 firstDate: DateTime.now(),
-                                lastDate: DateTime.now().add(
-                                    const Duration(days: 365)),
+                                lastDate: DateTime.now()
+                                    .add(const Duration(days: 365)),
                               );
                               if (date != null) {
                                 _preferredDateController.text =
@@ -1082,18 +1104,29 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                         // Preferred Priest dropdown
                         Consumer<PriestProvider>(
                           builder: (context, priestProvider, child) {
-                            if (priestProvider.priests.isEmpty && _booking != null) {
-                              final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                              final parishProvider = Provider.of<ParishProvider>(context, listen: false);
-                              if (parishProvider.selectedParish != null && authProvider.token != null) {
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  priestProvider.loadPriestsByParish(parishProvider.selectedParish!.id!, token: authProvider.token);
+                            if (priestProvider.priests.isEmpty &&
+                                _booking != null) {
+                              final authProvider = Provider.of<AuthProvider>(
+                                  context,
+                                  listen: false);
+                              final parishProvider =
+                                  Provider.of<ParishProvider>(context,
+                                      listen: false);
+                              if (parishProvider.selectedParish != null &&
+                                  authProvider.token != null) {
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  priestProvider.loadPriestsByParish(
+                                      parishProvider.selectedParish!.id!,
+                                      token: authProvider.token);
                                 });
                               }
                             }
-                            final validPriestId = _selectedPriestId != null && 
-                                priestProvider.priests.any((p) => p.id == _selectedPriestId) 
-                                ? _selectedPriestId : null;
+                            final validPriestId = _selectedPriestId != null &&
+                                    priestProvider.priests
+                                        .any((p) => p.id == _selectedPriestId)
+                                ? _selectedPriestId
+                                : null;
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 12),
                               child: DropdownButtonFormField<int>(
@@ -1107,16 +1140,19 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                     value: null,
                                     child: Text("No preference"),
                                   ),
-                                  ...priestProvider.priests.map((priest) => DropdownMenuItem<int>(
-                                    value: priest.id,
-                                    child: Text(priest.fullName),
-                                  )),
+                                  ...priestProvider.priests
+                                      .map((priest) => DropdownMenuItem<int>(
+                                            value: priest.id,
+                                            child: Text(priest.fullName),
+                                          )),
                                 ],
-                                onChanged: _isEditMode ? (value) {
-                                  setState(() {
-                                    _selectedPriestId = value;
-                                  });
-                                } : null,
+                                onChanged: _isEditMode
+                                    ? (value) {
+                                        setState(() {
+                                          _selectedPriestId = value;
+                                        });
+                                      }
+                                    : null,
                               ),
                             );
                           },
@@ -1124,11 +1160,13 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
 
                         // Notes display
                         _buildSectionTitle('Notes'),
-                        if (_booking?.notes != null && _booking!.notes!.isNotEmpty)
+                        if (_booking?.notes != null &&
+                            _booking!.notes!.isNotEmpty)
                           NotesDisplay(
                             notes: _booking!.notes!.map((note) {
                               if (note is Map) {
-                                return Note.fromJson(Map<String, dynamic>.from(note));
+                                return Note.fromJson(
+                                    Map<String, dynamic>.from(note));
                               }
                               return note as Note;
                             }).toList(),
@@ -1178,7 +1216,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                           file: _birthCertificateFile,
                           uploadedData: _uploadedBirthData,
                           documents: _documents
-                              .where((d) => d.documentType == 'birth_certificate')
+                              .where(
+                                  (d) => d.documentType == 'birth_certificate')
                               .toList(),
                           isUploading: _isUploadingBirth,
                           onPick: _pickBirthCertificate,
@@ -1246,7 +1285,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                 child: OutlinedButton(
                                   onPressed: _isSaving
                                       ? null
-                                      : () => setState(() => _isEditMode = false),
+                                      : () =>
+                                          setState(() => _isEditMode = false),
                                   style: OutlinedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 16),
@@ -1258,13 +1298,9 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                           ),
 
                         // Delete Button (owners can delete any non-approved booking)
-                        if (_isEditMode &&
-                            _booking != null &&
-                            canDelete)
+                        if (_isEditMode && _booking != null && canDelete)
                           const SizedBox(height: 16),
-                        if (_isEditMode &&
-                            _booking != null &&
-                            canDelete)
+                        if (_isEditMode && _booking != null && canDelete)
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton(
@@ -1272,8 +1308,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.red,
                                 side: const BorderSide(color: Colors.red),
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 16),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
                               ),
                               child: const Text('Cancel Booking'),
                             ),
@@ -1340,8 +1376,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                 ),
                 if (hasExisting)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.green.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
