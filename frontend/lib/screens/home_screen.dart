@@ -304,9 +304,16 @@ class _HomeScreenState extends State<HomeScreen> {
               ListTile(
                 leading: const Icon(Icons.list_alt),
                 title: const Text('My Bookings'),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  Navigator.pushNamed(context, '/my-bookings');
+                  final shouldRefresh = await Navigator.pushNamed(
+                    context,
+                    '/my-bookings',
+                  );
+                  if (!mounted) return;
+                  if (shouldRefresh == true) {
+                    _loadBookingStats();
+                  }
                 },
               ),
               ListTile(
@@ -565,8 +572,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       runSpacing: 8,
                       children: [
                         ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/my-bookings');
+                          onPressed: () async {
+                            final shouldRefresh = await Navigator.pushNamed(
+                              context,
+                              '/my-bookings',
+                            );
+                            if (!mounted) return;
+                            if (shouldRefresh == true) {
+                              _loadBookingStats();
+                            }
                           },
                           icon: const Icon(Icons.list_alt, size: 20),
                           label: const Text('My Bookings'),
