@@ -54,10 +54,18 @@ class _EucharistScreenState extends State<EucharistScreen> {
           Provider.of<PriestProvider>(context, listen: false);
 
       parishProvider.clearSelection();
+
+      // Set default contact email to current user's email
+      if (authProvider.currentUser?.email != null) {
+        _contactEmailController.text = authProvider.currentUser!.email;
+      }
+
       await parishProvider.loadParishesByService(
         'eucharist',
         token: authProvider.token,
       );
+
+      if (!mounted) return;
 
       final userParishId = authProvider.currentUser?.preferredParishId;
 
@@ -70,11 +78,6 @@ class _EucharistScreenState extends State<EucharistScreen> {
           await priestProvider.loadPriestsByParish(userParishId,
               token: authProvider.token);
         }
-      }
-
-      // Set default contact email to current user's email
-      if (authProvider.currentUser?.email != null) {
-        _contactEmailController.text = authProvider.currentUser!.email;
       }
     });
   }

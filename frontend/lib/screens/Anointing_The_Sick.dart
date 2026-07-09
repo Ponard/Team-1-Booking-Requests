@@ -45,10 +45,21 @@ class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
           Provider.of<PriestProvider>(context, listen: false);
 
       parishProvider.clearSelection();
+
+      // Set default contact email and person to current user's info
+      if (authProvider.currentUser?.email != null) {
+        _contactEmailController.text = authProvider.currentUser!.email;
+      }
+      if (authProvider.currentUser?.fullName != null) {
+        _contactPersonController.text = authProvider.currentUser!.fullName;
+      }
+
       await parishProvider.loadParishesByService(
         'anointing_sick',
         token: authProvider.token,
       );
+
+      if (!mounted) return;
 
       final userParishId = authProvider.currentUser?.preferredParishId;
 
@@ -61,14 +72,6 @@ class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
           await priestProvider.loadPriestsByParish(userParishId,
               token: authProvider.token);
         }
-      }
-
-      // Set default contact email and person to current user's info
-      if (authProvider.currentUser?.email != null) {
-        _contactEmailController.text = authProvider.currentUser!.email;
-      }
-      if (authProvider.currentUser?.fullName != null) {
-        _contactPersonController.text = authProvider.currentUser!.fullName;
       }
     });
   }

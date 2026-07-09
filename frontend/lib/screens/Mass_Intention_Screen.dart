@@ -42,6 +42,8 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
         token: authProvider.token,
       );
 
+      if (!mounted) return;
+
       final userParishId = authProvider.currentUser?.preferredParishId;
 
       if (userParishId != null) {

@@ -61,6 +61,8 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
         token: authProvider.token,
       );
 
+      if (!mounted) return;
+
       final userParishId = authProvider.currentUser?.preferredParishId;
 
       if (userParishId != null) {

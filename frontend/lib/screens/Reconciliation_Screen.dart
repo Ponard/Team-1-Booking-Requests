@@ -36,10 +36,18 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
       parishProvider.clearSelection();
+
+      // Default contact email to current user's email if available
+      if (authProvider.currentUser?.email != null) {
+        _contactEmailController.text = authProvider.currentUser!.email;
+      }
+
       await parishProvider.loadParishesByService(
         'reconciliation',
         token: authProvider.token,
       );
+
+      if (!mounted) return;
 
       final userParishId = authProvider.currentUser?.preferredParishId;
 
@@ -50,11 +58,6 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
         if (userParish != null) {
           parishProvider.selectParish(userParish);
         }
-      }
-
-      // Default contact email to current user's email if available
-      if (authProvider.currentUser?.email != null) {
-        _contactEmailController.text = authProvider.currentUser!.email;
       }
     });
   }

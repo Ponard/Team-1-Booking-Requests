@@ -62,10 +62,18 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
           Provider.of<PriestProvider>(context, listen: false);
 
       parishProvider.clearSelection();
+
+      // Set default contact to current user's email
+      if (authProvider.currentUser?.email != null) {
+        _contactController.text = authProvider.currentUser!.email;
+      }
+
       await parishProvider.loadParishesByService(
         'wedding',
         token: authProvider.token,
       );
+
+      if (!mounted) return;
 
       final userParishId = authProvider.currentUser?.preferredParishId;
 
@@ -78,11 +86,6 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
           await priestProvider.loadPriestsByParish(userParishId,
               token: authProvider.token);
         }
-      }
-
-      // Set default contact to current user's email
-      if (authProvider.currentUser?.email != null) {
-        _contactController.text = authProvider.currentUser!.email;
       }
     });
   }

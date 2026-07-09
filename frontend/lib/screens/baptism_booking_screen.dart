@@ -61,6 +61,8 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
         token: authProvider.token,
       );
 
+      if (!mounted) return;
+
       final userParishId = authProvider.currentUser?.preferredParishId;
 
       if (userParishId != null) {
