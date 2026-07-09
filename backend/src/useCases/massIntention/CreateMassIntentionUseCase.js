@@ -33,6 +33,14 @@ class CreateMassIntentionUseCase {
       throw new Error('Parish not found');
     }
 
+    if (!parish.isActive) {
+      throw new Error('Selected parish is inactive.');
+    }
+
+    if (!parish.servicesOffered?.includes('mass_intention')) {
+      throw new Error('The selected parish does not accept Mass Intentions.');
+    }
+
     dto.submittedBy = user.id;
     dto.dateRequested = new Date().toISOString().split('T')[0];
     dto.status = 'pending';
@@ -73,7 +81,7 @@ class CreateMassIntentionUseCase {
    */
   async _sendConfirmationEmail(user, intention) {
     if (!this.emailService) return;
-    
+
     await this.emailService.sendNotification(
       user.email,
       'Mass Intention Submitted',

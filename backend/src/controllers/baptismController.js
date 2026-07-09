@@ -128,6 +128,20 @@ exports.createBaptismBooking = async (req, res) => {
       return res.status(404).json({ error: 'Parish not found' });
     }
 
+    // Check if parish is active
+    if (!parish.isActive) {
+      return res.status(400).json({
+        error: 'Selected parish is inactive.',
+      });
+    }
+
+    // Check if parish offers service
+    if (!parish.servicesOffered?.includes('baptism')) {
+      return res.status(400).json({
+        error: 'The selected parish does not offer baptisms.',
+      });
+    }
+
     // Check booking window
     const windowCheck = await checkBookingWindow(parishId, 'baptism', preferredDate);
     if (!windowCheck.valid) {
@@ -413,7 +427,7 @@ exports.updateBaptismBooking = async (req, res) => {
     if (!isAdmin) {
       delete updateData.preferredDate;
       delete updateData.preferredTimeSlot;
-      
+
       // Allow parishioners to resubmit: change status from 'declined' back to 'pending'
       if (updateData.status && booking.status === 'declined' && updateData.status === 'pending') {
         // This is allowed - resubmit after decline
@@ -436,7 +450,7 @@ exports.updateBaptismBooking = async (req, res) => {
     }
 
     console.log('Updating with data:', JSON.stringify(updateData, null, 2));
-    
+
     await booking.update(updateData);
 
     console.log('Booking updated successfully!');
@@ -597,7 +611,7 @@ exports.attachDocument = async (req, res) => {
     // Handle file upload if present
     if (req.file) {
       const fileService = require('../services/fileService');
-      
+
       // Save file to permanent location
       const fileData = await fileService.saveFile(
         req.file,
