@@ -15,6 +15,7 @@ const {
 } = require('../models');
 const { Op } = require('sequelize');
 const emailService = require('../services/emailService');
+const { validateBookingDate } = require('../utils/validators');
 
 // Mapping of sacrament types to models and config
 const SACRAMENT_CONFIG = {
@@ -58,6 +59,8 @@ const SACRAMENT_CONFIG = {
 
 // Helper function to check if date is within booking window
 const checkBookingWindow = async (parishId, serviceType, preferredDate) => {
+  if (!preferredDate) return { valid: true };
+
   const settings = await ParishSlotSetting.findOne({
     where: { parishId, serviceType, isActive: true },
   });
@@ -66,6 +69,7 @@ const checkBookingWindow = async (parishId, serviceType, preferredDate) => {
 
   const today = new Date();
   const requestedDate = new Date(preferredDate);
+
   const minDate = new Date(today);
   minDate.setDate(minDate.getDate() + (settings.minAdvanceDays || 1));
   const maxDate = new Date(today);
@@ -97,6 +101,8 @@ const checkBookingWindow = async (parishId, serviceType, preferredDate) => {
 
 // Helper function to check blackout dates
 const checkBlackoutDates = async (parishId, serviceType, date) => {
+  if (!date) return { available: true };
+
   const blackoutDates = await BlackoutDate.findAll({
     where: {
       parishId,
@@ -117,6 +123,8 @@ const checkBlackoutDates = async (parishId, serviceType, date) => {
 
 // Helper function to check daily limit
 const checkDailyLimit = async (parishId, serviceType, date, Model) => {
+  if (!date) return { withinLimit: true };
+
   const settings = await ParishSlotSetting.findOne({
     where: { parishId, serviceType, isActive: true },
   });
@@ -192,6 +200,15 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
     if (!parish.servicesOffered?.includes(sacramentType)) {
       return res.status(400).json({
         error: `The selected parish does not offer ${config.serviceName.toLowerCase()}.`,
+      });
+    }
+
+    const dateValidation = validateBookingDate(preferredDate);
+
+    if (!dateValidation.valid) {
+      return res.status(400).json({
+        error: dateValidation.error,
+        field: 'preferredDate',
       });
     }
 

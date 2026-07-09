@@ -3,6 +3,7 @@
  * Single responsibility: Handle the business logic for creating mass intentions
  */
 const MassIntentionDTO = require('../../dto/MassIntentionDTO');
+const { validateBookingDate } = require('../../utils/validators');
 
 class CreateMassIntentionUseCase {
   /**
@@ -27,6 +28,13 @@ class CreateMassIntentionUseCase {
     if (!validation.isValid) {
       throw new Error(validation.errors.join(', '));
     }
+
+    const dateValidation = validateBookingDate(dto.massSchedule);
+    if (!dateValidation.valid) {
+      throw new Error(dateValidation.error);
+    }
+
+    dto.massSchedule = new Date(dto.massSchedule);
 
     const parish = await this.parishRepository.findById(dto.parishId);
     if (!parish) {

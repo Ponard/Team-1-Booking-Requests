@@ -10,9 +10,12 @@ const {
 } = require('../models');
 const { Op } = require('sequelize');
 const emailService = require('../services/emailService');
+const { validateBookingDate } = require('../utils/validators');
 
 // Helper function to check if date is within booking window
 const checkBookingWindow = async (parishId, serviceType, preferredDate) => {
+  if (!preferredDate) return { valid: true };
+
   const settings = await ParishSlotSetting.findOne({
     where: { parishId, serviceType, isActive: true },
   });
@@ -45,6 +48,8 @@ const checkBookingWindow = async (parishId, serviceType, preferredDate) => {
 
 // Helper function to check blackout dates
 const checkBlackoutDates = async (parishId, serviceType, date) => {
+  if (!date) return { available: true };
+
   const blackoutDates = await BlackoutDate.findAll({
     where: {
       parishId,
@@ -65,6 +70,8 @@ const checkBlackoutDates = async (parishId, serviceType, date) => {
 
 // Helper function to check daily limit
 const checkDailyLimit = async (parishId, serviceType, date) => {
+  if (!date) return { withinLimit: true };
+
   const settings = await ParishSlotSetting.findOne({
     where: { parishId, serviceType, isActive: true },
   });
@@ -139,6 +146,15 @@ exports.createBaptismBooking = async (req, res) => {
     if (!parish.servicesOffered?.includes('baptism')) {
       return res.status(400).json({
         error: 'The selected parish does not offer baptisms.',
+      });
+    }
+
+    const dateValidation = validateBookingDate(preferredDate);
+
+    if (!dateValidation.valid) {
+      return res.status(400).json({
+        error: dateValidation.error,
+        field: 'preferredDate',
       });
     }
 
