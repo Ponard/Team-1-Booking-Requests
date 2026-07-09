@@ -56,25 +56,21 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
           Provider.of<PriestProvider>(context, listen: false);
 
       parishProvider.clearSelection();
-      await parishProvider.loadAllParishes();
+      await parishProvider.loadParishesByService(
+        'baptism',
+        token: authProvider.token,
+      );
 
       final userParishId = authProvider.currentUser?.preferredParishId;
 
-      // Default to user's preferred parish if available
       if (userParishId != null) {
         final userParish = parishProvider.parishes
             .where((p) => p.id == userParishId)
             .firstOrNull;
         if (userParish != null) {
-          final bool offersService =
-              userParish.servicesOffered?.contains('baptism') ?? false;
-          final bool isAvailable = userParish.isActive && offersService;
-
-          if (isAvailable) {
-            parishProvider.selectParish(userParish);
-            await priestProvider.loadPriestsByParish(userParishId,
-                token: authProvider.token);
-          }
+          parishProvider.selectParish(userParish);
+          await priestProvider.loadPriestsByParish(userParishId,
+              token: authProvider.token);
         }
       }
     });

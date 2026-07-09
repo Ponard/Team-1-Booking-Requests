@@ -56,26 +56,21 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
           Provider.of<PriestProvider>(context, listen: false);
 
       parishProvider.clearSelection();
-      await parishProvider.loadAllParishes();
+      await parishProvider.loadParishesByService(
+        'confirmation',
+        token: authProvider.token,
+      );
 
       final userParishId = authProvider.currentUser?.preferredParishId;
 
-      // Default to user's preferred parish if available
       if (userParishId != null) {
-        // This will be set once parishes are loaded
         final userParish = parishProvider.parishes
             .where((p) => p.id == userParishId)
             .firstOrNull;
         if (userParish != null) {
-          final bool offersService =
-              userParish.servicesOffered?.contains('confirmation') ?? false;
-          final bool isAvailable = userParish.isActive && offersService;
-
-          if (isAvailable) {
-            parishProvider.selectParish(userParish);
-            await priestProvider.loadPriestsByParish(userParishId,
-                token: authProvider.token);
-          }
+          parishProvider.selectParish(userParish);
+          await priestProvider.loadPriestsByParish(userParishId,
+              token: authProvider.token);
         }
       }
     });
