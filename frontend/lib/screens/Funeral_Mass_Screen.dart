@@ -46,28 +46,6 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
           Provider.of<PriestProvider>(context, listen: false);
 
       parishProvider.clearSelection();
-      await parishProvider.loadAllParishes();
-
-      final userParishId = authProvider.currentUser?.preferredParishId;
-
-      // Default to user's preferred parish if available
-      if (userParishId != null) {
-        // This will be set once parishes are loaded
-        final userParish = parishProvider.parishes
-            .where((p) => p.id == userParishId)
-            .firstOrNull;
-        if (userParish != null) {
-          final bool offersService =
-              userParish.servicesOffered?.contains('funeral_mass') ?? false;
-          final bool isAvailable = userParish.isActive && offersService;
-
-          if (isAvailable) {
-            parishProvider.selectParish(userParish);
-            await priestProvider.loadPriestsByParish(userParishId,
-                token: authProvider.token);
-          }
-        }
-      }
 
       // Set default contact email and person to current user's info
       if (authProvider.currentUser?.email != null) {
@@ -75,6 +53,26 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
       }
       if (authProvider.currentUser?.fullName != null) {
         _contactPersonController.text = authProvider.currentUser!.fullName;
+      }
+
+      await parishProvider.loadParishesByService(
+        'funeral_mass',
+        token: authProvider.token,
+      );
+
+      if (!mounted) return;
+
+      final userParishId = authProvider.currentUser?.preferredParishId;
+
+      if (userParishId != null) {
+        final userParish = parishProvider.parishes
+            .where((p) => p.id == userParishId)
+            .firstOrNull;
+        if (userParish != null) {
+          parishProvider.selectParish(userParish);
+          await priestProvider.loadPriestsByParish(userParishId,
+              token: authProvider.token);
+        }
       }
     });
   }

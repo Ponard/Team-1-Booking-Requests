@@ -31,31 +31,28 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final parishProvider =
           Provider.of<ParishProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
       parishProvider.clearSelection();
-      parishProvider.loadAllParishes();
+      await parishProvider.loadParishesByService(
+        'mass_intention',
+        token: authProvider.token,
+      );
 
-      // Default to user's preferred parish if available
-      if (authProvider.currentUser?.preferredParishId != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final userParishId = authProvider.currentUser!.preferredParishId;
-          final userParish = parishProvider.parishes
-              .where((p) => p.id == userParishId)
-              .firstOrNull;
-          if (userParish != null) {
-            final bool offersService =
-                userParish.servicesOffered?.contains('mass_intention') ?? false;
-            final bool isAvailable = userParish.isActive && offersService;
+      if (!mounted) return;
 
-            if (isAvailable) {
-              parishProvider.selectParish(userParish);
-            }
-          }
-        });
+      final userParishId = authProvider.currentUser?.preferredParishId;
+
+      if (userParishId != null) {
+        final userParish = parishProvider.parishes
+            .where((p) => p.id == userParishId)
+            .firstOrNull;
+        if (userParish != null) {
+          parishProvider.selectParish(userParish);
+        }
       }
     });
   }

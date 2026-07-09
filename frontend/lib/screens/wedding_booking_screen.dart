@@ -62,41 +62,30 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
           Provider.of<PriestProvider>(context, listen: false);
 
       parishProvider.clearSelection();
-      await parishProvider.loadAllParishes();
-
-      final userParishId = authProvider.currentUser?.preferredParishId;
-
-      // QA FIX: Dynamic Database Validation
-      // Evaluates if the parish is active (not under renovation) AND
-      // explicitly verifies if 'wedding' is in their servicesOffered array.
-      if (userParishId != null) {
-        final userParish = parishProvider.parishes
-            .where((p) => p.id == userParishId)
-            .firstOrNull;
-
-        //UI/UX Fix: Fixed this part of the code to verify the initState logic
-
-        if (userParish != null) {
-          // Check if the parish is active and offers weddings
-          //Logic: Only hide the dropdown if the parish is active AND offers weddings
-          final bool offersWeddings =
-              userParish.servicesOffered?.contains('wedding') ?? false;
-          final bool isAvailable = userParish.isActive && offersWeddings;
-
-          // Happy Path: Home parish is available.
-          // Binds data in the background and sets flag to hide the selection UI.
-          if (isAvailable) {
-            // Happy Path: Parish is available. Auto-select and hide dropdown.
-            parishProvider.selectParish(userParish);
-            await priestProvider.loadPriestsByParish(userParishId,
-                token: authProvider.token);
-          }
-        }
-      }
 
       // Set default contact to current user's email
       if (authProvider.currentUser?.email != null) {
         _contactController.text = authProvider.currentUser!.email;
+      }
+
+      await parishProvider.loadParishesByService(
+        'wedding',
+        token: authProvider.token,
+      );
+
+      if (!mounted) return;
+
+      final userParishId = authProvider.currentUser?.preferredParishId;
+
+      if (userParishId != null) {
+        final userParish = parishProvider.parishes
+            .where((p) => p.id == userParishId)
+            .firstOrNull;
+        if (userParish != null) {
+          parishProvider.selectParish(userParish);
+          await priestProvider.loadPriestsByParish(userParishId,
+              token: authProvider.token);
+        }
       }
     });
   }

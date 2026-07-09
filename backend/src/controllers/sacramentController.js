@@ -181,10 +181,24 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
       return res.status(404).json({ error: 'Parish not found' });
     }
 
+    // Check if parish is active
+    if (!parish.isActive) {
+      return res.status(400).json({
+        error: 'Selected parish is inactive.',
+      });
+    }
+
+    // Check if parish offers service
+    if (!parish.servicesOffered?.includes(sacramentType)) {
+      return res.status(400).json({
+        error: `The selected parish does not offer ${config.serviceName.toLowerCase()}.`,
+      });
+    }
+
     // Check booking window
     const windowCheck = await checkBookingWindow(parishId, sacramentType, preferredDate);
     if (!windowCheck.valid) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: windowCheck.error,
         code: 'BOOKING_WINDOW_ERROR',
         suggestion: `Please select a date between ${windowCheck.minDateStr} and ${windowCheck.maxDateStr}`
@@ -194,7 +208,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
     // Check blackout dates
     const blackoutCheck = await checkBlackoutDates(parishId, sacramentType, preferredDate);
     if (!blackoutCheck.available) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: blackoutCheck.reason,
         code: 'BLACKOUT_DATE',
         suggestion: 'Please select a different date or contact the parish directly'
@@ -204,7 +218,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
     // Check daily limit
     const limitCheck = await checkDailyLimit(parishId, sacramentType, preferredDate, config.model);
     if (!limitCheck.withinLimit) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: limitCheck.error,
         code: 'DAILY_LIMIT_REACHED',
         suggestion: `Only ${limitCheck.remaining} slot(s) available on this date. Please try a different date.`
@@ -216,7 +230,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
 
     // Validate contact fields if provided (now accepts phone OR email)
     if (bookingData.contactPhone && bookingData.contactPhone.length > 255) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Contact must not exceed 255 characters',
         field: 'contactPhone'
       });
@@ -272,7 +286,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
       for (const doc of docsArray) {
         // Handle case where doc might be a string
         const docObj = typeof doc === 'string' ? JSON.parse(doc) : doc;
-        
+
         if (docObj.uploadedFile && docObj.filePath && docObj.fileUrl) {
           // Use defaults if mimeType or fileSize is missing
           documentEntries.push({
@@ -287,7 +301,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
           console.log(`Skipping document with missing fields:`, docObj);
         }
       }
-    } 
+    }
     // Otherwise, fallback to single document fields (legacy)
     else if (uploadedFile && filePath && fileUrl && fileSize && mimeType) {
       documentEntries.push({
@@ -584,7 +598,7 @@ exports.approveSacramentBooking = (sacramentType) => async (req, res) => {
       const user = await User.findByPk(booking.userId);
       const contactEmail = booking.contactEmail || user?.email;
       const isDeclined = status === 'declined';
-      
+
       await emailService.sendNotification(
         contactEmail,
         `${config.serviceName} Booking ${isDeclined ? 'Requires Attention' : (status === 'approved' ? 'Approved' : 'Update')}`,
@@ -701,7 +715,7 @@ exports.attachDocument = (sacramentType) => async (req, res) => {
     // Handle file upload if present
     if (req.file) {
       const fileService = require('../services/fileService');
-      
+
       // Save file to permanent location (upload to Supabase immediately for existing bookings)
       const fileData = await fileService.saveFile(
         req.file,

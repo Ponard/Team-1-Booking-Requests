@@ -54,32 +54,30 @@ class _EucharistScreenState extends State<EucharistScreen> {
           Provider.of<PriestProvider>(context, listen: false);
 
       parishProvider.clearSelection();
-      await parishProvider.loadAllParishes();
-
-      final userParishId = authProvider.currentUser?.preferredParishId;
-
-      // Default to user's preferred parish if available
-      if (userParishId != null) {
-        // This will be set once parishes are loaded
-        final userParish = parishProvider.parishes
-            .where((p) => p.id == userParishId)
-            .firstOrNull;
-        if (userParish != null) {
-          final bool offersService =
-              userParish.servicesOffered?.contains('eucharist') ?? false;
-          final bool isAvailable = userParish.isActive && offersService;
-
-          if (isAvailable) {
-            parishProvider.selectParish(userParish);
-            await priestProvider.loadPriestsByParish(userParishId,
-                token: authProvider.token);
-          }
-        }
-      }
 
       // Set default contact email to current user's email
       if (authProvider.currentUser?.email != null) {
         _contactEmailController.text = authProvider.currentUser!.email;
+      }
+
+      await parishProvider.loadParishesByService(
+        'eucharist',
+        token: authProvider.token,
+      );
+
+      if (!mounted) return;
+
+      final userParishId = authProvider.currentUser?.preferredParishId;
+
+      if (userParishId != null) {
+        final userParish = parishProvider.parishes
+            .where((p) => p.id == userParishId)
+            .firstOrNull;
+        if (userParish != null) {
+          parishProvider.selectParish(userParish);
+          await priestProvider.loadPriestsByParish(userParishId,
+              token: authProvider.token);
+        }
       }
     });
   }
