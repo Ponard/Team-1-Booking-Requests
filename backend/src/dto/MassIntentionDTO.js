@@ -43,7 +43,7 @@ class MassIntentionDTO {
   static fromRequest(body) {
     console.log('[MassIntentionDTO.fromRequest] RECEIVED body.notes:', JSON.stringify(body.notes), 'type:', typeof body.notes);
     let notes = [];
-    
+
     if (body.notes) {
       console.log('[MassIntentionDTO.fromRequest] body.notes type:', typeof body.notes, 'value:', JSON.stringify(body.notes));
       if (typeof body.notes === 'string') {
@@ -63,7 +63,7 @@ class MassIntentionDTO {
       intentionDetails: body.intentionDetails,
       donorName: body.donorName,
       parishId: parseInt(body.parishId),
-      massSchedule: new Date(body.massSchedule),
+      massSchedule: body.massSchedule,
       preferredTime: body.preferredTime,
       preferredPriest: body.preferredPriest,
       notes: notes,
