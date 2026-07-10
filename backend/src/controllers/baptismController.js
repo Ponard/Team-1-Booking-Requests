@@ -10,7 +10,7 @@ const {
 } = require('../models');
 const { Op } = require('sequelize');
 const emailService = require('../services/emailService');
-const { validateBookingDate } = require('../utils/validators');
+const { validateBookingDate, validatePhoneNumber } = require('../utils/validators');
 
 // Helper function to check if date is within booking window
 const checkBookingWindow = async (parishId, serviceType, preferredDate) => {
@@ -128,6 +128,15 @@ exports.createBaptismBooking = async (req, res) => {
       mimeType,
       documentType = 'birth_certificate',
     } = req.body;
+
+    const phoneValidation = validatePhoneNumber(contactPhone);
+
+    if (!phoneValidation.valid) {
+      return res.status(400).json({
+        error: phoneValidation.error,
+        field: 'contactPhone',
+      });
+    }
 
     // Validate parish exists
     const parish = await Parish.findByPk(parishId);

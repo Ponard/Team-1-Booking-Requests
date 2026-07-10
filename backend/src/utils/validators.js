@@ -32,3 +32,25 @@ exports.validateBookingDate = (preferredDate) => {
 
   return { valid: true };
 };
+
+exports.validatePhoneNumber = (phone) => {
+  if (!phone) {
+    return {
+      valid: false,
+      error: 'Phone number is required.',
+    };
+  }
+
+  const normalized = phone.replace(/[\s\-().]/g, '');
+
+  const PHONE_REGEX = /^(\+63|0)9\d{9}$/;
+
+  if (!PHONE_REGEX.test(normalized)) {
+    return {
+      valid: false,
+      error: 'Please enter a valid Philippine phone number.',
+    };
+  }
+
+  return { valid: true };
+};
