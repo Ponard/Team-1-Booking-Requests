@@ -6,6 +6,7 @@ import '../providers/parish_provider.dart';
 import '../providers/funeral_mass_provider.dart';
 import '../providers/priest_provider.dart';
 import '../widgets/custom_button.dart';
+import '../utils/validators.dart';
 
 class FuneralMassScreen extends StatefulWidget {
   static const routeName = '/funeral-mass';
@@ -401,8 +402,7 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                           labelText: "Contact Number *",
                           border: OutlineInputBorder(),
                         ),
-                        validator: (value) =>
-                            value == null || value.isEmpty ? "Required" : null,
+                        validator: Validators.phoneValidator,
                       ),
                     ],
                   ),

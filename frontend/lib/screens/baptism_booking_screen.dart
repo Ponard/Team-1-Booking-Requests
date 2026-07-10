@@ -7,6 +7,7 @@ import '../providers/parish_provider.dart';
 import '../providers/baptism_provider.dart';
 import '../providers/priest_provider.dart';
 import '../services/file_service.dart';
+import '../utils/validators.dart';
 
 class BaptismBookingScreen extends StatefulWidget {
   const BaptismBookingScreen({super.key});
@@ -450,10 +451,7 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.phone,
-                      validator: (value) =>
-                          value == null || value.trim().isEmpty
-                              ? "Required"
-                              : null,
+                      validator: Validators.phoneValidator,
                     ),
                   ]),
 

@@ -7,6 +7,7 @@ import '../providers/eucharist_provider.dart';
 import '../providers/parish_provider.dart';
 import '../providers/priest_provider.dart';
 import '../services/file_service.dart';
+import '../utils/validators.dart';
 
 class EucharistScreen extends StatefulWidget {
   const EucharistScreen({super.key});
@@ -573,8 +574,7 @@ class _EucharistScreenState extends State<EucharistScreen> {
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.phone,
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
+                      validator: Validators.phoneValidator,
                     ),
                   ]),
 

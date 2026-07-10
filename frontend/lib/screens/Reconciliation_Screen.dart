@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/parish_provider.dart';
 import '../providers/reconciliation_provider.dart';
+import '../utils/validators.dart';
 
 class ReconciliationScreen extends StatefulWidget {
   const ReconciliationScreen({super.key});
@@ -261,8 +262,7 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.phone,
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
+                      validator: Validators.phoneValidator,
                     ),
                   ]),
 
