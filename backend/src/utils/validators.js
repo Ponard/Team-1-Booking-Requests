@@ -12,9 +12,15 @@ exports.validateBookingDate = (preferredDate) => {
     };
   }
 
-  const date = new Date(`${preferredDate}T00:00:00`);
+  const [year, month, day] = preferredDate.split('-').map(Number);
 
-  if (Number.isNaN(date.getTime())) {
+  const date = new Date(year, month - 1, day);
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
     return {
       valid: false,
       error: 'Invalid preferred date.',
