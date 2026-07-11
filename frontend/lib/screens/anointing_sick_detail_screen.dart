@@ -92,6 +92,14 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
           _selectedPriestId = booking.priestId;
         }
       });
+
+      await context.read<PriestProvider>().loadPriestsByParish(
+            booking.parishId,
+            token: authProvider.token,
+          );
+
+      if (!mounted) return;
+
       if (widget.fromStatusButton && isEditable) {
         setState(() => _isEditMode = true);
       } else {
@@ -471,9 +479,9 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
           border: enabled
               ? const OutlineInputBorder()
               : OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none,
-          ),
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
           filled: enabled,
           fillColor: enabled ? null : Colors.grey[100],
         ),
@@ -490,8 +498,8 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
   Widget _buildPriestDropdown() {
     return Consumer<PriestProvider>(
       builder: (context, priestProvider, _) {
-        final validPriestId = _selectedPriestId != null && 
-            priestProvider.priests.any((p) => p.id == _selectedPriestId) 
+        final validPriestId = _selectedPriestId != null &&
+                priestProvider.priests.any((p) => p.id == _selectedPriestId)
             ? _selectedPriestId
             : null;
         return Padding(
@@ -508,9 +516,9 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
                 child: Text("No preference"),
               ),
               ...priestProvider.priests.map((priest) => DropdownMenuItem<int>(
-                value: priest.id,
-                child: Text(priest.fullName),
-              )),
+                    value: priest.id,
+                    child: Text(priest.fullName),
+                  )),
             ],
             onChanged: (value) {
               setState(() {

@@ -282,22 +282,17 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
             booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
         _seminarScheduleController.text = booking.seminarSchedule ?? '';
-        if (booking.priestId != null) {
-          _selectedPriestId = booking.priestId;
-          // Load priests for dropdown
-          final priestProvider =
-              Provider.of<PriestProvider>(context, listen: false);
-          final parishProvider =
-              Provider.of<ParishProvider>(context, listen: false);
-          if (parishProvider.selectedParish != null) {
-            priestProvider.loadPriestsByParish(
-                parishProvider.selectedParish!.id!,
-                token: token);
-          }
-        }
+        _selectedPriestId = booking.priestId;
         _documents = booking.documents ?? [];
         _isLoading = false;
       });
+
+      await context.read<PriestProvider>().loadPriestsByParish(
+            booking.parishId,
+            token: authProvider.token,
+          );
+
+      if (!mounted) return;
 
       // Auto-enable edit mode if fromStatusButton (with editable status) or user is owner and booking is editable
       final currentUser = authProvider.currentUser;
@@ -800,11 +795,11 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   }
 
   Widget _buildSectionTitle(String title) => Padding(
-    padding: const EdgeInsets.only(top: 16, bottom: 8),
+        padding: const EdgeInsets.only(top: 16, bottom: 8),
         child: Text(title,
             style: const TextStyle(
                 fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
-  );
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -870,7 +865,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                       decoration: BoxDecoration(
                                         color: _getStatusColor(_booking!.status
                                                     ?.toLowerCase() ??
-                                                    'pending')
+                                                'pending')
                                             .withOpacity(0.2),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
@@ -1095,25 +1090,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                         // Preferred Priest dropdown
                         Consumer<PriestProvider>(
                           builder: (context, priestProvider, child) {
-                            if (priestProvider.priests.isEmpty &&
-                                _booking != null) {
-                              final authProvider = Provider.of<AuthProvider>(
-                                  context,
-                                  listen: false);
-                              final parishProvider =
-                                  Provider.of<ParishProvider>(context,
-                                      listen: false);
-                              if (parishProvider.selectedParish != null &&
-                                  authProvider.token != null) {
-                                WidgetsBinding.instance
-                                    .addPostFrameCallback((_) {
-                                  priestProvider.loadPriestsByParish(
-                                      parishProvider.selectedParish!.id!,
-                                      token: authProvider.token);
-                                });
-                              }
-                            }
-                            final validPriestId = _selectedPriestId != null && 
+                            final validPriestId = _selectedPriestId != null &&
                                     priestProvider.priests
                                         .any((p) => p.id == _selectedPriestId)
                                 ? _selectedPriestId
@@ -1133,15 +1110,15 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                   ),
                                   ...priestProvider.priests
                                       .map((priest) => DropdownMenuItem<int>(
-                                    value: priest.id,
-                                    child: Text(priest.fullName),
-                                  )),
+                                            value: priest.id,
+                                            child: Text(priest.fullName),
+                                          )),
                                 ],
                                 onChanged: _isEditMode
                                     ? (value) {
-                                  setState(() {
-                                    _selectedPriestId = value;
-                                  });
+                                        setState(() {
+                                          _selectedPriestId = value;
+                                        });
                                       }
                                     : null,
                               ),
