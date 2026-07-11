@@ -260,11 +260,10 @@ exports.createBaptismBooking = async (req, res) => {
     }
 
     // Send confirmation email
-    try {
-      await emailService.sendNotification(
-        contactEmail,
-        'Baptism Booking Request Received',
-        `
+    emailService.sendNotification(
+      contactEmail,
+      'Baptism Booking Request Received',
+      `
           <h2>Baptism Booking Request Received</h2>
           <p>Dear Parent/Guardian,</p>
           <p>Your baptism booking request for <strong>${childFullName}</strong> has been successfully submitted.</p>
@@ -279,10 +278,9 @@ exports.createBaptismBooking = async (req, res) => {
           <br>
           <p>Best regards,<br>The Parish Team</p>
         `
-      );
-    } catch (emailError) {
+    ).catch((emailError) => {
       console.error('Failed to send confirmation email:', emailError);
-    }
+    });
 
     res.status(201).json({
       message: 'Baptism booking request submitted successfully',
@@ -527,13 +525,11 @@ exports.approveBaptismBooking = async (req, res) => {
     await booking.update(updateData);
 
     // Send email notification
-    try {
-      const user = await User.findByPk(booking.userId);
-      const isDeclined = status === 'declined';
-      await emailService.sendNotification(
-        booking.contactEmail,
-        `Baptism Booking ${isDeclined ? 'Requires Attention' : (status === 'approved' ? 'Approved' : 'Update')}`,
-        `
+    const isDeclined = status === 'declined';
+    emailService.sendNotification(
+      booking.contactEmail,
+      `Baptism Booking ${isDeclined ? 'Requires Attention' : (status === 'approved' ? 'Approved' : 'Update')}`,
+      `
           <h2>Baptism Booking ${isDeclined ? 'Update' : 'Notification'}</h2>
           <p>Dear Parent/Guardian,</p>
           <p>Your baptism booking request for <strong>${booking.childFullName}</strong> has been ${isDeclined ? '<span style="color: red;">declined</span>' : status}.</p>
@@ -566,10 +562,9 @@ exports.approveBaptismBooking = async (req, res) => {
           <br>
           <p>Best regards,<br>The Parish Team</p>
         `
-      );
-    } catch (emailError) {
+    ).catch((emailError) => {
       console.error('Failed to send status update email:', emailError);
-    }
+    });
 
     res.json({
       message: `Baptism booking ${status} successfully`,

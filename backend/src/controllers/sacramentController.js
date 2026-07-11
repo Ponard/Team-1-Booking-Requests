@@ -362,12 +362,11 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
     }
 
     // Send confirmation email
-    try {
-      const contactEmail = bookingData.contactEmail || req.user.email;
-      await emailService.sendNotification(
-        contactEmail,
-        `${config.serviceName} Booking Request Received`,
-        `
+    const contactEmail = bookingData.contactEmail || req.user.email;
+    emailService.sendNotification(
+      contactEmail,
+      `${config.serviceName} Booking Request Received`,
+      `
           <h2>${config.serviceName} Booking Request Received</h2>
           <p>Dear Applicant,</p>
           <p>Your ${config.serviceName.toLowerCase()} booking request has been successfully submitted.</p>
@@ -383,10 +382,9 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
           <br>
           <p>Best regards,<br>The Parish Team</p>
         `
-      );
-    } catch (emailError) {
+    ).catch((emailError) => {
       console.error('Failed to send confirmation email:', emailError);
-    }
+    });
 
     const responseNote = priestId
       ? 'Preferred priest noted. Subject to availability. Parish will confirm.'
@@ -620,12 +618,21 @@ exports.approveSacramentBooking = (sacramentType) => async (req, res) => {
     await booking.update(updateData);
 
     // Send email notification
+
+    let contactEmail;
+
     try {
       const user = await User.findByPk(booking.userId);
-      const contactEmail = booking.contactEmail || user?.email;
+      contactEmail = booking.contactEmail || user?.email;
+    } catch (emailError) {
+      console.error('Failed to send status update email:', emailError);
+      contactEmail = booking.contactEmail;
+    }
+
+    if (contactEmail) {
       const isDeclined = status === 'declined';
 
-      await emailService.sendNotification(
+      emailService.sendNotification(
         contactEmail,
         `${config.serviceName} Booking ${isDeclined ? 'Requires Attention' : (status === 'approved' ? 'Approved' : 'Update')}`,
         `
@@ -661,9 +668,9 @@ exports.approveSacramentBooking = (sacramentType) => async (req, res) => {
           <br>
           <p>Best regards,<br>The Parish Team</p>
         `
-      );
-    } catch (emailError) {
-      console.error('Failed to send status update email:', emailError);
+      ).catch((emailError) => {
+        console.error('Failed to send status update email:', emailError);
+      });
     }
 
     res.json({
