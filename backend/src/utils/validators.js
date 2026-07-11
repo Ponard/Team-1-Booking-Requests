@@ -21,14 +21,5 @@ exports.validateBookingDate = (preferredDate) => {
     };
   }
 
-  const normalized = date.toISOString().split('T')[0];
-
-  if (normalized !== preferredDate) {
-    return {
-      valid: false,
-      error: 'Invalid preferred date.',
-    };
-  }
-
   return { valid: true };
 };
