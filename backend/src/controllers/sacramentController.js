@@ -15,7 +15,7 @@ const {
 } = require('../models');
 const { Op } = require('sequelize');
 const emailService = require('../services/emailService');
-const { validateBookingDate } = require('../utils/validators');
+const { validateBookingDate, validatePhoneNumber } = require('../utils/validators');
 
 // Mapping of sacrament types to models and config
 const SACRAMENT_CONFIG = {
@@ -182,6 +182,15 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
       documents, // Array of document objects for multiple uploads
       ...bookingData
     } = req.body;
+
+    const phoneValidation = validatePhoneNumber(bookingData.contactPhone);
+
+    if (!phoneValidation.valid) {
+      return res.status(400).json({
+        error: phoneValidation.error,
+        field: 'contactPhone',
+      });
+    }
 
     // Validate parish exists
     const parish = await Parish.findByPk(parishId);

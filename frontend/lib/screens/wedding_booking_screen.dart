@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/utils/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -22,7 +23,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
   final TextEditingController _groomNameController = TextEditingController();
   final TextEditingController _brideNameController = TextEditingController();
   final TextEditingController _godparentsController = TextEditingController();
-  final TextEditingController _contactController = TextEditingController();
+  final TextEditingController _contactEmailController = TextEditingController();
+  final TextEditingController _contactPhoneController = TextEditingController();
   final TextEditingController _preferredDateController =
       TextEditingController();
   final TextEditingController _preferredTimeController =
@@ -65,7 +67,7 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
 
       // Set default contact to current user's email
       if (authProvider.currentUser?.email != null) {
-        _contactController.text = authProvider.currentUser!.email;
+        _contactEmailController.text = authProvider.currentUser!.email;
       }
 
       await parishProvider.loadParishesByService(
@@ -95,7 +97,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
     _groomNameController.dispose();
     _brideNameController.dispose();
     _godparentsController.dispose();
-    _contactController.dispose();
+    _contactEmailController.dispose();
+    _contactPhoneController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
     _seminarScheduleController.dispose();
@@ -558,8 +561,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
         parishId: parishProvider.selectedParish!.id!,
         groomFullName: _groomNameController.text.trim(),
         brideFullName: _brideNameController.text.trim(),
-        contactEmail: authProvider.currentUser!.email,
-        contactPhone: _contactController.text.trim(),
+        contactEmail: _contactEmailController.text.trim(),
+        contactPhone: _contactPhoneController.text.trim(),
         preferredDate: formatDate(_preferredDateController.text.trim()),
         preferredTimeSlot: formatTime(_preferredTimeController.text.trim()),
         seminarSchedule: _seminarScheduleController.text.trim().isEmpty
@@ -887,13 +890,23 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                   // Godparents & Contact
                   _buildSection(title: "Contact Information", children: [
                     TextFormField(
-                      controller: _contactController,
+                      controller: _contactEmailController,
                       decoration: const InputDecoration(
-                        labelText: "Contact Number / Email *",
+                        labelText: "Contact Email *",
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
+                      validator: Validators.emailValidator,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _contactPhoneController,
+                      decoration: const InputDecoration(
+                        labelText: "Contact Phone *",
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: Validators.phoneValidator,
+                      keyboardType: TextInputType.phone,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(

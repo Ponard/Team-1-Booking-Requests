@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../providers/parish_provider.dart';
 import '../providers/anointing_sick_provider.dart';
 import '../providers/priest_provider.dart';
+import '../utils/validators.dart';
 
 class AnointingTheSickScreen extends StatefulWidget {
   static const routeName = '/anointing-the-sick';
@@ -365,8 +366,7 @@ class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
                           labelText: "Contact Phone Number *",
                           border: OutlineInputBorder(),
                         ),
-                        validator: (value) =>
-                            value == null || value.isEmpty ? "Required" : null,
+                        validator: Validators.phoneValidator,
                       ),
                     ],
                   ),
