@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/utils/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -46,7 +47,8 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
       TextEditingController();
   final TextEditingController _fatherNameController = TextEditingController();
   final TextEditingController _motherNameController = TextEditingController();
-  final TextEditingController _contactController = TextEditingController();
+  final TextEditingController _contactEmailController = TextEditingController();
+  final TextEditingController _contactPhoneController = TextEditingController();
   final TextEditingController _preferredDateController =
       TextEditingController();
   final TextEditingController _preferredTimeController =
@@ -77,7 +79,8 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
     _communicantNameController.dispose();
     _fatherNameController.dispose();
     _motherNameController.dispose();
-    _contactController.dispose();
+    _contactEmailController.dispose();
+    _contactPhoneController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
     _newNoteController.dispose();
@@ -123,7 +126,8 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
         _communicantNameController.text = booking.communicantName ?? '';
         _fatherNameController.text = booking.fatherName ?? '';
         _motherNameController.text = booking.motherName ?? '';
-        _contactController.text = booking.contactEmail ?? '';
+        _contactEmailController.text = booking.contactEmail ?? '';
+        _contactPhoneController.text = booking.contactPhone ?? '';
         _preferredDateController.text =
             booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
@@ -336,8 +340,8 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
       communicantName: _communicantNameController.text.trim(),
       fatherName: _fatherNameController.text.trim(),
       motherName: _motherNameController.text.trim(),
-      contactEmail: _contactController.text.trim(),
-      contactPhone: _contactController.text.trim(),
+      contactEmail: _contactEmailController.text.trim(),
+      contactPhone: _contactPhoneController.text.trim(),
       preferredDate: _preferredDateController.text.trim(),
       preferredTimeSlot: _preferredTimeController.text.trim(),
       priestId: _selectedPriestId,
@@ -756,22 +760,13 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                         // Contact Email
                         if (_isEditMode)
                           TextFormField(
-                            controller: _contactController,
+                            controller: _contactEmailController,
                             decoration: const InputDecoration(
                               labelText: 'Contact Email *',
                               border: OutlineInputBorder(),
                             ),
                             keyboardType: TextInputType.emailAddress,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Contact email is required';
-                              }
-                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
-                                  .hasMatch(value)) {
-                                return 'Please enter a valid email';
-                              }
-                              return null;
-                            },
+                            validator: Validators.emailValidator,
                           )
                         else
                           _buildInfoRow('Contact Email',
@@ -781,18 +776,13 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                         // Contact Phone
                         if (_isEditMode)
                           TextFormField(
-                            controller: _contactController,
+                            controller: _contactPhoneController,
                             decoration: const InputDecoration(
                               labelText: 'Contact Phone *',
                               border: OutlineInputBorder(),
                             ),
                             keyboardType: TextInputType.phone,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Contact phone is required';
-                              }
-                              return null;
-                            },
+                            validator: Validators.phoneValidator,
                           )
                         else
                           _buildInfoRow('Contact Phone',
