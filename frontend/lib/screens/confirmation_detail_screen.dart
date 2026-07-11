@@ -403,23 +403,6 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
   String get _displayStatus {
     if (_booking == null) return 'PENDING';
     final status = _booking!.status.toUpperCase();
-    if (status == 'APPROVED') {
-      final scheduledDate = _booking!.preferredDate;
-      if (scheduledDate != null && scheduledDate.isNotEmpty) {
-        try {
-          final now = DateTime.now();
-          final bookingDate = DateTime.parse(scheduledDate);
-          final today = DateTime(now.year, now.month, now.day);
-          final eventDate =
-              DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
-          if (eventDate.isBefore(today)) {
-            return 'COMPLETED';
-          }
-        } catch (e) {
-          // ignore
-        }
-      }
-    }
     return status;
   }
 

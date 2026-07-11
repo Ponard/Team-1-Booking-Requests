@@ -174,7 +174,7 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
     return Consumer<PriestProvider>(
       builder: (context, priestProvider, _) {
         final validPriestId = _selectedPriestId != null &&
-                priestProvider.priests.any((p) => p.id == _selectedPriestId)
+            priestProvider.priests.any((p) => p.id == _selectedPriestId)
             ? _selectedPriestId
             : null;
 
@@ -192,9 +192,9 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
                 child: Text("No preference"),
               ),
               ...priestProvider.priests.map((priest) => DropdownMenuItem<int>(
-                    value: priest.id,
-                    child: Text(priest.fullName),
-                  )),
+                value: priest.id,
+                child: Text(priest.fullName),
+              )),
             ],
             onChanged: _isEditMode
                 ? (value) {
@@ -248,10 +248,10 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
     final selectedPriestName = _selectedPriestId != null
         ? priestProvider.priests
             .firstWhere(
-              (p) => p.id == _selectedPriestId,
-              orElse: () => priestProvider.priests.isNotEmpty
-                  ? priestProvider.priests.first
-                  : throw Exception('No priests available'),
+            (p) => p.id == _selectedPriestId,
+            orElse: () => priestProvider.priests.isNotEmpty
+                ? priestProvider.priests.first
+                : throw Exception('No priests available'),
             )
             .fullName
         : null;
@@ -350,23 +350,6 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
   String get _displayStatus {
     if (_booking == null) return 'PENDING';
     final status = _booking!.status.toUpperCase();
-    if (status == 'APPROVED') {
-      final scheduledDate = _booking!.preferredDate;
-      if (scheduledDate != null && scheduledDate.isNotEmpty) {
-        try {
-          final now = DateTime.now();
-          final bookingDate = DateTime.parse(scheduledDate);
-          final today = DateTime(now.year, now.month, now.day);
-          final eventDate =
-              DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
-          if (eventDate.isBefore(today)) {
-            return 'COMPLETED';
-          }
-        } catch (e) {
-          // ignore
-        }
-      }
-    }
     return status;
   }
 
@@ -599,9 +582,9 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
           border: enabled
               ? const OutlineInputBorder()
               : OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide.none,
+          ),
           filled: enabled,
           fillColor: enabled ? null : Colors.grey[100],
         ),

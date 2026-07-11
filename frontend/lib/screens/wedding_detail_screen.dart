@@ -99,21 +99,6 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   String get _displayBookingStatus {
     if (_booking == null) return 'PENDING';
     final status = (_booking?.status?.toUpperCase() ?? 'PENDING');
-    if (status == 'APPROVED') {
-      final scheduledDate = _booking?.preferredDate;
-      if (scheduledDate != null && scheduledDate.isNotEmpty) {
-        try {
-          final now = DateTime.now();
-          final bookingDate = DateTime.parse(scheduledDate);
-          final today = DateTime(now.year, now.month, now.day);
-          final eventDate =
-              DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
-          if (eventDate.isBefore(today)) {
-            return 'COMPLETED';
-          }
-        } catch (e) {}
-      }
-    }
     return status;
   }
 
@@ -815,11 +800,11 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   }
 
   Widget _buildSectionTitle(String title) => Padding(
-        padding: const EdgeInsets.only(top: 16, bottom: 8),
+    padding: const EdgeInsets.only(top: 16, bottom: 8),
         child: Text(title,
             style: const TextStyle(
                 fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
-      );
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -885,7 +870,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                       decoration: BoxDecoration(
                                         color: _getStatusColor(_booking!.status
                                                     ?.toLowerCase() ??
-                                                'pending')
+                                                    'pending')
                                             .withOpacity(0.2),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
@@ -1128,7 +1113,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                 });
                               }
                             }
-                            final validPriestId = _selectedPriestId != null &&
+                            final validPriestId = _selectedPriestId != null && 
                                     priestProvider.priests
                                         .any((p) => p.id == _selectedPriestId)
                                 ? _selectedPriestId
@@ -1148,15 +1133,15 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                   ),
                                   ...priestProvider.priests
                                       .map((priest) => DropdownMenuItem<int>(
-                                            value: priest.id,
-                                            child: Text(priest.fullName),
-                                          )),
+                                    value: priest.id,
+                                    child: Text(priest.fullName),
+                                  )),
                                 ],
                                 onChanged: _isEditMode
                                     ? (value) {
-                                        setState(() {
-                                          _selectedPriestId = value;
-                                        });
+                                  setState(() {
+                                    _selectedPriestId = value;
+                                  });
                                       }
                                     : null,
                               ),
