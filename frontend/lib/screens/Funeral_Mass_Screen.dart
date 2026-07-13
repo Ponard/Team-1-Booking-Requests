@@ -363,9 +363,9 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                     ],
                   ),
 
-                  // Contact Person Section
+                  // Contact Information Section
                   _buildSection(
-                    title: "Contact Person",
+                    title: "Contact Information",
                     children: [
                       TextFormField(
                         controller: _contactPersonController,
@@ -381,7 +381,7 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
-                          labelText: "Contact Email *",
+                          labelText: "Email *",
                           border: OutlineInputBorder(),
                         ),
                         validator: (value) {
@@ -409,7 +409,7 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
 
                   // Schedule & Requirements Section
                   _buildSection(
-                    title: "Schedule & Requirements",
+                    title: "Booking Preferences",
                     children: [
                       Consumer<ParishProvider>(
                         builder: (context, parishProvider, _) {
@@ -451,7 +451,7 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                       TextFormField(
                         controller: _preferredDateController,
                         decoration: const InputDecoration(
-                          labelText: "Preferred Date *",
+                          labelText: "Preferred Funeral Mass Date *",
                           hintText: "YYYY-MM-DD",
                           border: OutlineInputBorder(),
                         ),
@@ -528,17 +528,20 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                           );
                         },
                       ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _additionalNotesController,
-                        decoration: const InputDecoration(
-                          labelText: "Additional Notes (Optional)",
-                          border: OutlineInputBorder(),
-                        ),
-                        maxLines: 3,
-                      ),
                     ],
                   ),
+
+                  const SizedBox(height: 12),
+                  _buildSection(title: "Additional Information", children: [
+                    TextFormField(
+                      controller: _additionalNotesController,
+                      decoration: const InputDecoration(
+                        labelText: "Additional Notes (Optional)",
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                    ),
+                  ]),
 
                   const SizedBox(height: 24),
 
