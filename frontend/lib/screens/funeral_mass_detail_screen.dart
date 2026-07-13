@@ -45,8 +45,6 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
       TextEditingController();
   final TextEditingController _preferredTimeController =
       TextEditingController();
-  final TextEditingController _preferredPriestController =
-      TextEditingController();
   final TextEditingController _newNoteController = TextEditingController();
 
   int? _selectedPriestId;
@@ -96,9 +94,16 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
         _preferredDateController.text =
             booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
-        _preferredPriestController.text = booking.preferredPriest ?? '';
+        _selectedPriestId = booking.priestId;
       });
-      _loadPriestsAndMatch();
+
+      await context.read<PriestProvider>().loadPriestsByParish(
+            booking.parishId,
+            token: authProvider.token,
+          );
+
+      if (!mounted) return;
+
       if (widget.fromStatusButton && isEditable) {
         setState(() => _isEditMode = true);
       } else {
@@ -143,38 +148,11 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
     return true;
   }
 
-  Future<void> _loadPriestsAndMatch() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final priestProvider = Provider.of<PriestProvider>(context, listen: false);
-    final parishId = _booking?.parishId;
-    if (parishId != null && authProvider.token != null) {
-      await priestProvider.loadPriestsByParish(parishId,
-          token: authProvider.token);
-      if (mounted && _preferredPriestController.text.isNotEmpty) {
-        final matchingPriest = priestProvider.priests.firstWhere(
-          (p) => p.fullName == _preferredPriestController.text,
-          orElse: () => priestProvider.priests.isNotEmpty
-              ? priestProvider.priests.first
-              : priestProvider.priests.first,
-        );
-        if (priestProvider.priests
-            .any((p) => p.fullName == _preferredPriestController.text)) {
-          setState(() {
-            _selectedPriestId = priestProvider.priests
-                .firstWhere(
-                    (p) => p.fullName == _preferredPriestController.text)
-                .id;
-          });
-        }
-      }
-    }
-  }
-
   Widget _buildPriestDropdown() {
     return Consumer<PriestProvider>(
       builder: (context, priestProvider, _) {
         final validPriestId = _selectedPriestId != null &&
-            priestProvider.priests.any((p) => p.id == _selectedPriestId)
+                priestProvider.priests.any((p) => p.id == _selectedPriestId)
             ? _selectedPriestId
             : null;
 
@@ -192,9 +170,9 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
                 child: Text("No preference"),
               ),
               ...priestProvider.priests.map((priest) => DropdownMenuItem<int>(
-                value: priest.id,
-                child: Text(priest.fullName),
-              )),
+                    value: priest.id,
+                    child: Text(priest.fullName),
+                  )),
             ],
             onChanged: _isEditMode
                 ? (value) {
@@ -244,18 +222,6 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
       ];
     }
 
-    final priestProvider = Provider.of<PriestProvider>(context, listen: false);
-    final selectedPriestName = _selectedPriestId != null
-        ? priestProvider.priests
-            .firstWhere(
-            (p) => p.id == _selectedPriestId,
-            orElse: () => priestProvider.priests.isNotEmpty
-                ? priestProvider.priests.first
-                : throw Exception('No priests available'),
-            )
-            .fullName
-        : null;
-
     try {
       final result = await _funeralMassService.updateFuneralMassBooking(
         token: token,
@@ -284,7 +250,7 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
         //QA fix: trimmed required date and time fields
         preferredDate: _preferredDateController.text.trim(),
         preferredTimeSlot: _preferredTimeController.text.trim(),
-        preferredPriest: selectedPriestName,
+        priestId: _selectedPriestId,
         notes: notesToAdd,
       );
 
@@ -582,9 +548,9 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
           border: enabled
               ? const OutlineInputBorder()
               : OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none,
-          ),
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
           filled: enabled,
           fillColor: enabled ? null : Colors.grey[100],
         ),
@@ -734,7 +700,6 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
     _wakeLocationController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
-    _preferredPriestController.dispose();
     _newNoteController.dispose();
     super.dispose();
   }

@@ -16,7 +16,7 @@ class FuneralMassBooking {
   final String? wakeLocation;
   final String? preferredDate;
   final String? preferredTimeSlot;
-  final String? preferredPriest;
+  final int? priestId;
   final String? additionalNotes;
   final List<Note>? notes;
   final String status;
@@ -42,7 +42,7 @@ class FuneralMassBooking {
     this.wakeLocation,
     this.preferredDate,
     this.preferredTimeSlot,
-    this.preferredPriest,
+    this.priestId,
     this.additionalNotes,
     this.notes,
     this.status = 'pending',
@@ -57,9 +57,8 @@ class FuneralMassBooking {
   factory FuneralMassBooking.fromJson(Map<String, dynamic> json) {
     List<Note>? notesList;
     if (json['notes'] != null) {
-      notesList = (json['notes'] as List)
-          .map((note) => Note.fromJson(note))
-          .toList();
+      notesList =
+          (json['notes'] as List).map((note) => Note.fromJson(note)).toList();
     }
 
     return FuneralMassBooking(
@@ -77,7 +76,7 @@ class FuneralMassBooking {
       wakeLocation: json['wakeLocation'],
       preferredDate: json['preferredDate'],
       preferredTimeSlot: json['preferredTimeSlot'],
-      preferredPriest: json['preferredPriest'],
+      priestId: json['priestId'],
       additionalNotes: json['additionalNotes'],
       notes: notesList,
       status: json['status'] ?? 'pending',
@@ -87,7 +86,9 @@ class FuneralMassBooking {
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
       documents: json['documents'] != null
-          ? (json['documents'] as List).map((doc) => Document.fromJson(doc)).toList()
+          ? (json['documents'] as List)
+              .map((doc) => Document.fromJson(doc))
+              .toList()
           : null,
     );
   }
@@ -107,7 +108,7 @@ class FuneralMassBooking {
       if (wakeLocation != null) 'wakeLocation': wakeLocation,
       if (preferredDate != null) 'preferredDate': preferredDate,
       if (preferredTimeSlot != null) 'preferredTimeSlot': preferredTimeSlot,
-      if (preferredPriest != null) 'preferredPriest': preferredPriest,
+      if (priestId != null) 'priestId': priestId,
       if (additionalNotes != null) 'additionalNotes': additionalNotes,
       if (notes != null) 'notes': notes!.map((n) => n.toJson()).toList(),
       if (status != null) 'status': status,
@@ -156,7 +157,7 @@ class FuneralMassBooking {
       wakeLocation: wakeLocation ?? this.wakeLocation,
       preferredDate: preferredDate ?? this.preferredDate,
       preferredTimeSlot: preferredTimeSlot ?? this.preferredTimeSlot,
-      preferredPriest: preferredPriest ?? this.preferredPriest,
+      priestId: priestId ?? this.priestId,
       additionalNotes: additionalNotes ?? this.additionalNotes,
       notes: notes ?? this.notes,
       status: status ?? this.status,

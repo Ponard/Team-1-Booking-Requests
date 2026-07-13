@@ -96,21 +96,17 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         _preferredDateController.text =
             booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
-        if (booking.priestId != null) {
-          _selectedPriestId = booking.priestId;
-          // Load priests for dropdown
-          final priestProvider =
-              Provider.of<PriestProvider>(context, listen: false);
-          final parishProvider =
-              Provider.of<ParishProvider>(context, listen: false);
-          if (parishProvider.selectedParish != null) {
-            priestProvider.loadPriestsByParish(
-                parishProvider.selectedParish!.id!,
-                token: token);
-          }
-        }
+        _selectedPriestId = booking.priestId;
         _documents = booking.documents ?? [];
       });
+
+      await context.read<PriestProvider>().loadPriestsByParish(
+            booking.parishId,
+            token: authProvider.token,
+          );
+
+      if (!mounted) return;
+
       if (widget.fromStatusButton && isEditable) {
         setState(() => _isEditMode = true);
       } else {
@@ -558,20 +554,6 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
             // Preferred Priest dropdown
             Consumer<PriestProvider>(
               builder: (context, priestProvider, child) {
-                if (priestProvider.priests.isEmpty && _booking != null) {
-                  final authProvider =
-                      Provider.of<AuthProvider>(context, listen: false);
-                  final parishProvider =
-                      Provider.of<ParishProvider>(context, listen: false);
-                  if (parishProvider.selectedParish != null &&
-                      authProvider.token != null) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      priestProvider.loadPriestsByParish(
-                          parishProvider.selectedParish!.id!,
-                          token: authProvider.token);
-                    });
-                  }
-                }
                 final validPriestId = _selectedPriestId != null &&
                         priestProvider.priests
                             .any((p) => p.id == _selectedPriestId)

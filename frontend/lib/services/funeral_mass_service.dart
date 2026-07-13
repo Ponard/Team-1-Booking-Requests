@@ -46,7 +46,8 @@ class FuneralMassService {
         final errorData = json.decode(response.body);
         return ApiResponse<List<FuneralMassBooking>>(
           success: false,
-          message: errorData['message'] ?? 'Failed to fetch funeral mass bookings',
+          message:
+              errorData['message'] ?? 'Failed to fetch funeral mass bookings',
           statusCode: response.statusCode,
         );
       }
@@ -111,7 +112,8 @@ class FuneralMassService {
         final errorData = json.decode(response.body);
         return ApiResponse<FuneralMassBooking>(
           success: false,
-          message: errorData['message'] ?? 'Failed to create funeral mass booking',
+          message:
+              errorData['message'] ?? 'Failed to create funeral mass booking',
           statusCode: response.statusCode,
         );
       }
@@ -155,7 +157,8 @@ class FuneralMassService {
         final errorData = json.decode(response.body);
         return ApiResponse<FuneralMassBooking>(
           success: false,
-          message: errorData['message'] ?? 'Failed to update funeral mass status',
+          message:
+              errorData['message'] ?? 'Failed to update funeral mass status',
           statusCode: response.statusCode,
         );
       }
@@ -191,7 +194,8 @@ class FuneralMassService {
         final errorData = json.decode(response.body);
         return ApiResponse<FuneralMassBooking>(
           success: false,
-          message: errorData['message'] ?? 'Failed to fetch funeral mass booking',
+          message:
+              errorData['message'] ?? 'Failed to fetch funeral mass booking',
           statusCode: response.statusCode,
         );
       }
@@ -218,14 +222,15 @@ class FuneralMassService {
     String? wakeLocation,
     String? preferredDate,
     String? preferredTimeSlot,
-    String? preferredPriest,
+    int? priestId,
     List<Map<String, dynamic>>? notes,
   }) async {
     try {
       final requestBody = <String, dynamic>{
         if (deceasedFullName != null) 'deceasedFullName': deceasedFullName,
         if (dateOfDeath != null) 'dateOfDeath': dateOfDeath,
-        if (representativeName != null) 'representativeName': representativeName,
+        if (representativeName != null)
+          'representativeName': representativeName,
         if (contactEmail != null) 'contactEmail': contactEmail,
         if (contactPhone != null) 'contactPhone': contactPhone,
         if (wakeStartDate != null) 'wakeStartDate': wakeStartDate,
@@ -233,7 +238,7 @@ class FuneralMassService {
         if (wakeLocation != null) 'wakeLocation': wakeLocation,
         if (preferredDate != null) 'preferredDate': preferredDate,
         if (preferredTimeSlot != null) 'preferredTimeSlot': preferredTimeSlot,
-        if (preferredPriest != null) 'preferredPriest': preferredPriest,
+        if (priestId != null) 'preferredPriest': priestId,
         if (notes != null) 'notes': notes,
       };
 
@@ -255,7 +260,8 @@ class FuneralMassService {
         final errorData = json.decode(response.body);
         return ApiResponse<FuneralMassBooking>(
           success: false,
-          message: errorData['message'] ?? 'Failed to update funeral mass booking',
+          message:
+              errorData['message'] ?? 'Failed to update funeral mass booking',
           statusCode: response.statusCode,
         );
       }
@@ -276,15 +282,18 @@ class FuneralMassService {
     String? documentType,
   }) async {
     try {
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.funeralMassEndpoint}/$bookingId/document');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.funeralMassEndpoint}/$bookingId/document');
       final request = http.MultipartRequest('POST', uri);
-      request.files.add(await http.MultipartFile.fromPath('document', filePath));
+      request.files
+          .add(await http.MultipartFile.fromPath('document', filePath));
       if (documentType != null) {
         request.fields['documentType'] = documentType;
       }
       request.headers.addAll(ApiConfig.getAuthHeaders(token));
 
-      final streamedResponse = await request.send().timeout(const Duration(seconds: 60));
+      final streamedResponse =
+          await request.send().timeout(const Duration(seconds: 60));
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
