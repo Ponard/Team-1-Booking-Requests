@@ -345,25 +345,17 @@ class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
                         controller: _contactEmailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
-                          labelText: "Contact Email *",
+                          labelText: "Email *",
                           border: OutlineInputBorder(),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Required";
-                          }
-                          if (!value.contains('@')) {
-                            return "Enter a valid email";
-                          }
-                          return null;
-                        },
+                        validator: Validators.emailValidator,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _contactPhoneController,
                         keyboardType: TextInputType.phone,
                         decoration: const InputDecoration(
-                          labelText: "Contact Phone Number *",
+                          labelText: "Contact Number *",
                           border: OutlineInputBorder(),
                         ),
                         validator: Validators.phoneValidator,
@@ -415,7 +407,7 @@ class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
                       TextFormField(
                         controller: _preferredDateController,
                         decoration: const InputDecoration(
-                          labelText: "Preferred Date (Optional)",
+                          labelText: "Preferred Anointing Date (Optional)",
                           hintText: "YYYY-MM-DD",
                           border: OutlineInputBorder(),
                         ),
