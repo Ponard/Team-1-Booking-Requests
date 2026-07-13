@@ -417,7 +417,7 @@ class _EucharistScreenState extends State<EucharistScreen> {
     );
   }
 
-  Widget _buildDocumentUploadSection({
+  List<Widget> _buildDocumentUploadSection({
     required String title,
     required String description,
     required PlatformFile? file,
@@ -426,49 +426,53 @@ class _EucharistScreenState extends State<EucharistScreen> {
     required VoidCallback onPick,
     required VoidCallback onUpload,
   }) {
-    return _buildSection(
-      title: title,
-      children: [
-        Text(description,
-            style: const TextStyle(fontSize: 12, color: Colors.grey)),
-        const SizedBox(height: 8),
-        ElevatedButton.icon(
-          onPressed: isUploading ? null : onPick,
-          icon: const Icon(Icons.attach_file),
-          label: const Text("Select Document"),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[200]),
+    return [
+      Text(
+        title,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      ),
+      const SizedBox(height: 8),
+      Text(description,
+          style: const TextStyle(fontSize: 14, color: Colors.grey)),
+      const SizedBox(height: 12),
+      ElevatedButton.icon(
+        onPressed: isUploading ? null : onPick,
+        icon: const Icon(Icons.attach_file),
+        label: Text(
+            file != null ? "File Selected: ${file.name}" : "Select Document"),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: file != null ? Colors.green[100] : Colors.grey[200],
+          foregroundColor: Colors.black87,
         ),
-        if (file != null) ...[
-          const SizedBox(height: 8),
-          Text("Selected: ${file.name}",
-              style: const TextStyle(color: Colors.blue)),
-        ],
-        if (uploadedData != null) ...[
-          const SizedBox(height: 8),
-          Row(
-            children: const [
-              Icon(Icons.check_circle, color: Colors.green, size: 16),
-              SizedBox(width: 4),
-              Text("Uploaded", style: TextStyle(color: Colors.green)),
-            ],
-          ),
-        ],
-        if (!isUploading && file != null && uploadedData == null) ...[
-          const SizedBox(height: 8),
-          ElevatedButton.icon(
-            onPressed: onUpload,
-            icon: const Icon(Icons.cloud_upload),
-            label: const Text("Upload"),
-            style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue, foregroundColor: Colors.white),
-          ),
-        ],
-        if (isUploading) ...[
-          const SizedBox(height: 8),
-          const LinearProgressIndicator(),
-        ],
+      ),
+      if (file != null) ...[
+        const SizedBox(height: 12),
+        isUploading
+            ? const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  SizedBox(width: 12),
+                  Text('Uploading...'),
+                ],
+              )
+            : ElevatedButton.icon(
+                onPressed: uploadedData == null ? onUpload : null,
+                icon: const Icon(Icons.cloud_upload),
+                label: Text(
+                  uploadedData != null ? 'Uploaded Successfully' : 'Upload',
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: uploadedData != null ? Colors.green : null,
+                  foregroundColor: uploadedData != null ? Colors.white : null,
+                ),
+              ),
       ],
-    );
+    ];
   }
 
   @override
@@ -559,7 +563,7 @@ class _EucharistScreenState extends State<EucharistScreen> {
                     TextFormField(
                       controller: _contactEmailController,
                       decoration: const InputDecoration(
-                        labelText: "Contact Email *",
+                        labelText: "Email *",
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.emailAddress,
@@ -570,7 +574,7 @@ class _EucharistScreenState extends State<EucharistScreen> {
                     TextFormField(
                       controller: _contactPhoneController,
                       decoration: const InputDecoration(
-                        labelText: "Contact Phone *",
+                        labelText: "Contact Number *",
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.phone,
@@ -585,7 +589,7 @@ class _EucharistScreenState extends State<EucharistScreen> {
                         return DropdownButtonFormField<int>(
                           value: parishProvider.selectedParish?.id,
                           decoration: const InputDecoration(
-                            labelText: "Parish *",
+                            labelText: "Preferred Parish *",
                             border: OutlineInputBorder(),
                           ),
                           items: parishProvider.parishes
@@ -620,7 +624,7 @@ class _EucharistScreenState extends State<EucharistScreen> {
                     TextFormField(
                       controller: _preferredDateController,
                       decoration: const InputDecoration(
-                        labelText: "Preferred Date *",
+                        labelText: "Preferred Eucharist Date *",
                         hintText: "YYYY-MM-DD",
                         border: OutlineInputBorder(),
                         suffixIcon: Icon(Icons.calendar_today),
@@ -701,26 +705,29 @@ class _EucharistScreenState extends State<EucharistScreen> {
                   ]),
 
                   // Required Documents - Separate uploads
-                  _buildDocumentUploadSection(
-                    title: "Birth Certificate",
-                    description:
-                        "Upload birth certificate of the communicant *",
-                    file: _birthCertificateFile,
-                    isUploading: _isUploadingBirth,
-                    uploadedData: _uploadedBirthData,
-                    onPick: _pickBirthCertificate,
-                    onUpload: _uploadBirthCertificate,
-                  ),
-                  _buildDocumentUploadSection(
-                    title: "Baptismal Certificate",
-                    description:
-                        "Upload baptismal certificate of the communicant *",
-                    file: _baptismalCertificateFile,
-                    isUploading: _isUploadingBaptismal,
-                    uploadedData: _uploadedBaptismalData,
-                    onPick: _pickBaptismalCertificate,
-                    onUpload: _uploadBaptismalCertificate,
-                  ),
+                  _buildSection(title: "Required Documents", children: [
+                    ..._buildDocumentUploadSection(
+                      title: "Birth Certificate *",
+                      description:
+                          "Upload birth certificate of the communicant *",
+                      file: _birthCertificateFile,
+                      isUploading: _isUploadingBirth,
+                      uploadedData: _uploadedBirthData,
+                      onPick: _pickBirthCertificate,
+                      onUpload: _uploadBirthCertificate,
+                    ),
+                    const SizedBox(height: 24),
+                    ..._buildDocumentUploadSection(
+                      title: "Baptismal Certificate *",
+                      description:
+                          "Upload baptismal certificate of the communicant *",
+                      file: _baptismalCertificateFile,
+                      isUploading: _isUploadingBaptismal,
+                      uploadedData: _uploadedBaptismalData,
+                      onPick: _pickBaptismalCertificate,
+                      onUpload: _uploadBaptismalCertificate,
+                    ),
+                  ]),
 
                   // Additional Notes
                   _buildSection(title: "Additional Information", children: [
