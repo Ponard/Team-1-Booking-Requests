@@ -205,6 +205,43 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
                   ),
                   const SizedBox(height: 20),
 
+                  // Penitent Information
+                  _buildSection(title: "Penitent Information", children: [
+                    TextFormField(
+                      controller: _penitentNameController,
+                      decoration: const InputDecoration(
+                        labelText: "Penitent Name *",
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Required" : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _contactEmailController,
+                      decoration: const InputDecoration(
+                        labelText: "Email *",
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return "Required";
+                        if (!value.contains('@')) return "Invalid email";
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _contactPhoneController,
+                      decoration: const InputDecoration(
+                        labelText: "Contact Number *",
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.phone,
+                      validator: Validators.phoneValidator,
+                    ),
+                  ]),
+
                   _buildSection(title: "Confession Request", children: [
                     const Text(
                       "The Sacrament of Penance is the method by which individual men and women may confess sins committed after baptism and have them absolved by a priest.",
@@ -226,43 +263,6 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
                           .toList(),
                       onChanged: (val) =>
                           setState(() => _confessionType = val!),
-                    ),
-                  ]),
-
-                  // Penitent Information
-                  _buildSection(title: "Penitent Information", children: [
-                    TextFormField(
-                      controller: _penitentNameController,
-                      decoration: const InputDecoration(
-                        labelText: "Penitent Name *",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _contactEmailController,
-                      decoration: const InputDecoration(
-                        labelText: "Contact Email *",
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) return "Required";
-                        if (!value.contains('@')) return "Invalid email";
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _contactPhoneController,
-                      decoration: const InputDecoration(
-                        labelText: "Contact Phone *",
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.phone,
-                      validator: Validators.phoneValidator,
                     ),
                   ]),
 
@@ -296,7 +296,7 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
                     TextFormField(
                       controller: _preferredDateController,
                       decoration: const InputDecoration(
-                        labelText: "Preferred Date *",
+                        labelText: "Preferred Reconciliation Date *",
                         hintText: "YYYY-MM-DD",
                         border: OutlineInputBorder(),
                       ),
