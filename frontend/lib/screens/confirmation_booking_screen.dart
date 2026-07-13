@@ -514,7 +514,7 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
                       TextFormField(
                         controller: _contactEmailController,
                         decoration: const InputDecoration(
-                          labelText: "Contact Email *",
+                          labelText: "Email *",
                           hintText: "email@example.com",
                           border: OutlineInputBorder(),
                         ),
@@ -526,12 +526,134 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
                       TextFormField(
                         controller: _contactPhoneController,
                         decoration: const InputDecoration(
-                          labelText: "Contact Phone *",
+                          labelText: "Contact Number *",
                           hintText: "+63 XXX XXX XXXX",
                           border: OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.phone,
                         validator: Validators.phoneValidator,
+                      ),
+                    ],
+                  ),
+                  _buildSection(
+                    title: "Booking Preferences",
+                    children: [
+                      Consumer<ParishProvider>(
+                        builder: (context, parishProvider, _) {
+                          return DropdownButtonFormField<int>(
+                            value: parishProvider.selectedParish?.id,
+                            decoration: const InputDecoration(
+                              labelText: "Preferred Parish *",
+                              border: OutlineInputBorder(),
+                            ),
+                            items: parishProvider.parishes
+                                .map((parish) => DropdownMenuItem(
+                                      value: parish.id,
+                                      child: Text(parish.name),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              final authProvider = Provider.of<AuthProvider>(
+                                  context,
+                                  listen: false);
+                              final parish = parishProvider.parishes
+                                  .firstWhere((p) => p.id == value);
+                              // Clear any previously selected priest
+                              setState(() {
+                                _selectedPriestId = null;
+                              });
+                              parishProvider.selectParish(parish);
+                              Provider.of<PriestProvider>(
+                                context,
+                                listen: false,
+                              ).loadPriestsByParish(parish.id!,
+                                  token: authProvider.token);
+                            },
+                            validator: (value) =>
+                                value == null ? "Please select a parish" : null,
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _preferredDateController,
+                        decoration: const InputDecoration(
+                          labelText: "Preferred Confirmation Date *",
+                          hintText: "YYYY-MM-DD",
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) =>
+                            value == null || value.isEmpty ? "Required" : null,
+                        onTap: () async {
+                          FocusScope.of(context).requestFocus(FocusNode());
+                          DateTime? pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime.now(),
+                            lastDate:
+                                DateTime.now().add(const Duration(days: 365)),
+                          );
+                          if (pickedDate != null) {
+                            _preferredDateController.text =
+                                "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _preferredTimeController,
+                        decoration: const InputDecoration(
+                          labelText: "Preferred Time Slot *",
+                          hintText: "HH:MM",
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) =>
+                            value == null || value.isEmpty ? "Required" : null,
+                        onTap: () async {
+                          FocusScope.of(context).requestFocus(FocusNode());
+                          TimeOfDay? pickedTime = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.now(),
+                          );
+                          if (pickedTime != null) {
+                            _preferredTimeController.text =
+                                "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      Consumer<PriestProvider>(
+                        builder: (context, priestProvider, _) {
+                          final validPriestId = _selectedPriestId != null &&
+                                  priestProvider.priests
+                                      .any((p) => p.id == _selectedPriestId)
+                              ? _selectedPriestId
+                              : null;
+                          return DropdownButtonFormField<int>(
+                            value: validPriestId,
+                            decoration: const InputDecoration(
+                              labelText:
+                                  "Preferred Priest (Optional) - Subject to availability",
+                              border: OutlineInputBorder(),
+                            ),
+                            items: [
+                              const DropdownMenuItem<int>(
+                                value: null,
+                                child: Text("No preference"),
+                              ),
+                              ...priestProvider.priests
+                                  .map((priest) => DropdownMenuItem<int>(
+                                        value: priest.id,
+                                        child: Text(priest.fullName),
+                                      )),
+                            ],
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedPriestId = value;
+                              });
+                            },
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -667,128 +789,6 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
                                 ),
                               ),
                       ],
-                    ],
-                  ),
-                  _buildSection(
-                    title: "Booking Preferences",
-                    children: [
-                      Consumer<ParishProvider>(
-                        builder: (context, parishProvider, _) {
-                          return DropdownButtonFormField<int>(
-                            value: parishProvider.selectedParish?.id,
-                            decoration: const InputDecoration(
-                              labelText: "Preferred Parish *",
-                              border: OutlineInputBorder(),
-                            ),
-                            items: parishProvider.parishes
-                                .map((parish) => DropdownMenuItem(
-                                      value: parish.id,
-                                      child: Text(parish.name),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
-                              final authProvider = Provider.of<AuthProvider>(
-                                  context,
-                                  listen: false);
-                              final parish = parishProvider.parishes
-                                  .firstWhere((p) => p.id == value);
-                              // Clear any previously selected priest
-                              setState(() {
-                                _selectedPriestId = null;
-                              });
-                              parishProvider.selectParish(parish);
-                              Provider.of<PriestProvider>(
-                                context,
-                                listen: false,
-                              ).loadPriestsByParish(parish.id!,
-                                  token: authProvider.token);
-                            },
-                            validator: (value) =>
-                                value == null ? "Please select a parish" : null,
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _preferredDateController,
-                        decoration: const InputDecoration(
-                          labelText: "Preferred Confirmation Date *",
-                          hintText: "YYYY-MM-DD",
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) =>
-                            value == null || value.isEmpty ? "Required" : null,
-                        onTap: () async {
-                          FocusScope.of(context).requestFocus(FocusNode());
-                          DateTime? pickedDate = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime.now(),
-                            lastDate:
-                                DateTime.now().add(const Duration(days: 365)),
-                          );
-                          if (pickedDate != null) {
-                            _preferredDateController.text =
-                                "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _preferredTimeController,
-                        decoration: const InputDecoration(
-                          labelText: "Preferred Time Slot *",
-                          hintText: "HH:MM",
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) =>
-                            value == null || value.isEmpty ? "Required" : null,
-                        onTap: () async {
-                          FocusScope.of(context).requestFocus(FocusNode());
-                          TimeOfDay? pickedTime = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.now(),
-                          );
-                          if (pickedTime != null) {
-                            _preferredTimeController.text =
-                                "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      Consumer<PriestProvider>(
-                        builder: (context, priestProvider, _) {
-                          final validPriestId = _selectedPriestId != null &&
-                                  priestProvider.priests
-                                      .any((p) => p.id == _selectedPriestId)
-                              ? _selectedPriestId
-                              : null;
-                          return DropdownButtonFormField<int>(
-                            value: validPriestId,
-                            decoration: const InputDecoration(
-                              labelText:
-                                  "Preferred Priest (Optional) - Subject to availability",
-                              border: OutlineInputBorder(),
-                            ),
-                            items: [
-                              const DropdownMenuItem<int>(
-                                value: null,
-                                child: Text("No preference"),
-                              ),
-                              ...priestProvider.priests
-                                  .map((priest) => DropdownMenuItem<int>(
-                                        value: priest.id,
-                                        child: Text(priest.fullName),
-                                      )),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedPriestId = value;
-                              });
-                            },
-                          );
-                        },
-                      ),
                     ],
                   ),
                   _buildSection(
