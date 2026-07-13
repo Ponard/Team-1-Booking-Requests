@@ -309,34 +309,6 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildSection(title: "Intention Details", children: [
-                    Consumer<ParishProvider>(
-                      builder: (context, parishProvider, _) {
-                        return DropdownButtonFormField<int>(
-                          value: parishProvider.selectedParish?.id,
-                          decoration: const InputDecoration(
-                            labelText: "Parish *",
-                            border: OutlineInputBorder(),
-                          ),
-                          items: parishProvider.parishes
-                              .map((parish) => DropdownMenuItem(
-                                    value: parish.id,
-                                    child: Text(parish.name),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            final parish = parishProvider.parishes
-                                .firstWhere((p) => p.id == value);
-                            parishProvider.selectParish(parish);
-                            if (_selectedDate != null) {
-                              _loadSchedulesForDate(_selectedDate!);
-                            }
-                          },
-                          validator: (value) =>
-                              value == null ? "Please select a parish" : null,
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       value: _selectedType,
                       decoration: const InputDecoration(
@@ -363,8 +335,44 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
                           border: OutlineInputBorder()),
                       validator: (value) => value!.isEmpty ? "Required" : null,
                     ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _offeredByController,
+                      decoration: const InputDecoration(
+                          labelText: "Offered By (Name/Family) *",
+                          border: OutlineInputBorder()),
+                      validator: (value) => value!.isEmpty ? "Required" : null,
+                    ),
                   ]),
-                  _buildSection(title: "Schedule & Offering", children: [
+                  _buildSection(title: "Booking Preferences", children: [
+                    Consumer<ParishProvider>(
+                      builder: (context, parishProvider, _) {
+                        return DropdownButtonFormField<int>(
+                          value: parishProvider.selectedParish?.id,
+                          decoration: const InputDecoration(
+                            labelText: "Preferred Parish *",
+                            border: OutlineInputBorder(),
+                          ),
+                          items: parishProvider.parishes
+                              .map((parish) => DropdownMenuItem(
+                                    value: parish.id,
+                                    child: Text(parish.name),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            final parish = parishProvider.parishes
+                                .firstWhere((p) => p.id == value);
+                            parishProvider.selectParish(parish);
+                            if (_selectedDate != null) {
+                              _loadSchedulesForDate(_selectedDate!);
+                            }
+                          },
+                          validator: (value) =>
+                              value == null ? "Please select a parish" : null,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
                     TextFormField(
                       controller: _dateController,
                       readOnly: true,
@@ -431,15 +439,8 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
                         validator: (value) =>
                             value == null ? "Please select a mass time" : null,
                       ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _offeredByController,
-                      decoration: const InputDecoration(
-                          labelText: "Offered By (Name/Family) *",
-                          border: OutlineInputBorder()),
-                      validator: (value) => value!.isEmpty ? "Required" : null,
-                    ),
-                    const SizedBox(height: 12),
+                  ]),
+                  _buildSection(title: "Additional Information", children: [
                     TextFormField(
                       controller: _notesController,
                       decoration: const InputDecoration(

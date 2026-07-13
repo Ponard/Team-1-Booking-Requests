@@ -28,7 +28,8 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
   final TextEditingController _fatherNameController = TextEditingController();
   final TextEditingController _motherNameController = TextEditingController();
   final TextEditingController _godparentsController = TextEditingController();
-  final TextEditingController _contactController = TextEditingController();
+  final TextEditingController _contactEmailController = TextEditingController();
+  final TextEditingController _contactPhoneController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
   final TextEditingController _preferredParishController =
       TextEditingController();
@@ -166,7 +167,8 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
     _fatherNameController.dispose();
     _motherNameController.dispose();
     _godparentsController.dispose();
-    _contactController.dispose();
+    _contactEmailController.dispose();
+    _contactPhoneController.dispose();
     _notesController.dispose();
     _preferredParishController.dispose();
     _preferredDateController.dispose();
@@ -219,7 +221,8 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
     final cleanDob = formatDate(_dobController.text.trim());
     final cleanFatherName = _fatherNameController.text.trim();
     final cleanMotherName = _motherNameController.text.trim();
-    final cleanContact = _contactController.text.trim();
+    final cleanContactEmail = _contactEmailController.text.trim();
+    final cleanContactPhone = _contactPhoneController.text.trim();
     final cleanPreferredDate = formatDate(_preferredDateController.text.trim());
     final cleanPreferredTime = _preferredTimeController.text.trim();
     final cleanNotes = _notesController.text.trim();
@@ -254,8 +257,8 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
       dateOfBirth: cleanDob,
       fatherName: cleanFatherName,
       motherName: cleanMotherName,
-      contactEmail: authProvider.currentUser!.email,
-      contactPhone: cleanContact,
+      contactEmail: cleanContactEmail,
+      contactPhone: cleanContactPhone,
       preferredDate: cleanPreferredDate,
       preferredTimeSlot: cleanPreferredTime,
       priestId: _selectedPriestId,
@@ -443,9 +446,21 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                         border: OutlineInputBorder(),
                       ),
                     ),
+                  ]),
+
+                  _buildSection(title: "Contact Information", children: [
+                    TextFormField(
+                      controller: _contactEmailController,
+                      decoration: const InputDecoration(
+                        labelText: "Email *",
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: Validators.emailValidator,
+                    ),
                     const SizedBox(height: 12),
                     TextFormField(
-                      controller: _contactController,
+                      controller: _contactPhoneController,
                       decoration: const InputDecoration(
                         labelText: "Contact Number *",
                         border: OutlineInputBorder(),
