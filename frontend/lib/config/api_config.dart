@@ -31,7 +31,8 @@ class ApiConfig {
   static const String refreshEndpoint = '$authEndpoint/refresh';
   static const String profileEndpoint = '$authEndpoint/me';
   static const String changePasswordEndpoint = '$authEndpoint/change-password';
-  static const String forcePasswordChangeEndpoint = '$authEndpoint/force-password-change';
+  static const String forcePasswordChangeEndpoint =
+      '$authEndpoint/force-password-change';
 
   static const String bookingsEndpoint = '/api/bookings';
   static const String intentionsEndpoint = '/api/intentions';
@@ -44,13 +45,19 @@ class ApiConfig {
   static const String weddingsEndpoint = '/api/sacraments/weddings';
   static const String confirmationsEndpoint = '/api/sacraments/confirmations';
   static const String eucharistEndpoint = '/api/sacraments/eucharist';
-  static const String reconciliationsEndpoint = '/api/sacraments/reconciliations';
+  static const String reconciliationsEndpoint =
+      '/api/sacraments/reconciliations';
   static const String anointingSickEndpoint = '/api/sacraments/anointing-sick';
   static const String funeralMassEndpoint = '/api/sacraments/funeral-mass';
   static const String massIntentionsEndpoint = '/api/mass-intentions';
 
   static const String healthEndpoint = '/health';
   static const String apiInfoEndpoint = '/api';
+
+  static Future<String?> _getAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConstants.tokenKey);
+  }
 
   // Helper to refresh token
   static Future<String?> _refreshToken() async {
@@ -60,9 +67,11 @@ class ApiConfig {
 
       if (refreshTokenValue == null) return null;
 
-      final response = await post(refreshEndpoint, json.encode({
-        'refreshToken': refreshTokenValue,
-      }));
+      final response = await post(
+          refreshEndpoint,
+          json.encode({
+            'refreshToken': refreshTokenValue,
+          }));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -87,11 +96,26 @@ class ApiConfig {
   }
 
   // HTTP Methods with Authorization and auto-refresh
-  static Future<http.Response> getWithAuth(String endpoint, String token, {bool retried = false}) async {
+  static Future<http.Response> getWithAuth(String endpoint, String token,
+      {bool retried = false}) async {
+    final token = await _getAccessToken();
+
+    if (token == null) {
+      return http.Response(
+        json.encode({
+          'error': 'Unauthorized',
+          'message': 'No access token available',
+        }),
+        401,
+        headers: {'content-type': 'application/json'},
+      );
+    }
+
     final uri = Uri.parse('$baseUrl$endpoint');
     final headers = getAuthHeaders(token);
 
-    final response = await http.get(uri, headers: headers).timeout(AppConstants.apiTimeout);
+    final response =
+        await http.get(uri, headers: headers).timeout(AppConstants.apiTimeout);
 
     // If 401 and not already retried, try to refresh token
     if (response.statusCode == 401 && !retried) {
@@ -104,12 +128,17 @@ class ApiConfig {
     return response;
   }
 
-  static Future<http.Response> postWithAuth(String endpoint, String token, dynamic body, {bool retried = false}) async {
-    print('[ApiConfig.postWithAuth] endpoint: $endpoint, body type: ${body.runtimeType}, body: $body');
+  static Future<http.Response> postWithAuth(
+      String endpoint, String token, dynamic body,
+      {bool retried = false}) async {
+    print(
+        '[ApiConfig.postWithAuth] endpoint: $endpoint, body type: ${body.runtimeType}, body: $body');
     final uri = Uri.parse('$baseUrl$endpoint');
     final headers = getAuthHeaders(token);
 
-    final response = await http.post(uri, headers: headers, body: body).timeout(AppConstants.apiTimeout);
+    final response = await http
+        .post(uri, headers: headers, body: body)
+        .timeout(AppConstants.apiTimeout);
 
     // If 401 and not already retried, try to refresh token
     if (response.statusCode == 401 && !retried) {
@@ -122,11 +151,15 @@ class ApiConfig {
     return response;
   }
 
-  static Future<http.Response> putWithAuth(String endpoint, String token, dynamic body, {bool retried = false}) async {
+  static Future<http.Response> putWithAuth(
+      String endpoint, String token, dynamic body,
+      {bool retried = false}) async {
     final uri = Uri.parse('$baseUrl$endpoint');
     final headers = getAuthHeaders(token);
 
-    final response = await http.put(uri, headers: headers, body: body).timeout(AppConstants.apiTimeout);
+    final response = await http
+        .put(uri, headers: headers, body: body)
+        .timeout(AppConstants.apiTimeout);
 
     // If 401 and not already retried, try to refresh token
     if (response.statusCode == 401 && !retried) {
@@ -139,11 +172,15 @@ class ApiConfig {
     return response;
   }
 
-  static Future<http.Response> patchWithAuth(String endpoint, String token, dynamic body, {bool retried = false}) async {
+  static Future<http.Response> patchWithAuth(
+      String endpoint, String token, dynamic body,
+      {bool retried = false}) async {
     final uri = Uri.parse('$baseUrl$endpoint');
     final headers = getAuthHeaders(token);
 
-    final response = await http.patch(uri, headers: headers, body: body).timeout(AppConstants.apiTimeout);
+    final response = await http
+        .patch(uri, headers: headers, body: body)
+        .timeout(AppConstants.apiTimeout);
 
     // If 401 and not already retried, try to refresh token
     if (response.statusCode == 401 && !retried) {
@@ -156,11 +193,14 @@ class ApiConfig {
     return response;
   }
 
-  static Future<http.Response> deleteWithAuth(String endpoint, String token, {bool retried = false}) async {
+  static Future<http.Response> deleteWithAuth(String endpoint, String token,
+      {bool retried = false}) async {
     final uri = Uri.parse('$baseUrl$endpoint');
     final headers = getAuthHeaders(token);
 
-    final response = await http.delete(uri, headers: headers).timeout(AppConstants.apiTimeout);
+    final response = await http
+        .delete(uri, headers: headers)
+        .timeout(AppConstants.apiTimeout);
 
     // If 401 and not already retried, try to refresh token
     if (response.statusCode == 401 && !retried) {
@@ -179,49 +219,47 @@ class ApiConfig {
       try {
         final data = json.decode(response.body);
         return data['mustChangePassword'] == true ||
-               data['error'] == 'Password change required';
+            data['error'] == 'Password change required';
       } catch (e) {
         return false;
       }
     }
     return false;
   }
-  
+
   // Public HTTP Methods
   static Future<http.Response> get(String endpoint) async {
     final uri = Uri.parse('$baseUrl$endpoint');
-    
+
     return http.get(uri, headers: baseHeaders).timeout(AppConstants.apiTimeout);
   }
-  
+
   static Future<http.Response> post(String endpoint, dynamic body) async {
     final uri = Uri.parse('$baseUrl$endpoint');
-    
-    return http.post(uri, headers: baseHeaders, body: body).timeout(AppConstants.apiTimeout);
+
+    return http
+        .post(uri, headers: baseHeaders, body: body)
+        .timeout(AppConstants.apiTimeout);
   }
-  
+
   // File upload with authorization
   static Future<http.StreamedResponse> uploadFile(
-    String endpoint, 
-    String token, 
-    File file, 
-    String fieldName,
-    {Map<String, String>? additionalFields}
-  ) async {
+      String endpoint, String token, File file, String fieldName,
+      {Map<String, String>? additionalFields}) async {
     final uri = Uri.parse('$baseUrl$endpoint');
     final request = http.MultipartRequest('POST', uri);
-    
+
     // Add authorization header
     request.headers.addAll(getAuthHeaders(token));
-    
+
     // Add file
     request.files.add(await http.MultipartFile.fromPath(fieldName, file.path));
-    
+
     // Add additional fields if provided
     if (additionalFields != null) {
       request.fields.addAll(additionalFields);
     }
-    
+
     return request.send().timeout(AppConstants.apiTimeout);
   }
 }
