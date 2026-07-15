@@ -132,8 +132,6 @@ class _HomeScreenState extends State<HomeScreen> {
     required Color color,
     VoidCallback? onTap,
   }) {
-    final bool isWeb = MediaQuery.of(context).size.width > 600;
-
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -142,14 +140,14 @@ class _HomeScreenState extends State<HomeScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: EdgeInsets.symmetric(
-            vertical: isWeb ? 16 : 4,
-            horizontal: isWeb ? 16 : 8,
+            vertical: 16,
+            horizontal: 16,
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(icon, size: isWeb ? 32 : 20, color: color),
-              SizedBox(width: isWeb ? 16 : 8),
+              Icon(icon, size: 32, color: color),
+              SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       value,
                       style: TextStyle(
-                        fontSize: isWeb ? 24 : 14,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: color,
                       ),
@@ -168,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: isWeb ? 14 : 10,
+                        fontSize: 14,
                         color: Colors.grey.shade600,
                       ),
                       maxLines: 1,
@@ -636,7 +634,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               int crossAxisCount =
                                   (constraints.maxWidth / 200).floor();
                               crossAxisCount = crossAxisCount.clamp(
-                                  2, min(statuses.length, 6));
+                                  1, min(statuses.length, 6));
                               return GridView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
@@ -765,9 +763,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
             LayoutBuilder(builder: (context, constraints) {
-              final bool isWeb = MediaQuery.of(context).size.width > 600;
-              int crossAxisCount = (constraints.maxWidth / 280).floor();
-              crossAxisCount = crossAxisCount.clamp(2, 4);
+              int crossAxisCount = (constraints.maxWidth / 250).floor();
+              crossAxisCount = crossAxisCount.clamp(1, 4);
 
               return GridView.builder(
                 shrinkWrap: true,
@@ -777,7 +774,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisCount: crossAxisCount,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  mainAxisExtent: isWeb ? 160 : 110,
+                  mainAxisExtent: 160,
                 ),
                 itemBuilder: (context, index) {
                   final service = services[index];
@@ -792,7 +789,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                     },
                     child: Container(
-                      padding: EdgeInsets.all(isWeb ? 16 : 6),
+                      padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.grey.shade300),
@@ -805,27 +802,27 @@ class _HomeScreenState extends State<HomeScreen> {
                           Icon(
                             getSacramentIcon(
                                 _getServiceSacramentType(service["title"]!)),
-                            size: isWeb ? 32 : 20,
+                            size: 32,
                             color: Colors.blue.shade700,
                           ),
-                          SizedBox(height: isWeb ? 8 : 2),
+                          SizedBox(height: 8),
                           Flexible(
                             child: Text(
                               service["title"]!,
                               style: TextStyle(
-                                fontSize: isWeb ? 18 : 12,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          SizedBox(height: isWeb ? 4 : 1),
+                          SizedBox(height: 4),
                           Flexible(
                             child: Text(
                               service["desc"]!,
                               style: TextStyle(
-                                fontSize: isWeb ? 13 : 10,
+                                fontSize: 13,
                                 color: Colors.grey.shade600,
                               ),
                               maxLines: 2,
