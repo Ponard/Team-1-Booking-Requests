@@ -111,7 +111,9 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         if (_dateController.text.isNotEmpty) {
           try {
             _selectedDate = DateTime.parse(_dateController.text);
-          } catch (e) {}
+          } catch (e) {
+            // Ignore invalid date
+          }
         }
         // Do not populate _newNoteController - it's for adding new notes
       });
