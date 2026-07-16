@@ -315,30 +315,6 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
     }
   }
 
-  Widget _buildSection(
-      {required String title, required List<Widget> children}) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-                style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue)),
-            const SizedBox(height: 12),
-            ...children,
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -431,70 +407,6 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                   ),
 
                   // Document Upload Section
-                  // _buildSection(title: "Required Documents", children: [
-                  //   const Text(
-                  //     "PSA Birth Certificate *",
-                  //     style:
-                  //         TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  //   ),
-                  //   const SizedBox(height: 8),
-                  //   const Text(
-                  //     "Please upload a copy of the PSA birth certificate. Accepted formats: PDF, JPG, PNG",
-                  //     style: TextStyle(fontSize: 14, color: Colors.grey),
-                  //   ),
-                  //   const SizedBox(height: 12),
-                  //   ElevatedButton.icon(
-                  //     onPressed: _pickBirthCertificateFile,
-                  //     icon: const Icon(Icons.attach_file),
-                  //     label: Text(
-                  //       _birthCertificateFile != null
-                  //           ? 'File Selected: ${_birthCertificateFile!.name}'
-                  //           : 'Select Birth Certificate File',
-                  //     ),
-                  //     style: ElevatedButton.styleFrom(
-                  //       backgroundColor: _birthCertificateFile != null
-                  //           ? Colors.green[100]
-                  //           : Colors.grey[200],
-                  //       foregroundColor: Colors.black87,
-                  //     ),
-                  //   ),
-                  //   if (_birthCertificateFile != null) ...[
-                  //     const SizedBox(height: 12),
-                  //     _isUploadingFile
-                  //         ? const Row(
-                  //             mainAxisAlignment: MainAxisAlignment.center,
-                  //             children: [
-                  //               SizedBox(
-                  //                 height: 20,
-                  //                 width: 20,
-                  //                 child:
-                  //                     CircularProgressIndicator(strokeWidth: 2),
-                  //               ),
-                  //               SizedBox(width: 12),
-                  //               Text('Uploading...'),
-                  //             ],
-                  //           )
-                  //         : ElevatedButton.icon(
-                  //             onPressed: _uploadedFileData == null
-                  //                 ? _uploadBirthCertificate
-                  //                 : null,
-                  //             icon: const Icon(Icons.cloud_upload),
-                  //             label: Text(
-                  //               _uploadedFileData != null
-                  //                   ? 'Uploaded Successfully'
-                  //                   : 'Upload Birth Certificate',
-                  //             ),
-                  //             style: ElevatedButton.styleFrom(
-                  //               backgroundColor: _uploadedFileData != null
-                  //                   ? Colors.green
-                  //                   : null,
-                  //               foregroundColor: _uploadedFileData != null
-                  //                   ? Colors.white
-                  //                   : null,
-                  //             ),
-                  //           ),
-                  //   ],
-                  // ]),
                   BookingSection(
                     title: "Required Documents",
                     children: [
