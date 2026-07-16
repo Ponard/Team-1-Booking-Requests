@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/mass_intention.dart';
-import '../models/note.dart';
 import '../models/mass_schedule.dart';
 import '../providers/auth_provider.dart';
 import '../providers/mass_schedule_provider.dart';
@@ -692,7 +691,7 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
             _buildSectionTitle('Intention Details'),
             if (_isEditMode)
               DropdownButtonFormField<String>(
-                value: _selectedType,
+                initialValue: _selectedType,
                 decoration: const InputDecoration(
                     labelText: "Intention Type *",
                     border: OutlineInputBorder()),
@@ -752,7 +751,7 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
                 ),
               if (_availableSchedules.isNotEmpty)
                 DropdownButtonFormField<String>(
-                  value: _selectedTime != null
+                  initialValue: _selectedTime != null
                       ? _normalizeTime(_selectedTime)
                       : null,
                   decoration: const InputDecoration(

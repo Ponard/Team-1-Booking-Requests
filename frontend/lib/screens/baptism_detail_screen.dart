@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../models/document.dart';
 import '../models/baptism_booking.dart';
-import '../models/note.dart';
 import '../providers/auth_provider.dart';
 import '../providers/priest_provider.dart';
-import '../providers/parish_provider.dart';
 import '../services/baptism_service.dart';
-import '../config/api_config.dart';
 import 'document_preview_screen.dart';
 import '../widgets/notes_display.dart';
 
@@ -675,10 +671,12 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
                             PopupMenuButton<String>(
                               onSelected: (value) {
                                 if (value == 'view') _openDocument(doc);
-                                        if (value == 'delete')
+                                        if (value == 'delete') {
                                           _deleteDocument(doc);
-                                        if (value == 'replace')
+                                        }
+                                        if (value == 'replace') {
                                           _replaceDocument(doc);
+                                        }
                               },
                               itemBuilder: (context) => [
                                         const PopupMenuItem(
@@ -857,7 +855,7 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: DropdownButtonFormField<int>(
-            value: validPriestId,
+            initialValue: validPriestId,
             decoration: const InputDecoration(
               labelText: "Preferred Priest (Optional)",
               border: OutlineInputBorder(),
@@ -889,9 +887,10 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         initialDate: DateTime.now(),
         firstDate: DateTime(1950),
         lastDate: DateTime.now());
-    if (picked != null)
+    if (picked != null) {
       setState(() => _dobController.text =
           '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
+    }
   }
 
   void _selectDate() async {
@@ -900,17 +899,19 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         initialDate: DateTime.now(),
         firstDate: DateTime.now().add(const Duration(days: -7)),
         lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
-    if (picked != null)
+    if (picked != null) {
       setState(() => _preferredDateController.text =
           '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
+    }
   }
 
   void _selectTime() async {
     TimeOfDay? picked =
         await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (picked != null)
+    if (picked != null) {
       setState(() => _preferredTimeController.text =
           '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}');
+    }
   }
 
   Widget _buildStatusSection(bool isAdmin, int bookingId) {

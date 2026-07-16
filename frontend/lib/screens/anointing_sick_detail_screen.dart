@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../models/anointing_sick_booking.dart';
 import '../providers/auth_provider.dart';
 import '../providers/priest_provider.dart';
-import '../providers/parish_provider.dart';
 import '../services/anointing_sick_service.dart';
 import '../widgets/notes_display.dart';
 
@@ -75,7 +74,7 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
 
     if (mounted && result.success && result.data != null) {
       final booking = result.data!;
-      final status = booking.status?.toLowerCase() ?? 'pending';
+      final status = booking.status.toLowerCase() ?? 'pending';
       final isEditable = status == 'pending' || status == 'declined';
       setState(() {
         _booking = booking;
@@ -352,7 +351,7 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
       'diocese_staff'
     ].contains(role);
     final isOwner = _booking?.userId == currentUser?.id;
-    final status = _booking?.status?.toLowerCase();
+    final status = _booking?.status.toLowerCase();
     final canEdit =
         isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
 
@@ -505,7 +504,7 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: DropdownButtonFormField<int>(
-            value: validPriestId,
+            initialValue: validPriestId,
             decoration: const InputDecoration(
               labelText: "Preferred Priest (Optional)",
               border: OutlineInputBorder(),
@@ -537,17 +536,19 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
         initialDate: DateTime.now(),
         firstDate: DateTime.now().add(const Duration(days: -7)),
         lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
-    if (picked != null)
+    if (picked != null) {
       setState(() => _preferredDateController.text =
           '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
+    }
   }
 
   void _selectTime() async {
     TimeOfDay? picked =
         await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (picked != null)
+    if (picked != null) {
       setState(() => _preferredTimeController.text =
           '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}');
+    }
   }
 
   Widget _buildStatusSection(bool isAdmin, int bookingId) {
@@ -562,9 +563,9 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        Text(
+        const Text(
           'Status',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.blue,
@@ -575,9 +576,9 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 120,
-                child: const Text(
+                child: Text(
                   'Status',
                   style: TextStyle(fontWeight: FontWeight.w500),
                 ),

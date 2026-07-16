@@ -73,7 +73,7 @@ class ReconciliationBooking {
       if (preferredDate != null) 'preferredDate': preferredDate,
       if (preferredTimeSlot != null) 'preferredTimeSlot': preferredTimeSlot,
       if (notes != null) 'notes': notes!.map((n) => n.toJson()).toList(),
-      if (status != null) 'status': status,
+      'status': status,
     };
   }
 

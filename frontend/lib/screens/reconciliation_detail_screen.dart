@@ -67,7 +67,7 @@ class _ReconciliationDetailScreenState
 
     if (mounted && result.success && result.data != null) {
       final booking = result.data!;
-      final status = booking.status?.toLowerCase() ?? 'pending';
+      final status = booking.status.toLowerCase() ?? 'pending';
       final isEditable = status == 'pending' || status == 'declined';
       setState(() {
         _booking = booking;
@@ -218,13 +218,13 @@ class _ReconciliationDetailScreenState
 
   String get _displayStatus {
     if (_booking == null) return 'PENDING';
-    final status = (_booking?.status?.toUpperCase() ?? 'PENDING');
+    final status = (_booking?.status.toUpperCase() ?? 'PENDING');
     return status;
   }
 
   bool get _canChangeStatus {
     if (_booking == null) return false;
-    final status = _booking!.status?.toLowerCase();
+    final status = _booking!.status.toLowerCase();
     if (status == 'pending') {
       return true;
     } else if (status == 'approved') {
@@ -248,7 +248,7 @@ class _ReconciliationDetailScreenState
 
   String get _actionButtonText {
     if (_booking == null) return 'Approve';
-    final status = _booking!.status?.toLowerCase();
+    final status = _booking!.status.toLowerCase();
     if (status == 'pending') return 'Approve';
     if (status == 'approved') return 'Mark as Completed';
     return 'Approve';
@@ -307,7 +307,7 @@ class _ReconciliationDetailScreenState
       'diocese_staff'
     ].contains(role);
     final isOwner = _booking?.userId == currentUser?.id;
-    final status = _booking?.status?.toLowerCase();
+    final status = _booking?.status.toLowerCase();
     final canEdit =
         isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
 
@@ -467,15 +467,15 @@ class _ReconciliationDetailScreenState
     final displayStatus = _displayStatus;
     final canChangeStatus = _canChangeStatus;
     final actionButtonText = _actionButtonText;
-    final status = _booking?.status?.toLowerCase();
+    final status = _booking?.status.toLowerCase();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        Text(
+        const Text(
           'Status',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.blue,
@@ -486,9 +486,9 @@ class _ReconciliationDetailScreenState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             //change from "Current Status" to "Status" for visual alignment
-            SizedBox(
+            const SizedBox(
               width: 120,
-              child: const Text(
+              child: Text(
                 'Status', //changed from 'Current Status'
                 style: TextStyle(fontWeight: FontWeight.w500),
               ),

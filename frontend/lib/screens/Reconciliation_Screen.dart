@@ -248,7 +248,7 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _confessionType,
+                      initialValue: _confessionType,
                       decoration: const InputDecoration(
                         labelText: "Type of Confession",
                         border: OutlineInputBorder(),
@@ -271,7 +271,7 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
                     Consumer<ParishProvider>(
                       builder: (context, parishProvider, _) {
                         return DropdownButtonFormField<int>(
-                          value: parishProvider.selectedParish?.id,
+                          initialValue: parishProvider.selectedParish?.id,
                           decoration: const InputDecoration(
                             labelText: "Preferred Parish *",
                             border: OutlineInputBorder(),

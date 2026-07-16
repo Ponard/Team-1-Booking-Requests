@@ -346,7 +346,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                               horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
                                             color: _getStatusColor(status)
-                                                .withOpacity(0.2),
+                                                .withValues(alpha: 0.2),
                                             borderRadius:
                                                 BorderRadius.circular(12),
                                             border: Border.all(

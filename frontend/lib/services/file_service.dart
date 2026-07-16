@@ -65,7 +65,7 @@ class FileService {
         .timeout(
           const Duration(seconds: 60),
           onTimeout: () {
-            throw HttpException('Upload timeout - file too large or connection slow');
+            throw const HttpException('Upload timeout - file too large or connection slow');
           },
         );
 

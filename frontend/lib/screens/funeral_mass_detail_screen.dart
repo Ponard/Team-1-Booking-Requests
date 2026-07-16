@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/funeral_mass_booking.dart';
 import '../providers/auth_provider.dart';
-import '../providers/parish_provider.dart';
 import '../providers/priest_provider.dart';
 import '../services/funeral_mass_service.dart';
 import '../widgets/notes_display.dart';
@@ -159,7 +158,7 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: DropdownButtonFormField<int>(
-            value: validPriestId,
+            initialValue: validPriestId,
             decoration: const InputDecoration(
               labelText: "Preferred Priest (Optional)",
               border: OutlineInputBorder(),
@@ -404,7 +403,7 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
       'diocese_staff'
     ].contains(role);
     final isOwner = _booking?.userId == currentUser?.id;
-    final status = _booking?.status?.toLowerCase();
+    final status = _booking?.status.toLowerCase();
     final canEdit =
         isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
 
@@ -570,17 +569,19 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
         initialDate: DateTime.now(),
         firstDate: DateTime.now().add(const Duration(days: -7)),
         lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
-    if (picked != null)
+    if (picked != null) {
       setState(() => _preferredDateController.text =
           '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
+    }
   }
 
   void _selectTime() async {
     TimeOfDay? picked =
         await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (picked != null)
+    if (picked != null) {
       setState(() => _preferredTimeController.text =
           '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}');
+    }
   }
 
   void _selectWakeStartDate() async {
@@ -589,9 +590,10 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
         initialDate: DateTime.now(),
         firstDate: DateTime.now().add(const Duration(days: -30)),
         lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
-    if (picked != null)
+    if (picked != null) {
       setState(() => _wakeStartDateController.text =
           '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
+    }
   }
 
   void _selectWakeEndDate() async {
@@ -600,9 +602,10 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
         initialDate: DateTime.now(),
         firstDate: DateTime.now().add(const Duration(days: -30)),
         lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
-    if (picked != null)
+    if (picked != null) {
       setState(() => _wakeEndDateController.text =
           '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
+    }
   }
 
   Widget _buildStatusSection(bool isAdmin, int bookingId) {
@@ -617,9 +620,9 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        Text(
+        const Text(
           'Status',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.blue,
@@ -630,9 +633,9 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 120,
-                child: const Text(
+                child: Text(
                   'Status',
                   style: TextStyle(fontWeight: FontWeight.w500),
                 ),

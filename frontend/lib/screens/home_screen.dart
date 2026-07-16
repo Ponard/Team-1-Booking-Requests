@@ -139,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             vertical: 16,
             horizontal: 16,
           ),
@@ -147,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Icon(icon, size: 32, color: color),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -789,7 +789,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                     },
                     child: Container(
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.grey.shade300),
@@ -805,11 +805,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             size: 32,
                             color: Colors.blue.shade700,
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Flexible(
                             child: Text(
                               service["title"]!,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -817,7 +817,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Flexible(
                             child: Text(
                               service["desc"]!,

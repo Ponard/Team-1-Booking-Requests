@@ -180,8 +180,8 @@ class _AdminMassScheduleScreenState extends State<AdminMassScheduleScreen> {
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: schedule.isActive
-                            ? Theme.of(context).primaryColor.withOpacity(0.1)
-                            : Colors.grey.withOpacity(0.1),
+                            ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
+                            : Colors.grey.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
@@ -405,7 +405,7 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
                           ? _selectedParishId
                           : null;
                       return DropdownButtonFormField<int>(
-                        value: validParishId,
+                        initialValue: validParishId,
                         decoration: const InputDecoration(
                           labelText: 'Parish',
                           border: OutlineInputBorder(),

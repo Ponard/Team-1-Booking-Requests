@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../providers/auth_provider.dart';
 import '../providers/parish_provider.dart';
 import '../services/admin_service.dart';
-import '../config/api_config.dart';
 import '../utils/role_helpers.dart';
 import 'document_preview_screen.dart';
 import '../models/document.dart';
@@ -366,7 +364,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                         subtitle: Text(fileName),
                         trailing: isVerified == true
                             ? Icon(Icons.check_circle, color: Colors.green[600])
-                            : Icon(Icons.pending, color: Colors.orange),
+                            : const Icon(Icons.pending, color: Colors.orange),
                         onTap: () => _openDocument(doc),
                       ),
                     );
@@ -507,7 +505,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: _selectedStatus,
+                        initialValue: _selectedStatus,
                         decoration: const InputDecoration(
                           labelText: 'Status',
                           border: OutlineInputBorder(),
@@ -528,7 +526,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: _selectedType,
+                        initialValue: _selectedType,
                         decoration: const InputDecoration(
                           labelText: 'Type',
                           border: OutlineInputBorder(),
@@ -571,14 +569,12 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                       if (currentUserParish != null) {
                         availableParishes = [currentUserParish];
                         // Auto-select the parish if not already selected
-                        if (_selectedParishId == null) {
-                          _selectedParishId = currentUserParish.id.toString();
-                        }
+                        _selectedParishId ??= currentUserParish.id.toString();
                       }
                     }
                     
                     return DropdownButtonFormField<String>(
-                      value: _selectedParishId,
+                      initialValue: _selectedParishId,
                       decoration: const InputDecoration(
                         labelText: 'Parish',
                         border: OutlineInputBorder(),

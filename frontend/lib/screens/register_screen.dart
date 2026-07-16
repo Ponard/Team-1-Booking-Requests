@@ -199,7 +199,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       // For public registration (parishioner role), always show parish selection
                       // Diocese-level roles would have this hidden (handled by role check)
-                      final showParishSelection =
+                      const showParishSelection =
                           true; // Public registration is always parishioner
 
                       if (!showParishSelection) {
@@ -207,7 +207,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       }
 
                       return DropdownButtonFormField<int>(
-                        value: _selectedParishId,
+                        initialValue: _selectedParishId,
                         decoration: const InputDecoration(
                           labelText: 'Preferred Parish',
                           hintText: 'Select your preferred parish',

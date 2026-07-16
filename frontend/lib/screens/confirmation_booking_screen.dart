@@ -541,7 +541,7 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
                       Consumer<ParishProvider>(
                         builder: (context, parishProvider, _) {
                           return DropdownButtonFormField<int>(
-                            value: parishProvider.selectedParish?.id,
+                            initialValue: parishProvider.selectedParish?.id,
                             decoration: const InputDecoration(
                               labelText: "Preferred Parish *",
                               border: OutlineInputBorder(),
@@ -630,7 +630,7 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
                               ? _selectedPriestId
                               : null;
                           return DropdownButtonFormField<int>(
-                            value: validPriestId,
+                            initialValue: validPriestId,
                             decoration: const InputDecoration(
                               labelText:
                                   "Preferred Priest (Optional) - Subject to availability",
@@ -693,14 +693,14 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
                             ? const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const SizedBox(
+                                  SizedBox(
                                     height: 20,
                                     width: 20,
                                     child: CircularProgressIndicator(
                                         strokeWidth: 2),
                                   ),
-                                  const SizedBox(width: 12),
-                                  const Text('Uploading...'),
+                                  SizedBox(width: 12),
+                                  Text('Uploading...'),
                                 ],
                               )
                             : ElevatedButton.icon(
@@ -759,14 +759,14 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
                             ? const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const SizedBox(
+                                  SizedBox(
                                     height: 20,
                                     width: 20,
                                     child: CircularProgressIndicator(
                                         strokeWidth: 2),
                                   ),
-                                  const SizedBox(width: 12),
-                                  const Text('Uploading...'),
+                                  SizedBox(width: 12),
+                                  Text('Uploading...'),
                                 ],
                               )
                             : ElevatedButton.icon(

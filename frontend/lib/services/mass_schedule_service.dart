@@ -1,7 +1,6 @@
 import 'dart:convert';
 import '../models/mass_schedule.dart';
 import '../models/api_response.dart';
-import '../config/api_config.dart';
 import 'api_client.dart';
 
 class MassScheduleService {

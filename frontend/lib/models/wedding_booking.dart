@@ -83,7 +83,7 @@ class WeddingBooking {
       if (seminarSchedule != null) 'seminarSchedule': seminarSchedule,
       if (priestId != null) 'priestId': priestId,
       if (notes != null) 'notes': notes,
-      if (status != null) 'status': status,
+      'status': status,
       if (adminNotes != null) 'adminNotes': adminNotes,
       if (documents != null) 'documents': documents!.map((d) => d.toJson()).toList(),
     };

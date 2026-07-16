@@ -17,7 +17,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _isLoading = true;
   bool _isSelectionMode = false;
-  Set<int> _selectedUserIds = {};
+  final Set<int> _selectedUserIds = {};
   List<dynamic> _users = [];
   List<dynamic> _filteredUsers = [];
   String _searchQuery = '';
@@ -223,7 +223,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: selectedRole,
+                    initialValue: selectedRole,
                     decoration: const InputDecoration(
                       labelText: 'Role',
                       border: OutlineInputBorder(),
@@ -270,14 +270,12 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                           if (currentUserParish != null) {
                             availableParishes = [currentUserParish];
                             // Auto-select the parish if not already selected
-                            if (selectedParishId == null) {
-                              selectedParishId = currentUserParish.id;
-                            }
+                            selectedParishId ??= currentUserParish.id;
                           }
                         }
                         
                         return DropdownButtonFormField<int>(
-                          value: selectedParishId,
+                          initialValue: selectedParishId,
                           decoration: const InputDecoration(
                             labelText: 'Assigned Parish',
                             hintText: 'Select assigned parish',
@@ -526,7 +524,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: selectedRole,
+                    initialValue: selectedRole,
                     decoration: const InputDecoration(
                       labelText: 'Role',
                       border: OutlineInputBorder(),
@@ -573,14 +571,12 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                           if (currentUserParish != null) {
                             availableParishes = [currentUserParish];
                             // Auto-select the parish if not already selected
-                            if (selectedParishId == null) {
-                              selectedParishId = currentUserParish.id;
-                            }
+                            selectedParishId ??= currentUserParish.id;
                           }
                         }
                         
                         return DropdownButtonFormField<int>(
-                          value: selectedParishId,
+                          initialValue: selectedParishId,
                           decoration: const InputDecoration(
                             labelText: 'Assigned Parish',
                             hintText: 'Select assigned parish',

@@ -45,7 +45,7 @@ class _SplashScreenState extends State<SplashScreen> {
               height: 120,
             ),
             const SizedBox(height: 20),
-            Text(
+            const Text(
               'Diocese of Kalookan',
               style: TextStyle(
                 fontSize: 24,
@@ -53,16 +53,16 @@ class _SplashScreenState extends State<SplashScreen> {
                 color: Colors.white,
               ),
             ),
-            SizedBox(height: 10),
-            Text(
+            const SizedBox(height: 10),
+            const Text(
               'Sacramental Management System',
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.white70,
               ),
             ),
-            SizedBox(height: 30),
-            CircularProgressIndicator(
+            const SizedBox(height: 30),
+            const CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             ),
           ],

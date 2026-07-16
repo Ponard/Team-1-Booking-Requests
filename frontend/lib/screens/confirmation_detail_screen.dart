@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/document.dart';
 import '../models/confirmation_booking.dart';
 import '../models/note.dart';
 import '../providers/auth_provider.dart';
-import '../providers/parish_provider.dart';
 import '../providers/priest_provider.dart';
 import '../services/confirmation_service.dart';
 import '../config/api_config.dart';
@@ -84,7 +82,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
     if (mounted && result.success && result.data != null) {
       final booking = result.data!;
-      final status = booking.status?.toLowerCase() ?? 'pending';
+      final status = booking.status.toLowerCase() ?? 'pending';
       final isEditable = status == 'pending' || status == 'declined';
       setState(() {
         _booking = booking;
@@ -150,8 +148,9 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
   }
 
   Future<void> _uploadBaptismalCertificate() async {
-    if (_baptismalCertificateFile == null || widget.confirmationId == null)
+    if (_baptismalCertificateFile == null || widget.confirmationId == null) {
       return;
+    }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
@@ -487,7 +486,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
       'diocese_staff'
     ].contains(role);
     final isOwner = _booking?.userId == currentUser?.id;
-    final status = _booking?.status?.toLowerCase();
+    final status = _booking?.status.toLowerCase();
     final canEdit =
         isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
 
@@ -562,7 +561,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: DropdownButtonFormField<int>(
-                    value: validPriestId,
+                    initialValue: validPriestId,
                     decoration: const InputDecoration(
                       labelText: "Preferred Priest (Optional)",
                       border: OutlineInputBorder(),
@@ -607,8 +606,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
             ],
 
             const SizedBox(height: 16),
-            Text('Documents',
-                style: const TextStyle(
+            const Text('Documents',
+                style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.blue)),
@@ -634,7 +633,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
                             trailing: doc.isVerified == true
                                 ? Icon(Icons.check_circle,
                                     color: Colors.green[600])
-                                : Icon(Icons.pending, color: Colors.orange),
+                                : const Icon(Icons.pending, color: Colors.orange),
                             onTap: () => _openDocument(doc),
                           ),
                         )
@@ -788,17 +787,19 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         initialDate: DateTime.now(),
         firstDate: DateTime.now().add(const Duration(days: -7)),
         lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
-    if (picked != null)
+    if (picked != null) {
       setState(() => _preferredDateController.text =
           '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
+    }
   }
 
   void _selectTime() async {
     TimeOfDay? picked =
         await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (picked != null)
+    if (picked != null) {
       setState(() => _preferredTimeController.text =
           '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}');
+    }
   }
 
   Widget _buildStatusSection(bool isAdmin, int bookingId) {
@@ -813,9 +814,9 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        Text(
+        const Text(
           'Status',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.blue,
@@ -826,9 +827,9 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 120,
-                child: const Text(
+                child: Text(
                   'Status',
                   style: TextStyle(fontWeight: FontWeight.w500),
                 ),

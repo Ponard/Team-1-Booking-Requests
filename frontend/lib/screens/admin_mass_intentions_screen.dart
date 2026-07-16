@@ -332,7 +332,7 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
               child: pw.Text(
                 'Mass Intentions',
                 style:
-                    pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+                    const pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
               ),
             ),
           );
@@ -344,9 +344,9 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text('Date: $dateDisplay',
-                    style: pw.TextStyle(fontSize: 14)),
+                    style: const pw.TextStyle(fontSize: 14)),
                 pw.Text('Time: $timeDisplay',
-                    style: pw.TextStyle(fontSize: 14)),
+                    style: const pw.TextStyle(fontSize: 14)),
               ],
             ),
           );
@@ -354,7 +354,7 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
           content.add(
             pw.Text(
               'Parish: $parishName',
-              style: pw.TextStyle(fontSize: 14),
+              style: const pw.TextStyle(fontSize: 14),
             ),
           );
 
@@ -368,7 +368,7 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
               pw.Text(
                 'Intention Type $typeIndex: $type',
                 style:
-                    pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                    const pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
               ),
             );
             content.add(pw.SizedBox(height: 6));
@@ -383,7 +383,7 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
                     details.isNotEmpty
                         ? '- $details offered by $offeredBy'
                         : '- offered by $offeredBy',
-                    style: pw.TextStyle(fontSize: 12),
+                    style: const pw.TextStyle(fontSize: 12),
                   ),
                 ),
               );
@@ -397,7 +397,7 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
               pw.Center(
                 child: pw.Text(
                   'No mass intentions found for the selected date.',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                       fontSize: 14, fontStyle: pw.FontStyle.italic),
                 ),
               ),
@@ -437,7 +437,7 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
 
     await Printing.layoutPdf(
       onLayout: (format) async => pdf.save(),
-      name: 'MassIntention_${dateStr}_${timeStr}.pdf',
+      name: 'MassIntention_${dateStr}_$timeStr.pdf',
     );
   }
 
@@ -485,7 +485,7 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: _selectedTime,
+                        initialValue: _selectedTime,
                         decoration: const InputDecoration(
                           labelText: 'Mass Time',
                           border: OutlineInputBorder(),
@@ -534,7 +534,7 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
 
                     List<dynamic> availableParishes = parishProvider.parishes;
                     return DropdownButtonFormField<String>(
-                      value: _selectedParishId,
+                      initialValue: _selectedParishId,
                       decoration: const InputDecoration(
                         labelText: 'Parish',
                         border: OutlineInputBorder(),
