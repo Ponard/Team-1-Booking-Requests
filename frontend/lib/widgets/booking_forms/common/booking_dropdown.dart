@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class BookingDropdown<T> extends StatelessWidget {
-  final T? value;
+  final T? initialValue;
 
   final String label;
 
@@ -13,7 +13,7 @@ class BookingDropdown<T> extends StatelessWidget {
 
   const BookingDropdown({
     super.key,
-    required this.value,
+    required this.initialValue,
     required this.label,
     required this.items,
     this.onChanged,
@@ -25,7 +25,8 @@ class BookingDropdown<T> extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: DropdownButtonFormField<T>(
-        value: value,
+        initialValue: initialValue,
+        isExpanded: true,
         decoration: InputDecoration(
           labelText: label,
           border: const OutlineInputBorder(),
