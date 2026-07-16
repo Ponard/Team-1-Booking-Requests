@@ -40,7 +40,6 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
   final BaptismService _baptismService = BaptismService();
   PlatformFile? _birthCertificateFile;
   bool _isUploading = false;
-  bool _isProcessing = false; // For document operations
 
   bool _isEditMode = false;
   bool _isSaving = false;
@@ -231,14 +230,11 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
     );
     if (confirm != true) return;
 
-    setState(() => _isProcessing = true);
-
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Not authenticated')));
-      setState(() => _isProcessing = false);
       return;
     }
 
@@ -246,8 +242,6 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
       bookingId: widget.baptismId!,
       documentId: doc.id!,
     );
-
-    setState(() => _isProcessing = false);
 
     if (result.success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -268,14 +262,12 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
     if (result == null || result.files.isEmpty) return;
 
     final newFile = result.files.first;
-    setState(() => _isProcessing = true);
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Not authenticated')));
-      setState(() => _isProcessing = false);
       return;
     }
 
@@ -305,8 +297,6 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
           content:
               Text(uploadResult.message ?? 'Failed to upload new document')));
     }
-
-    setState(() => _isProcessing = false);
   }
 
   bool _validateForm() {
