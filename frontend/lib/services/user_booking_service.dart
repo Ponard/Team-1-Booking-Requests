@@ -19,8 +19,9 @@ class UserBookingService {
       if (page != null) queryParams.add('page=$page');
       if (limit != null) queryParams.add('limit=$limit');
       if (status != null) queryParams.add('status=$status');
-      if (sacramentType != null)
+      if (sacramentType != null) {
         queryParams.add('sacramentType=$sacramentType');
+      }
 
       String endpoint = ApiConfig.bookingsEndpoint;
       if (queryParams.isNotEmpty) {

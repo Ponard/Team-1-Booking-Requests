@@ -488,7 +488,9 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
                         onSaved: (v) => _startTime = v,
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Required';
-                          if (!RegExp(r'^\d{1,2}:\d{2}$').hasMatch(v)) return 'Format: HH:MM';
+                          if (!RegExp(r'^\d{1,2}:\d{2}$').hasMatch(v)) {
+                            return 'Format: HH:MM';
+                          }
                           return null;
                         },
                       ),
@@ -505,7 +507,9 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
                         onSaved: (v) => _endTime = v,
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Required';
-                          if (!RegExp(r'^\d{1,2}:\d{2}$').hasMatch(v)) return 'Format: HH:MM';
+                          if (!RegExp(r'^\d{1,2}:\d{2}$').hasMatch(v)) {
+                            return 'Format: HH:MM';
+                          }
                           return null;
                         },
                       ),
