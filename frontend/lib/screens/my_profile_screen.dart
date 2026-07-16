@@ -302,12 +302,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                 const Text('Update your account password'),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () async {
+                              final messenger = ScaffoldMessenger.of(context);
                               final result = await Navigator.pushNamed(
                                 context,
                                 '/profile',
                               );
-                              if (result == true && mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
+                              if (result == true) {
+                                messenger.showSnackBar(
                                   const SnackBar(
                                     content:
                                         Text('Password changed successfully'),

@@ -181,16 +181,21 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
 
     setState(() => _isUploading = false);
 
-    if (mounted) {
-      if (result.success) {
-        await _loadBooking();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Birth certificate uploaded successfully')));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result.message ?? 'Upload failed')));
-      }
+    if (result.success) {
+      await _loadBooking();
     }
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result.success
+              ? 'Birth certificate uploaded successfully'
+              : (result.message ?? 'Upload failed'),
+        ),
+      ),
+    );
   }
 
   /// Opens a document in the preview screen
@@ -212,6 +217,7 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
   }
 
   Future<void> _deleteDocument(Document doc) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -228,9 +234,10 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         ],
       ),
     );
+
+    if (!mounted) return;
     if (confirm != true) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null) {
       ScaffoldMessenger.of(context)
@@ -243,10 +250,13 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
       documentId: doc.id!,
     );
 
+    if (!mounted) return;
+
     if (result.success) {
+      await _loadBooking(); // Refresh
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result.message ?? 'Document deleted')));
-      await _loadBooking(); // Refresh
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(result.message ?? 'Failed to delete document')));
@@ -255,15 +265,15 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
 
   Future<void> _replaceDocument(Document doc) async {
     // Pick new file
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
     );
-    if (result == null || result.files.isEmpty) return;
+    if (!mounted || result == null || result.files.isEmpty) return;
 
     final newFile = result.files.first;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null) {
       ScaffoldMessenger.of(context)
@@ -279,19 +289,23 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
       documentType: doc.documentType,
     );
 
+    if (!mounted) return;
+
     if (uploadResult.success) {
       // Delete old document
       final deleteResult = await _baptismService.deleteDocument(
         bookingId: widget.baptismId!,
         documentId: doc.id!,
       );
+      if (!mounted) return;
       if (!deleteResult.success) {
         // Log but continue
         // print('Failed to delete old document: ${deleteResult.message}');
       }
+      await _loadBooking();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(uploadResult.message ?? 'Document replaced')));
-      await _loadBooking();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content:

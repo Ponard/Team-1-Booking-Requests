@@ -705,6 +705,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   }
 
   Future<void> _deleteBooking() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -727,7 +728,6 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
 
     setState(() => _isSaving = true);
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null) {
       if (mounted) {

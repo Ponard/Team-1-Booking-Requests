@@ -21,6 +21,8 @@ class _SplashScreenState extends State<SplashScreen> {
     // Wait for auth provider to initialize
     await Future.delayed(const Duration(seconds: 2));
 
+    if (!mounted) return;
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     // Check if user is logged in and navigate accordingly
@@ -71,4 +73,3 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
-

@@ -396,6 +396,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
   }
 
   Future<void> _deleteBooking() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -418,7 +419,6 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
 
     setState(() => _isSaving = true);
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null) {
       if (mounted) {

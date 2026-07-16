@@ -69,9 +69,9 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
           '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
     });
 
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await _loadSchedulesForDate(now);
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final userParishId = authProvider.currentUser?.effectiveParishId;
     if (userParishId != null) {
       setState(() {

@@ -118,13 +118,13 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         // Do not populate _newNoteController - it's for adding new notes
       });
 
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       if (_selectedDate != null) {
         await _loadSchedulesForDate(_selectedDate!);
       }
       if (widget.fromStatusButton && isEditable) {
         setState(() => _isEditMode = true);
       } else {
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
         final currentUser = authProvider.currentUser;
         final isOwner = intention.submittedBy == currentUser?.id;
         if (!widget.fromStatusButton && isOwner && isEditable) {
@@ -307,20 +307,21 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         notes: notesToAdd,
       );
 
-      if (mounted) {
-        setState(() => _isSaving = false);
-        if (result.success) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('Mass intention updated successfully')));
-          _newNoteController.clear();
-          // Reload data to get updated preferredTime
-          await _loadMassIntention();
-          _toggleEditMode();
-          Navigator.pop(context, true);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(result.message ?? 'Failed to update')));
-        }
+      if (!mounted) return;
+
+      setState(() => _isSaving = false);
+      if (result.success) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Mass intention updated successfully')));
+        _newNoteController.clear();
+        // Reload data to get updated preferredTime
+        await _loadMassIntention();
+        if (!mounted) return;
+        _toggleEditMode();
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result.message ?? 'Failed to update')));
       }
     } catch (e) {
       if (mounted) {

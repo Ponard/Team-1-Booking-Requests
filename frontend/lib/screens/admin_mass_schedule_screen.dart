@@ -54,6 +54,7 @@ class _AdminMassScheduleScreenState extends State<AdminMassScheduleScreen> {
   }
 
   Future<void> _deleteSchedule(MassSchedule schedule) async {
+    final provider = Provider.of<MassScheduleProvider>(context, listen: false);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -74,8 +75,6 @@ class _AdminMassScheduleScreenState extends State<AdminMassScheduleScreen> {
     );
 
     if (confirmed == true) {
-      final provider =
-          Provider.of<MassScheduleProvider>(context, listen: false);
       final success = await provider.deleteSchedule(schedule.id!);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

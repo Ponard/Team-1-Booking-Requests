@@ -114,18 +114,21 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.message ?? 'Failed to load bookings')),
+          SnackBar(
+              content: Text(response.message ?? 'Failed to load bookings')),
         );
       }
     }
   }
 
   Future<void> _deleteBooking(String bookingId, {String? sacramentType}) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Booking'),
-        content: const Text('Are you sure you want to delete this booking? This action cannot be undone.'),
+        content: const Text(
+            'Are you sure you want to delete this booking? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -142,11 +145,11 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
 
     if (confirm != true) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null) return;
 
-    final response = await _adminService.deleteBooking(token, bookingId, sacramentType: sacramentType);
+    final response = await _adminService.deleteBooking(token, bookingId,
+        sacramentType: sacramentType);
 
     if (mounted) {
       if (response.success) {
@@ -156,7 +159,8 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
         _loadBookings();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.message ?? 'Failed to delete booking')),
+          SnackBar(
+              content: Text(response.message ?? 'Failed to delete booking')),
         );
       }
     }
@@ -173,13 +177,13 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
 
     // Find the booking from the list to get its type
     final booking = _bookings.firstWhere(
-          (b) => b['id'].toString() == bookingId,
+      (b) => b['id'].toString() == bookingId,
       orElse: () => {},
     );
-    
+
     // Return if booking not found
     if (booking.isEmpty) return;
-    
+
     final bookingType = booking['bookingType'] ?? booking['sacramentType'];
     if (bookingType == 'baptism') {
       // Navigate to baptism detail screen for approval/completion actions
@@ -188,7 +192,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
           : booking['id'] is int
               ? booking['id']
               : null;
-      
+
       Navigator.pushNamed(
         context,
         '/baptism-detail',
@@ -209,64 +213,64 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
         arguments: {'id': id, 'fromStatusButton': true},
       ).then((_) => _loadBookings());
       return;
-     } else if (bookingType == 'confirmation') {
-       // Navigate to confirmation detail screen for approval/completion actions
-       final id = booking['id'] is String
-           ? int.tryParse(booking['id'])
-           : booking['id'] is int
-               ? booking['id']
-               : null;
+    } else if (bookingType == 'confirmation') {
+      // Navigate to confirmation detail screen for approval/completion actions
+      final id = booking['id'] is String
+          ? int.tryParse(booking['id'])
+          : booking['id'] is int
+              ? booking['id']
+              : null;
 
-       Navigator.pushNamed(
-         context,
-         '/confirmation-detail',
-         arguments: {'id': id, 'fromStatusButton': true},
-       ).then((_) => _loadBookings());
-       return;
-      } else if (bookingType == 'anointing_sick') {
-        // Navigate to anointing sick detail screen for approval/completion actions
-        final id = booking['id'] is String
-            ? int.tryParse(booking['id'])
-            : booking['id'] is int
-                ? booking['id']
-                : null;
+      Navigator.pushNamed(
+        context,
+        '/confirmation-detail',
+        arguments: {'id': id, 'fromStatusButton': true},
+      ).then((_) => _loadBookings());
+      return;
+    } else if (bookingType == 'anointing_sick') {
+      // Navigate to anointing sick detail screen for approval/completion actions
+      final id = booking['id'] is String
+          ? int.tryParse(booking['id'])
+          : booking['id'] is int
+              ? booking['id']
+              : null;
 
-        Navigator.pushNamed(
-          context,
-          '/anointing-sick-detail',
-          arguments: {'id': id, 'fromStatusButton': true},
-        ).then((_) => _loadBookings());
-        return;
-      } else if (bookingType == 'funeral_mass') {
-        // Navigate to funeral mass detail screen for approval/completion actions
-        final id = booking['id'] is String
-            ? int.tryParse(booking['id'])
-            : booking['id'] is int
-                ? booking['id']
-                : null;
+      Navigator.pushNamed(
+        context,
+        '/anointing-sick-detail',
+        arguments: {'id': id, 'fromStatusButton': true},
+      ).then((_) => _loadBookings());
+      return;
+    } else if (bookingType == 'funeral_mass') {
+      // Navigate to funeral mass detail screen for approval/completion actions
+      final id = booking['id'] is String
+          ? int.tryParse(booking['id'])
+          : booking['id'] is int
+              ? booking['id']
+              : null;
 
-        Navigator.pushNamed(
-          context,
-          '/funeral-mass-detail',
-          arguments: {'id': id, 'fromStatusButton': true},
-        ).then((_) => _loadBookings());
-        return;
-      } else if (bookingType == 'wedding') {
-        final weddingId = booking['id'] is String
-            ? int.tryParse(booking['id'])
-            : booking['id'] is int
-                ? booking['id']
-                : null;
+      Navigator.pushNamed(
+        context,
+        '/funeral-mass-detail',
+        arguments: {'id': id, 'fromStatusButton': true},
+      ).then((_) => _loadBookings());
+      return;
+    } else if (bookingType == 'wedding') {
+      final weddingId = booking['id'] is String
+          ? int.tryParse(booking['id'])
+          : booking['id'] is int
+              ? booking['id']
+              : null;
 
-        Navigator.pushNamed(
-          context,
-          '/wedding-detail',
-          arguments: {'weddingId': weddingId, 'fromStatusButton': true},
-        ).then((_) => _loadBookings());
-        return;
-      }
+      Navigator.pushNamed(
+        context,
+        '/wedding-detail',
+        arguments: {'weddingId': weddingId, 'fromStatusButton': true},
+      ).then((_) => _loadBookings());
+      return;
+    }
 
-      final response = await _adminService.updateBookingStatus(
+    final response = await _adminService.updateBookingStatus(
       token,
       bookingId,
       status,
@@ -282,7 +286,8 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.message ?? 'Failed to update booking')),
+          SnackBar(
+              content: Text(response.message ?? 'Failed to update booking')),
         );
       }
     }
@@ -308,9 +313,10 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                   children: [
                     Text(
                       'Booking Details',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close),
@@ -323,17 +329,27 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                 _buildDetailRow('ID', '#${booking['id']}'),
                 _buildDetailRow(
                   'Type',
-                  (booking['bookingType'] ?? booking['sacramentType'] ?? 'N/A').toString().replaceAll('_', ' ').toUpperCase(),
+                  (booking['bookingType'] ?? booking['sacramentType'] ?? 'N/A')
+                      .toString()
+                      .replaceAll('_', ' ')
+                      .toUpperCase(),
                 ),
                 _buildDetailRow(
                   'Status',
                   booking['status']?.toString().toUpperCase() ?? 'N/A',
                 ),
-                _buildDetailRow('Name', booking['childFullName'] ?? booking['deceasedFullName'] ?? booking['coupleNames'] ?? booking['fullName'] ?? 'N/A'),
+                _buildDetailRow(
+                    'Name',
+                    booking['childFullName'] ??
+                        booking['deceasedFullName'] ??
+                        booking['coupleNames'] ??
+                        booking['fullName'] ??
+                        'N/A'),
                 _buildDetailRow(
                   'Date',
                   formatDateMMDDYYYY(
-                    (booking['bookingType'] ?? booking['sacramentType']) == 'mass_intention'
+                    (booking['bookingType'] ?? booking['sacramentType']) ==
+                            'mass_intention'
                         ? booking['massSchedule']?.toString()
                         : booking['preferredDate']?.toString(),
                   ),
@@ -345,21 +361,30 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                 if (booking['adminNotes'] != null)
                   _buildDetailRow('Admin Notes', booking['adminNotes']),
                 // Documents section
-                if (booking['documents'] != null && booking['documents'].isNotEmpty) ...[
+                if (booking['documents'] != null &&
+                    booking['documents'].isNotEmpty) ...[
                   const SizedBox(height: 16),
                   const Text(
                     'Documents',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue),
                   ),
                   const SizedBox(height: 8),
                   ...booking['documents'].map<Widget>((doc) {
-                    final documentType = doc['documentType']?.toString().toUpperCase().replaceAll('_', ' ') ?? 'DOCUMENT';
+                    final documentType = doc['documentType']
+                            ?.toString()
+                            .toUpperCase()
+                            .replaceAll('_', ' ') ??
+                        'DOCUMENT';
                     final fileName = doc['fileName'] ?? 'File';
                     final isVerified = doc['isVerified'];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: ListTile(
-                        leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+                        leading:
+                            const Icon(Icons.picture_as_pdf, color: Colors.red),
                         title: Text(documentType),
                         subtitle: Text(fileName),
                         trailing: isVerified == true
@@ -377,7 +402,8 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            _updateBookingStatus(booking['id'].toString(), 'approved');
+                            _updateBookingStatus(
+                                booking['id'].toString(), 'approved');
                             Navigator.pop(context);
                           },
                           icon: const Icon(Icons.check),
@@ -392,7 +418,8 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            _updateBookingStatus(booking['id'].toString(), 'declined');
+                            _updateBookingStatus(
+                                booking['id'].toString(), 'declined');
                             Navigator.pop(context);
                           },
                           icon: const Icon(Icons.close),
@@ -552,27 +579,29 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                     if (parishProvider.isLoading) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    
+
                     // Filter parishes based on current user's role
                     List<dynamic> availableParishes = parishProvider.parishes;
-                    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                    final authProvider =
+                        Provider.of<AuthProvider>(context, listen: false);
                     final currentUser = authProvider.currentUser;
-                    
+
                     // If current user is parish-level, only show their assigned parish
-                    if (currentUser != null && 
-                        Roles.isParishLevel(currentUser.role) && 
+                    if (currentUser != null &&
+                        Roles.isParishLevel(currentUser.role) &&
                         currentUser.effectiveParishId != null) {
                       final currentUserParish = parishProvider.parishes
-                          .where((parish) => parish.id == currentUser.effectiveParishId)
+                          .where((parish) =>
+                              parish.id == currentUser.effectiveParishId)
                           .firstOrNull;
-                      
+
                       if (currentUserParish != null) {
                         availableParishes = [currentUserParish];
                         // Auto-select the parish if not already selected
                         _selectedParishId ??= currentUserParish.id.toString();
                       }
                     }
-                    
+
                     return DropdownButtonFormField<String>(
                       initialValue: _selectedParishId,
                       decoration: const InputDecoration(
@@ -582,7 +611,8 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                       ),
                       items: [
                         if (!Roles.isParishLevel(currentUser?.role ?? ''))
-                          const DropdownMenuItem(value: null, child: Text('All Parishes')),
+                          const DropdownMenuItem(
+                              value: null, child: Text('All Parishes')),
                         ...availableParishes
                             .map((parish) => DropdownMenuItem<String>(
                                   value: parish.id.toString(),
@@ -605,18 +635,17 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _bookings.isEmpty
-        //fix this for the admin to have their filter for the empty state - s vitug
+                    //fix this for the admin to have their filter for the empty state - s vitug
                     ? const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.filter_list_off, size:64, color: Colors.grey),
-                                SizedBox(height:16),
-                                Text('No bookings found with current filters'),
-                              ]
-                            ),
-                          )
-
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.filter_list_off,
+                                  size: 64, color: Colors.grey),
+                              SizedBox(height: 16),
+                              Text('No bookings found with current filters'),
+                            ]),
+                      )
                     : RefreshIndicator(
                         onRefresh: _loadBookings,
                         child: ListView.builder(
@@ -624,8 +653,9 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                           itemCount: _bookings.length,
                           itemBuilder: (context, index) {
                             final booking = _bookings[index];
-                            final bookingType = booking['bookingType'] ?? booking['sacramentType'];
-                            
+                            final bookingType = booking['bookingType'] ??
+                                booking['sacramentType'];
+
                             return Card(
                               margin: const EdgeInsets.only(bottom: 12),
                               child: InkWell(
@@ -710,32 +740,32 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                                       },
                                     ).then((_) => _loadBookings());
                                   } else if (bookingType == 'wedding') {
-                                     Navigator.pushNamed(
-                                       context,
-                                       '/wedding-detail',
-                                       arguments: {
-                                         'weddingId': booking['id'] is String
-                                             ? int.tryParse(booking['id'])
-                                             : booking['id'] is int
-                                                 ? booking['id']
-                                                 : null,
-                                         'fromStatusButton': true,
-                                       },
-                                     ).then((_) => _loadBookings());
-                                   } else if (bookingType == 'eucharist') {
-                                     Navigator.pushNamed(
-                                       context,
-                                       '/eucharist-detail',
-                                       arguments: {
-                                         'id': booking['id'] is String
-                                             ? int.tryParse(booking['id'])
-                                             : booking['id'] is int
-                                                 ? booking['id']
-                                                 : null,
-                                         'fromStatusButton': true,
-                                       },
-                                     ).then((_) => _loadBookings());
-                                   } else {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/wedding-detail',
+                                      arguments: {
+                                        'weddingId': booking['id'] is String
+                                            ? int.tryParse(booking['id'])
+                                            : booking['id'] is int
+                                                ? booking['id']
+                                                : null,
+                                        'fromStatusButton': true,
+                                      },
+                                    ).then((_) => _loadBookings());
+                                  } else if (bookingType == 'eucharist') {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/eucharist-detail',
+                                      arguments: {
+                                        'id': booking['id'] is String
+                                            ? int.tryParse(booking['id'])
+                                            : booking['id'] is int
+                                                ? booking['id']
+                                                : null,
+                                        'fromStatusButton': true,
+                                      },
+                                    ).then((_) => _loadBookings());
+                                  } else {
                                     // Show generic details for other types
                                     _showBookingDetails(booking);
                                   }
@@ -757,59 +787,86 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
-Text(
-                                                bookingType == 'wedding'
-                                                    ? booking['groomFullName'] ?? 'Booking #${booking['id']}'
-                                                    : bookingType == 'mass_intention'
-                                                        ? booking['donorName'] ?? 'Booking #${booking['id']}'
-                                                        : bookingType == 'reconciliation'
-                                                            ? booking['penitentName'] ?? 'Booking #${booking['id']}'
-                                                            : bookingType == 'eucharist'
-                                                                ? booking['communicantName'] ?? 'Booking #${booking['id']}'
-                                                                : booking['childFullName'] ??
-                                                                    booking['confirmandName'] ??
-                                                                    booking['sickPersonName'] ??
-                                                                    booking['deceasedFullName'] ??
-                                                                    booking['coupleNames'] ??
-                                                                    booking['fullName'] ??
-                                                                    'Booking #${booking['id']}',
-                                               style: const TextStyle(
-                                                 fontWeight: FontWeight.bold,
-                                                 fontSize: 15,
-                                               ),
-                                             ),
+                                            Text(
+                                              bookingType == 'wedding'
+                                                  ? booking['groomFullName'] ??
+                                                      'Booking #${booking['id']}'
+                                                  : bookingType ==
+                                                          'mass_intention'
+                                                      ? booking['donorName'] ??
+                                                          'Booking #${booking['id']}'
+                                                      : bookingType ==
+                                                              'reconciliation'
+                                                          ? booking[
+                                                                  'penitentName'] ??
+                                                              'Booking #${booking['id']}'
+                                                          : bookingType ==
+                                                                  'eucharist'
+                                                              ? booking[
+                                                                      'communicantName'] ??
+                                                                  'Booking #${booking['id']}'
+                                                              : booking[
+                                                                      'childFullName'] ??
+                                                                  booking[
+                                                                      'confirmandName'] ??
+                                                                  booking[
+                                                                      'sickPersonName'] ??
+                                                                  booking[
+                                                                      'deceasedFullName'] ??
+                                                                  booking[
+                                                                      'coupleNames'] ??
+                                                                  booking[
+                                                                      'fullName'] ??
+                                                                  'Booking #${booking['id']}',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 15,
+                                              ),
+                                            ),
                                             const SizedBox(height: 4),
                                             Text(
                                               (bookingType ?? 'booking')
                                                   .toString()
                                                   .replaceAll('_', ' ')
                                                   .toUpperCase(),
-                                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                              style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey),
                                             ),
                                             const SizedBox(height: 2),
                                             Text(
                                               formatDateMMDDYYYY(
                                                 bookingType == 'mass_intention'
-                                                    ? booking['massSchedule']?.toString()
-                                                    : booking['preferredDate']?.toString(),
+                                                    ? booking['massSchedule']
+                                                        ?.toString()
+                                                    : booking['preferredDate']
+                                                        ?.toString(),
                                               ),
-                                              style: const TextStyle(fontSize: 12),
+                                              style:
+                                                  const TextStyle(fontSize: 12),
                                             ),
                                           ],
                                         ),
                                       ),
                                       const SizedBox(width: 12),
                                       MaterialButton(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                        color: _getStatusColor(booking['status'] ?? 'pending'),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        color: _getStatusColor(
+                                            booking['status'] ?? 'pending'),
                                         textColor: Colors.white,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                         child: Text(
-                                          booking['status']?.toString().toUpperCase() ?? 'PENDING',
+                                          booking['status']
+                                                  ?.toString()
+                                                  .toUpperCase() ??
+                                              'PENDING',
                                           style: const TextStyle(fontSize: 11),
                                         ),
                                         onPressed: () {
@@ -823,9 +880,13 @@ Text(
                                             Navigator.pushNamed(
                                               context,
                                               '/baptism-detail',
-                                              arguments: {'id': id, 'fromStatusButton': true},
+                                              arguments: {
+                                                'id': id,
+                                                'fromStatusButton': true
+                                              },
                                             ).then((_) => _loadBookings());
-                                          } else if (bookingType == 'mass_intention') {
+                                          } else if (bookingType ==
+                                              'mass_intention') {
                                             final id = booking['id'] is String
                                                 ? int.tryParse(booking['id'])
                                                 : booking['id'] is int
@@ -834,9 +895,13 @@ Text(
                                             Navigator.pushNamed(
                                               context,
                                               '/mass-intention-detail',
-                                              arguments: {'id': id, 'fromStatusButton': true},
+                                              arguments: {
+                                                'id': id,
+                                                'fromStatusButton': true
+                                              },
                                             ).then((_) => _loadBookings());
-                                          } else if (bookingType == 'confirmation') {
+                                          } else if (bookingType ==
+                                              'confirmation') {
                                             final id = booking['id'] is String
                                                 ? int.tryParse(booking['id'])
                                                 : booking['id'] is int
@@ -845,9 +910,13 @@ Text(
                                             Navigator.pushNamed(
                                               context,
                                               '/confirmation-detail',
-                                              arguments: {'id': id, 'fromStatusButton': true},
+                                              arguments: {
+                                                'id': id,
+                                                'fromStatusButton': true
+                                              },
                                             ).then((_) => _loadBookings());
-                                          } else if (bookingType == 'anointing_sick') {
+                                          } else if (bookingType ==
+                                              'anointing_sick') {
                                             final id = booking['id'] is String
                                                 ? int.tryParse(booking['id'])
                                                 : booking['id'] is int
@@ -856,9 +925,13 @@ Text(
                                             Navigator.pushNamed(
                                               context,
                                               '/anointing-sick-detail',
-                                              arguments: {'id': id, 'fromStatusButton': true},
+                                              arguments: {
+                                                'id': id,
+                                                'fromStatusButton': true
+                                              },
                                             ).then((_) => _loadBookings());
-                                          } else if (bookingType == 'funeral_mass') {
+                                          } else if (bookingType ==
+                                              'funeral_mass') {
                                             final id = booking['id'] is String
                                                 ? int.tryParse(booking['id'])
                                                 : booking['id'] is int
@@ -867,52 +940,73 @@ Text(
                                             Navigator.pushNamed(
                                               context,
                                               '/funeral-mass-detail',
-                                              arguments: {'id': id, 'fromStatusButton': true},
+                                              arguments: {
+                                                'id': id,
+                                                'fromStatusButton': true
+                                              },
                                             ).then((_) => _loadBookings());
-                                          } else if (bookingType == 'reconciliation') {
-                                             final id = booking['id'] is String
-                                                 ? int.tryParse(booking['id'])
-                                                 : booking['id'] is int
-                                                     ? booking['id']
-                                                     : null;
-                                             Navigator.pushNamed(
-                                               context,
-                                               '/reconciliation-detail',
-                                               arguments: {'id': id, 'fromStatusButton': true},
-                                             ).then((_) => _loadBookings());
-                                           } else if (bookingType == 'wedding') {
-                                             final weddingId = booking['id'] is String
-                                                 ? int.tryParse(booking['id'])
-                                                 : booking['id'] is int
-                                                     ? booking['id']
-                                                     : null;
-                                             Navigator.pushNamed(
-                                               context,
-                                               '/wedding-detail',
-                                               arguments: {'weddingId': weddingId, 'fromStatusButton': true},
-                                             ).then((_) => _loadBookings());
-                                           } else if (bookingType == 'eucharist') {
-                                             final eucharistId = booking['id'] is String
-                                                 ? int.tryParse(booking['id'])
-                                                 : booking['id'] is int
-                                                     ? booking['id']
-                                                     : null;
-                                             Navigator.pushNamed(
-                                               context,
-                                               '/eucharist-detail',
-                                               arguments: {'id': eucharistId, 'fromStatusButton': true},
-                                             ).then((_) => _loadBookings());
-                                           } else {
-                                             // Show generic details for other types
-                                             _showBookingDetails(booking);
-                                           }
+                                          } else if (bookingType ==
+                                              'reconciliation') {
+                                            final id = booking['id'] is String
+                                                ? int.tryParse(booking['id'])
+                                                : booking['id'] is int
+                                                    ? booking['id']
+                                                    : null;
+                                            Navigator.pushNamed(
+                                              context,
+                                              '/reconciliation-detail',
+                                              arguments: {
+                                                'id': id,
+                                                'fromStatusButton': true
+                                              },
+                                            ).then((_) => _loadBookings());
+                                          } else if (bookingType == 'wedding') {
+                                            final weddingId = booking['id']
+                                                    is String
+                                                ? int.tryParse(booking['id'])
+                                                : booking['id'] is int
+                                                    ? booking['id']
+                                                    : null;
+                                            Navigator.pushNamed(
+                                              context,
+                                              '/wedding-detail',
+                                              arguments: {
+                                                'weddingId': weddingId,
+                                                'fromStatusButton': true
+                                              },
+                                            ).then((_) => _loadBookings());
+                                          } else if (bookingType ==
+                                              'eucharist') {
+                                            final eucharistId = booking['id']
+                                                    is String
+                                                ? int.tryParse(booking['id'])
+                                                : booking['id'] is int
+                                                    ? booking['id']
+                                                    : null;
+                                            Navigator.pushNamed(
+                                              context,
+                                              '/eucharist-detail',
+                                              arguments: {
+                                                'id': eucharistId,
+                                                'fromStatusButton': true
+                                              },
+                                            ).then((_) => _loadBookings());
+                                          } else {
+                                            // Show generic details for other types
+                                            _showBookingDetails(booking);
+                                          }
                                         },
                                       ),
                                       const SizedBox(width: 8),
                                       IconButton(
-                                        icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                                        icon: const Icon(Icons.delete,
+                                            color: Colors.red, size: 20),
                                         tooltip: 'Delete booking',
-                                        onPressed: () => _deleteBooking(booking['id'].toString(), sacramentType: booking['bookingType'] ?? booking['sacramentType']),
+                                        onPressed: () => _deleteBooking(
+                                            booking['id'].toString(),
+                                            sacramentType:
+                                                booking['bookingType'] ??
+                                                    booking['sacramentType']),
                                       ),
                                     ],
                                   ),

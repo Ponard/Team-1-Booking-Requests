@@ -138,6 +138,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   Future<void> _deleteBooking(int bookingId, String sacramentType) async {
     // print(
     //     '[my_bookings] _deleteBooking called with id: $bookingId, type: $sacramentType');
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -159,7 +161,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
     if (confirmed != true) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
 
     if (token == null) return;
