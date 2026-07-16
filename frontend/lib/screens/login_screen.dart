@@ -12,7 +12,7 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -39,20 +39,22 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text,
       );
 
+      if (!mounted) return;
+
       if (success) {
         Navigator.of(context).pushReplacementNamed('/home');
       }
     }
   }
 
-  void _signInWithGoogle() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    bool success = await authProvider.signInWithGoogle();
+  // void _signInWithGoogle() async {
+  //   final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  //   bool success = await authProvider.signInWithGoogle();
 
-    if (success) {
-      Navigator.of(context).pushReplacementNamed('/home');
-    }
-  }
+  //   if (success) {
+  //     Navigator.of(context).pushReplacementNamed('/home');
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

@@ -83,7 +83,7 @@ class EucharistBooking {
       if (preferredTimeSlot != null) 'preferredTimeSlot': preferredTimeSlot,
       if (priestId != null) 'priestId': priestId,
       if (notes != null) 'notes': notes,
-      if (status != null) 'status': status,
+      'status': status,
       if (adminNotes != null) 'adminNotes': adminNotes,
     };
   }

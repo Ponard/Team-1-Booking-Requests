@@ -46,7 +46,7 @@ class _DocumentPreviewScreenState extends State<DocumentPreviewScreen> {
     final fileUri = baseUri.resolve(widget.document.fileUrl ?? '');
 
     _controller = WebViewController();
-    
+
     _controller!
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
@@ -85,7 +85,8 @@ class _DocumentPreviewScreenState extends State<DocumentPreviewScreen> {
 
       if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to download document. Please try again.')),
+          const SnackBar(
+              content: Text('Failed to download document. Please try again.')),
         );
       }
     } catch (e) {
@@ -99,7 +100,9 @@ class _DocumentPreviewScreenState extends State<DocumentPreviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filename = widget.document.originalFilename ?? widget.document.fileName ?? 'Document';
+    final filename = widget.document.originalFilename ??
+        widget.document.fileName ??
+        'Document';
     final baseUri = Uri.parse(ApiConfig.baseUrl);
     final fileUri = baseUri.resolve(widget.document.fileUrl ?? '');
 
@@ -142,13 +145,16 @@ class _DocumentPreviewScreenState extends State<DocumentPreviewScreen> {
                   const SizedBox(height: 8),
                   ElevatedButton.icon(
                     onPressed: () async {
+                      final messenger = ScaffoldMessenger.of(context);
                       final success = await launchUrl(
                         fileUri,
                         mode: LaunchMode.externalApplication,
                       );
                       if (!success && mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Failed to open document in external app')),
+                        messenger.showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  'Failed to open document in external app')),
                         );
                       }
                     },

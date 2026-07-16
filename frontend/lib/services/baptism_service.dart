@@ -68,28 +68,28 @@ class BaptismService {
     }
   }
 
-   // Get baptism booking by ID
-   Future<ApiResponse<BaptismBooking>> getBaptismBookingById({
-     required int id,
-   }) async {
-     try {
-       final response = await _apiClient.getWithAuth(
-         '${ApiConfig.baptismsEndpoint}/$id',
-       );
+  // Get baptism booking by ID
+  Future<ApiResponse<BaptismBooking>> getBaptismBookingById({
+    required int id,
+  }) async {
+    try {
+      final response = await _apiClient.getWithAuth(
+        '${ApiConfig.baptismsEndpoint}/$id',
+      );
 
-       if (response.statusCode == 200) {
-         final data = json.decode(response.body);
-         print('=== GET BAPTISM RESPONSE ===');
-         print('Status: ${response.statusCode}');
-         print('Body: ${response.body}');
-         print('Documents in response: ${data['booking']?['documents']}');
-         final booking = BaptismBooking.fromJson(data['booking']);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        // print('=== GET BAPTISM RESPONSE ===');
+        // print('Status: ${response.statusCode}');
+        // print('Body: ${response.body}');
+        // print('Documents in response: ${data['booking']?['documents']}');
+        final booking = BaptismBooking.fromJson(data['booking']);
 
-         return ApiResponse<BaptismBooking>(
-           success: true,
-           data: booking,
-           message: data['message'],
-         );
+        return ApiResponse<BaptismBooking>(
+          success: true,
+          data: booking,
+          message: data['message'],
+        );
       } else {
         final errorData = json.decode(response.body);
         return ApiResponse<BaptismBooking>(
@@ -108,62 +108,63 @@ class BaptismService {
   }
 
 // Create baptism booking
-    Future<ApiResponse<BaptismBooking>> createBaptismBooking({
-      required int parishId,
-      required String childFullName,
-      required String dateOfBirth,
-      required String fatherName,
-      required String motherName,
-      required String contactEmail,
-      required String contactPhone,
-      required String preferredDate,
-      required String preferredTimeSlot,
-      int? priestId,
-      List<Map<String, dynamic>>? notes, // New format: [{author, content, authorId, timestamp}]
-      String? additionalNotes, // Legacy support
-      List<Map<String, String>>? godparents,
-      String? uploadedFile,
-      String? filePath,
-      String? fileUrl,
-      int? fileSize,
-      String? mimeType,
-      String? documentType,
-    }) async {
-      try {
-        final requestBody = {
-          'parishId': parishId,
-          'childFullName': childFullName,
-          'dateOfBirth': dateOfBirth,
-          'fatherName': fatherName,
-          'motherName': motherName,
-          'contactEmail': contactEmail,
-          'contactPhone': contactPhone,
-          'preferredDate': preferredDate,
-          'preferredTimeSlot': preferredTimeSlot,
-          if (priestId != null) 'priestId': priestId,
-          if (notes != null && notes.isNotEmpty) 'notes': notes,
-          // Legacy support: if additionalNotes provided, it will be converted by backend
-          if (additionalNotes != null) 'additionalNotes': additionalNotes,
-          if (godparents != null) 'godparents': godparents,
-          if (uploadedFile != null) 'uploadedFile': uploadedFile,
-          if (filePath != null) 'filePath': filePath,
-          if (fileUrl != null) 'fileUrl': fileUrl,
-          if (fileSize != null) 'fileSize': fileSize,
-          if (mimeType != null) 'mimeType': mimeType,
-          if (documentType != null) 'documentType': documentType,
-        };
+  Future<ApiResponse<BaptismBooking>> createBaptismBooking({
+    required int parishId,
+    required String childFullName,
+    required String dateOfBirth,
+    required String fatherName,
+    required String motherName,
+    required String contactEmail,
+    required String contactPhone,
+    required String preferredDate,
+    required String preferredTimeSlot,
+    int? priestId,
+    List<Map<String, dynamic>>?
+        notes, // New format: [{author, content, authorId, timestamp}]
+    String? additionalNotes, // Legacy support
+    List<Map<String, String>>? godparents,
+    String? uploadedFile,
+    String? filePath,
+    String? fileUrl,
+    int? fileSize,
+    String? mimeType,
+    String? documentType,
+  }) async {
+    try {
+      final requestBody = {
+        'parishId': parishId,
+        'childFullName': childFullName,
+        'dateOfBirth': dateOfBirth,
+        'fatherName': fatherName,
+        'motherName': motherName,
+        'contactEmail': contactEmail,
+        'contactPhone': contactPhone,
+        'preferredDate': preferredDate,
+        'preferredTimeSlot': preferredTimeSlot,
+        if (priestId != null) 'priestId': priestId,
+        if (notes != null && notes.isNotEmpty) 'notes': notes,
+        // Legacy support: if additionalNotes provided, it will be converted by backend
+        if (additionalNotes != null) 'additionalNotes': additionalNotes,
+        if (godparents != null) 'godparents': godparents,
+        if (uploadedFile != null) 'uploadedFile': uploadedFile,
+        if (filePath != null) 'filePath': filePath,
+        if (fileUrl != null) 'fileUrl': fileUrl,
+        if (fileSize != null) 'fileSize': fileSize,
+        if (mimeType != null) 'mimeType': mimeType,
+        if (documentType != null) 'documentType': documentType,
+      };
 
       final response = await _apiClient.postWithAuth(
         ApiConfig.baptismsEndpoint,
         json.encode(requestBody),
       );
 
-      print('Baptism booking response status: ${response.statusCode}');
-      print('Baptism booking response body: ${response.body}');
+      // print('Baptism booking response status: ${response.statusCode}');
+      // print('Baptism booking response body: ${response.body}');
 
       if (response.statusCode == 201) {
         final data = json.decode(response.body);
-        print('Parsed baptism booking data: $data');
+        // print('Parsed baptism booking data: $data');
         final booking = BaptismBooking.fromJson(data['booking']);
 
         return ApiResponse<BaptismBooking>(
@@ -179,9 +180,9 @@ class BaptismService {
           statusCode: response.statusCode,
         );
       }
-    } catch (e, stackTrace) {
-      print('Error creating baptism booking: $e');
-      print('Stack trace: $stackTrace');
+    } catch (e) {
+      // print('Error creating baptism booking: $e');
+      // print('Stack trace: $stackTrace');
       return ApiResponse<BaptismBooking>(
         success: false,
         message: 'Network error creating baptism booking: $e',
@@ -190,47 +191,47 @@ class BaptismService {
     }
   }
 
-   // Update baptism booking (full fields - admin)
-   Future<ApiResponse<BaptismBooking>> updateBaptismBooking({
-     required int id,
-     String? childFullName,
-     String? dateOfBirth,
-     String? fatherName,
-     String? motherName,
-     String? contactEmail,
-     String? contactPhone,
-     String? preferredDate,
-     String? preferredTimeSlot,
-     int? priestId,
-     List<Map<String, dynamic>>? notes, // New format: append notes
-     String? additionalNotes, // Legacy support
-   }) async {
-     try {
-       final requestBody = <String, dynamic>{
-         if (childFullName != null) 'childFullName': childFullName,
-         if (dateOfBirth != null) 'dateOfBirth': dateOfBirth,
-         if (fatherName != null) 'fatherName': fatherName,
-         if (motherName != null) 'motherName': motherName,
-         if (contactEmail != null) 'contactEmail': contactEmail,
-         if (contactPhone != null) 'contactPhone': contactPhone,
-         if (preferredDate != null) 'preferredDate': preferredDate,
-         if (preferredTimeSlot != null) 'preferredTimeSlot': preferredTimeSlot,
-         if (priestId != null) 'priestId': priestId,
-         if (notes != null && notes.isNotEmpty) 'notes': notes,
-         if (additionalNotes != null) 'additionalNotes': additionalNotes,
-       };
+  // Update baptism booking (full fields - admin)
+  Future<ApiResponse<BaptismBooking>> updateBaptismBooking({
+    required int id,
+    String? childFullName,
+    String? dateOfBirth,
+    String? fatherName,
+    String? motherName,
+    String? contactEmail,
+    String? contactPhone,
+    String? preferredDate,
+    String? preferredTimeSlot,
+    int? priestId,
+    List<Map<String, dynamic>>? notes, // New format: append notes
+    String? additionalNotes, // Legacy support
+  }) async {
+    try {
+      final requestBody = <String, dynamic>{
+        if (childFullName != null) 'childFullName': childFullName,
+        if (dateOfBirth != null) 'dateOfBirth': dateOfBirth,
+        if (fatherName != null) 'fatherName': fatherName,
+        if (motherName != null) 'motherName': motherName,
+        if (contactEmail != null) 'contactEmail': contactEmail,
+        if (contactPhone != null) 'contactPhone': contactPhone,
+        if (preferredDate != null) 'preferredDate': preferredDate,
+        if (preferredTimeSlot != null) 'preferredTimeSlot': preferredTimeSlot,
+        if (priestId != null) 'priestId': priestId,
+        if (notes != null && notes.isNotEmpty) 'notes': notes,
+        if (additionalNotes != null) 'additionalNotes': additionalNotes,
+      };
 
-      print('=== UPDATE BAPTISM REQUEST ===');
-      print('ID: $id');
-      print('Request body: $requestBody');
+      // print('=== UPDATE BAPTISM REQUEST ===');
+      // print('ID: $id');
+      // print('Request body: $requestBody');
 
       final response = await _apiClient.putWithAuth(
         '${ApiConfig.baptismsEndpoint}/$id',
         json.encode(requestBody),
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      // print('Response status: ${response.statusCode}');
+      // print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -250,7 +251,7 @@ class BaptismService {
         );
       }
     } catch (e) {
-      print('ERROR in updateBaptismBooking: $e');
+      // print('ERROR in updateBaptismBooking: $e');
       return ApiResponse<BaptismBooking>(
         success: false,
         message: 'Network error updating baptism booking',
@@ -259,20 +260,20 @@ class BaptismService {
     }
   }
 
-   // Update baptism booking status (Admin only)
-   Future<ApiResponse<BaptismBooking>> updateBaptismStatus({
-     required int id,
-     required String status,
-     List<Map<String, dynamic>>? notes, // New format: append notes array
-     String? adminNotes, // Legacy: single admin note
-   }) async {
-     try {
-       final requestBody = {
-         'status': status,
-         if (notes != null && notes.isNotEmpty) 'notes': notes,
-         // Legacy support: if adminNotes provided, backend will convert
-         if (adminNotes != null) 'adminNotes': adminNotes,
-       };
+  // Update baptism booking status (Admin only)
+  Future<ApiResponse<BaptismBooking>> updateBaptismStatus({
+    required int id,
+    required String status,
+    List<Map<String, dynamic>>? notes, // New format: append notes array
+    String? adminNotes, // Legacy: single admin note
+  }) async {
+    try {
+      final requestBody = {
+        'status': status,
+        if (notes != null && notes.isNotEmpty) 'notes': notes,
+        // Legacy support: if adminNotes provided, backend will convert
+        if (adminNotes != null) 'adminNotes': adminNotes,
+      };
 
       final response = await _apiClient.patchWithAuth(
         '${ApiConfig.baptismsEndpoint}/$id/status',
@@ -313,7 +314,8 @@ class BaptismService {
     String? documentType,
   }) async {
     try {
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.baptismsEndpoint}/$bookingId/document');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.baptismsEndpoint}/$bookingId/document');
       final request = http.MultipartRequest('POST', uri);
 
       if (kIsWeb) {
@@ -329,19 +331,21 @@ class BaptismService {
         if (file.path == null) {
           throw Exception('File path is null on mobile platform');
         }
-        request.files.add(await http.MultipartFile.fromPath('document', file.path!));
+        request.files
+            .add(await http.MultipartFile.fromPath('document', file.path!));
       }
-      
+
       if (documentType != null) {
         request.fields['documentType'] = documentType;
       }
 
       request.headers.addAll(ApiConfig.getAuthHeaders(token));
 
-      final streamedResponse = await request.send().timeout(const Duration(seconds: 60));
+      final streamedResponse =
+          await request.send().timeout(const Duration(seconds: 60));
       final response = await http.Response.fromStream(streamedResponse);
 
-      print('Attach doc response: ${response.statusCode} - ${response.body}');
+      // print('Attach doc response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
@@ -359,7 +363,7 @@ class BaptismService {
         );
       }
     } catch (e) {
-      print('Error attaching document: $e');
+      // print('Error attaching document: $e');
       return ApiResponse<Map<String, dynamic>>(
         success: false,
         message: 'Network error attaching document: $e',
@@ -406,7 +410,8 @@ class BaptismService {
     required String date,
   }) async {
     try {
-      final endpoint = '${ApiConfig.baptismsEndpoint}/available-slots?parishId=$parishId&date=$date';
+      final endpoint =
+          '${ApiConfig.baptismsEndpoint}/available-slots?parishId=$parishId&date=$date';
       final response = await ApiConfig.get(endpoint);
 
       if (response.statusCode == 200) {

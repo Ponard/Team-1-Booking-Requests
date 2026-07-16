@@ -11,7 +11,7 @@ class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  _RegisterScreenState createState() => _RegisterScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
@@ -199,15 +199,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       // For public registration (parishioner role), always show parish selection
                       // Diocese-level roles would have this hidden (handled by role check)
-                      final showParishSelection =
-                          true; // Public registration is always parishioner
+                      // Public registration is always parishioner
+                      // const showParishSelection = true;
 
-                      if (!showParishSelection) {
-                        return const SizedBox.shrink();
-                      }
+                      // if (!showParishSelection) {
+                      //   return const SizedBox.shrink();
+                      // }
 
                       return DropdownButtonFormField<int>(
-                        value: _selectedParishId,
+                        initialValue: _selectedParishId,
                         decoration: const InputDecoration(
                           labelText: 'Preferred Parish',
                           hintText: 'Select your preferred parish',

@@ -17,7 +17,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _isLoading = true;
   bool _isSelectionMode = false;
-  Set<int> _selectedUserIds = {};
+  final Set<int> _selectedUserIds = {};
   List<dynamic> _users = [];
   List<dynamic> _filteredUsers = [];
   String _searchQuery = '';
@@ -34,7 +34,12 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final role = authProvider.currentUser?.role ?? '';
     setState(() {
-      _canAddUser = ['diocese_admin', 'diocese_staff', 'parish_admin', 'parish_staff'].contains(role);
+      _canAddUser = [
+        'diocese_admin',
+        'diocese_staff',
+        'parish_admin',
+        'parish_staff'
+      ].contains(role);
     });
   }
 
@@ -53,7 +58,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       setState(() {
         final currentUser = authProvider.currentUser;
         final isParishLevel = Roles.isParishLevel(currentUserRole);
-        final userParishId = currentUser?.assignedParishId ?? currentUser?.effectiveParishId;
+        final userParishId =
+            currentUser?.assignedParishId ?? currentUser?.effectiveParishId;
 
         _users = (response.data!['users'] ?? []).where((user) {
           final targetRole = user['role'] ?? Roles.parishioner;
@@ -65,7 +71,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
           }
 
           if (isParishLevel && userParishId != null) {
-            final userAssignedParishId = user['assignedParishId'] ?? user['effectiveParishId'];
+            final userAssignedParishId =
+                user['assignedParishId'] ?? user['effectiveParishId'];
             return userAssignedParishId == userParishId;
           }
           return true;
@@ -100,7 +107,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         final firstName = (user['firstName'] ?? '').toLowerCase();
         final lastName = (user['lastName'] ?? '').toLowerCase();
         final email = (user['email'] ?? '').toLowerCase();
-        final role = Roles.getRoleDisplayName(user['role'] ?? 'parishioner').toLowerCase();
+        final role = Roles.getRoleDisplayName(user['role'] ?? 'parishioner')
+            .toLowerCase();
         return firstName.contains(query) ||
             lastName.contains(query) ||
             email.contains(query) ||
@@ -144,11 +152,14 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   }
 
   void _showEditUserDialog(dynamic user) {
+    final parentContext = context;
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUserRole = authProvider.currentUser?.role ?? Roles.parishioner;
 
-    final firstNameController = TextEditingController(text: user['firstName'] ?? '');
-    final lastNameController = TextEditingController(text: user['lastName'] ?? '');
+    final firstNameController =
+        TextEditingController(text: user['firstName'] ?? '');
+    final lastNameController =
+        TextEditingController(text: user['lastName'] ?? '');
     final emailController = TextEditingController(text: user['email'] ?? '');
     final phoneController = TextEditingController(text: user['phone'] ?? '');
     String selectedRole = user['role'] ?? Roles.parishioner;
@@ -157,15 +168,16 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     final formKey = GlobalKey<FormState>();
 
     // Filter roles based on current user's role using helper
-    final availableRoles = Roles.getAvailableRolesForUserManagement(currentUserRole);
-    
+    final availableRoles =
+        Roles.getAvailableRolesForUserManagement(currentUserRole);
+
     // Check if parish selection should be shown (not for diocese-level roles)
     bool showParishSelection = Roles.shouldShowParishSelection(selectedRole);
 
     showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
+      context: parentContext,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (_, setDialogState) => AlertDialog(
           title: const Text('Edit User'),
           content: SizedBox(
             width: double.maxFinite,
@@ -175,151 +187,155 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: firstNameController,
-                          decoration: const InputDecoration(
-                            labelText: 'First Name',
-                            border: OutlineInputBorder(),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: firstNameController,
+                            decoration: const InputDecoration(
+                              labelText: 'First Name',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) => value == null || value.isEmpty
+                                ? 'Required'
+                                : null,
                           ),
-                          validator: (value) =>
-                              value == null || value.isEmpty ? 'Required' : null,
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: lastNameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Last Name',
-                            border: OutlineInputBorder(),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextFormField(
+                            controller: lastNameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Last Name',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) => value == null || value.isEmpty
+                                ? 'Required'
+                                : null,
                           ),
-                          validator: (value) =>
-                              value == null || value.isEmpty ? 'Required' : null,
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: emailController,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        border: OutlineInputBorder(),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
+                      keyboardType: TextInputType.emailAddress,
+                      enabled: false, // Email cannot be changed
                     ),
-                    keyboardType: TextInputType.emailAddress,
-                    enabled: false, // Email cannot be changed
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone',
-                      border: OutlineInputBorder(),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: phoneController,
+                      decoration: const InputDecoration(
+                        labelText: 'Phone',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.phone,
                     ),
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    value: selectedRole,
-                    decoration: const InputDecoration(
-                      labelText: 'Role',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: availableRoles
-                        .map((role) => DropdownMenuItem(
-                              value: role,
-                              child: Text(Roles.getRoleDisplayName(role)),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      setDialogState(() {
-                        selectedRole = value ?? Roles.parishioner;
-                        // Update parish selection visibility based on role
-                        showParishSelection = Roles.shouldShowParishSelection(selectedRole);
-                        // Clear parish selection if switching to diocese-level role
-                        if (!showParishSelection) {
-                          selectedParishId = null;
-                        }
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  // Parish selection - only show for non-diocese roles
-                  if (showParishSelection)
-                    Consumer<ParishProvider>(
-                      builder: (context, parishProvider, _) {
-                        if (parishProvider.isLoading) {
-                          return const Center(child: CircularProgressIndicator());
-                        }
-                        
-                        // Filter parishes based on current user's role
-                        List<dynamic> availableParishes = parishProvider.parishes;
-                        final currentUser = authProvider.currentUser;
-                        
-                        // If current user is parish-level, only show their assigned parish
-                        if (currentUser != null && 
-                            Roles.isParishLevel(currentUser.role) && 
-                            currentUser.effectiveParishId != null) {
-                          final currentUserParish = parishProvider.parishes
-                              .where((parish) => parish.id == currentUser.effectiveParishId)
-                              .firstOrNull;
-                          
-                          if (currentUserParish != null) {
-                            availableParishes = [currentUserParish];
-                            // Auto-select the parish if not already selected
-                            if (selectedParishId == null) {
-                              selectedParishId = currentUserParish.id;
-                            }
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedRole,
+                      decoration: const InputDecoration(
+                        labelText: 'Role',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: availableRoles
+                          .map((role) => DropdownMenuItem(
+                                value: role,
+                                child: Text(Roles.getRoleDisplayName(role)),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        setDialogState(() {
+                          selectedRole = value ?? Roles.parishioner;
+                          // Update parish selection visibility based on role
+                          showParishSelection =
+                              Roles.shouldShowParishSelection(selectedRole);
+                          // Clear parish selection if switching to diocese-level role
+                          if (!showParishSelection) {
+                            selectedParishId = null;
                           }
-                        }
-                        
-                        return DropdownButtonFormField<int>(
-                          value: selectedParishId,
-                          decoration: const InputDecoration(
-                            labelText: 'Assigned Parish',
-                            hintText: 'Select assigned parish',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.church),
-                          ),
-                          items: availableParishes
-                              .map((parish) => DropdownMenuItem<int>(
-                                    value: parish.id as int,
-                                    child: Text(parish.name),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            setDialogState(() {
-                              selectedParishId = value;
-                            });
-                          },
-                        );
+                        });
                       },
                     ),
-                  if (!showParishSelection)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      child: Text(
-                        'Diocese-level roles do not belong to a specific parish.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                          fontStyle: FontStyle.italic,
+                    const SizedBox(height: 12),
+                    // Parish selection - only show for non-diocese roles
+                    if (showParishSelection)
+                      Consumer<ParishProvider>(
+                        builder: (context, parishProvider, _) {
+                          if (parishProvider.isLoading) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+
+                          // Filter parishes based on current user's role
+                          List<dynamic> availableParishes =
+                              parishProvider.parishes;
+                          final currentUser = authProvider.currentUser;
+
+                          // If current user is parish-level, only show their assigned parish
+                          if (currentUser != null &&
+                              Roles.isParishLevel(currentUser.role) &&
+                              currentUser.effectiveParishId != null) {
+                            final currentUserParish = parishProvider.parishes
+                                .where((parish) =>
+                                    parish.id == currentUser.effectiveParishId)
+                                .firstOrNull;
+
+                            if (currentUserParish != null) {
+                              availableParishes = [currentUserParish];
+                              // Auto-select the parish if not already selected
+                              selectedParishId ??= currentUserParish.id;
+                            }
+                          }
+
+                          return DropdownButtonFormField<int>(
+                            initialValue: selectedParishId,
+                            decoration: const InputDecoration(
+                              labelText: 'Assigned Parish',
+                              hintText: 'Select assigned parish',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.church),
+                            ),
+                            items: availableParishes
+                                .map((parish) => DropdownMenuItem<int>(
+                                      value: parish.id as int,
+                                      child: Text(parish.name),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              setDialogState(() {
+                                selectedParishId = value;
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    if (!showParishSelection)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          'Diocese-level roles do not belong to a specific parish.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            fontStyle: FontStyle.italic,
+                          ),
                         ),
                       ),
+                    const SizedBox(height: 12),
+                    SwitchListTile(
+                      title: const Text('Active'),
+                      value: isActive,
+                      onChanged: (value) {
+                        setDialogState(() {
+                          isActive = value;
+                        });
+                      },
                     ),
-                  const SizedBox(height: 12),
-                  SwitchListTile(
-                    title: const Text('Active'),
-                    value: isActive,
-                    onChanged: (value) {
-                      setDialogState(() {
-                        isActive = value;
-                      });
-                    },
-                  ),
                   ],
                 ),
               ),
@@ -327,13 +343,12 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
-                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
                   final token = authProvider.token;
 
                   if (token == null) return;
@@ -344,27 +359,31 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                     {
                       'firstName': firstNameController.text,
                       'lastName': lastNameController.text,
-                      'phone': phoneController.text.isEmpty ? null : phoneController.text,
+                      'phone': phoneController.text.isEmpty
+                          ? null
+                          : phoneController.text,
                       'role': selectedRole,
-                      'assignedParishId': showParishSelection ? selectedParishId : null,
+                      'assignedParishId':
+                          showParishSelection ? selectedParishId : null,
                       'isActive': isActive,
                     },
                   );
 
+                  if (!parentContext.mounted) return;
+
                   if (response.success) {
-                    if (mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('User updated successfully')),
-                      );
-                      _loadUsers();
-                    }
+                    Navigator.pop(dialogContext);
+                    ScaffoldMessenger.of(parentContext).showSnackBar(
+                      const SnackBar(
+                          content: Text('User updated successfully')),
+                    );
+                    _loadUsers();
                   } else {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(response.message ?? 'Failed to update user')),
-                      );
-                    }
+                    ScaffoldMessenger.of(parentContext).showSnackBar(
+                      SnackBar(
+                          content: Text(
+                              response.message ?? 'Failed to update user')),
+                    );
                   }
                 }
               },
@@ -379,11 +398,13 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   Future<void> _deleteSelectedUsers() async {
     if (_selectedUserIds.isEmpty) return;
 
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Users'),
-        content: Text('Are you sure you want to delete ${_selectedUserIds.length} user(s)? This action cannot be undone.'),
+        content: Text(
+            'Are you sure you want to delete ${_selectedUserIds.length} user(s)? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -400,7 +421,6 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
 
     if (confirm != true) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null) return;
 
@@ -439,7 +459,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
 
       if (failCount > 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete $failCount user(s): ${errors.first}')),
+          SnackBar(
+              content:
+                  Text('Failed to delete $failCount user(s): ${errors.first}')),
         );
       }
 
@@ -448,6 +470,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   }
 
   void _showAddUserDialog() {
+    final parentContext = context;
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUserRole = authProvider.currentUser?.role ?? Roles.parishioner;
 
@@ -460,15 +483,16 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     final formKey = GlobalKey<FormState>();
 
     // Filter roles based on current user's role using helper
-    final availableRoles = Roles.getAvailableRolesForUserManagement(currentUserRole);
-    
+    final availableRoles =
+        Roles.getAvailableRolesForUserManagement(currentUserRole);
+
     // Check if parish selection should be shown (not for diocese-level roles)
     bool showParishSelection = Roles.shouldShowParishSelection(selectedRole);
 
     showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
+      context: parentContext,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (_, setDialogState) => AlertDialog(
           title: const Text('Add New User'),
           content: SingleChildScrollView(
             child: Form(
@@ -485,8 +509,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                             labelText: 'First Name',
                             border: OutlineInputBorder(),
                           ),
-                          validator: (value) =>
-                              value == null || value.isEmpty ? 'Required' : null,
+                          validator: (value) => value == null || value.isEmpty
+                              ? 'Required'
+                              : null,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -497,8 +522,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                             labelText: 'Last Name',
                             border: OutlineInputBorder(),
                           ),
-                          validator: (value) =>
-                              value == null || value.isEmpty ? 'Required' : null,
+                          validator: (value) => value == null || value.isEmpty
+                              ? 'Required'
+                              : null,
                         ),
                       ),
                     ],
@@ -526,7 +552,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: selectedRole,
+                    initialValue: selectedRole,
                     decoration: const InputDecoration(
                       labelText: 'Role',
                       border: OutlineInputBorder(),
@@ -541,7 +567,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                       setDialogState(() {
                         selectedRole = value ?? Roles.parishioner;
                         // Update parish selection visibility based on role
-                        showParishSelection = Roles.shouldShowParishSelection(selectedRole);
+                        showParishSelection =
+                            Roles.shouldShowParishSelection(selectedRole);
                         // Clear parish selection if switching to diocese-level role
                         if (!showParishSelection) {
                           selectedParishId = null;
@@ -553,34 +580,35 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   // Parish selection - only show for non-diocese roles
                   if (showParishSelection)
                     Consumer<ParishProvider>(
-                      builder: (context, parishProvider, _) {
+                      builder: (parentContext, parishProvider, _) {
                         if (parishProvider.isLoading) {
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(
+                              child: CircularProgressIndicator());
                         }
-                        
+
                         // Filter parishes based on current user's role
-                        List<dynamic> availableParishes = parishProvider.parishes;
+                        List<dynamic> availableParishes =
+                            parishProvider.parishes;
                         final currentUser = authProvider.currentUser;
-                        
+
                         // If current user is parish-level, only show their assigned parish
-                        if (currentUser != null && 
-                            Roles.isParishLevel(currentUser.role) && 
+                        if (currentUser != null &&
+                            Roles.isParishLevel(currentUser.role) &&
                             currentUser.effectiveParishId != null) {
                           final currentUserParish = parishProvider.parishes
-                              .where((parish) => parish.id == currentUser.effectiveParishId)
+                              .where((parish) =>
+                                  parish.id == currentUser.effectiveParishId)
                               .firstOrNull;
-                          
+
                           if (currentUserParish != null) {
                             availableParishes = [currentUserParish];
                             // Auto-select the parish if not already selected
-                            if (selectedParishId == null) {
-                              selectedParishId = currentUserParish.id;
-                            }
+                            selectedParishId ??= currentUserParish.id;
                           }
                         }
-                        
+
                         return DropdownButtonFormField<int>(
-                          value: selectedParishId,
+                          initialValue: selectedParishId,
                           decoration: const InputDecoration(
                             labelText: 'Assigned Parish',
                             hintText: 'Select assigned parish',
@@ -619,7 +647,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: isCreating ? null : () => Navigator.pop(context),
+              onPressed: isCreating ? null : () => Navigator.pop(dialogContext),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
@@ -628,7 +656,6 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   : () async {
                       if (formKey.currentState!.validate()) {
                         setDialogState(() => isCreating = true);
-                        final authProvider = Provider.of<AuthProvider>(context, listen: false);
                         final token = authProvider.token;
 
                         if (token == null) {
@@ -643,26 +670,29 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                             'lastName': lastNameController.text,
                             'email': emailController.text,
                             'role': selectedRole,
-                            'assignedParishId': showParishSelection ? selectedParishId : null,
+                            'assignedParishId':
+                                showParishSelection ? selectedParishId : null,
                           },
                         );
+
+                        if (!parentContext.mounted) return;
 
                         setDialogState(() => isCreating = false);
 
                         if (response.success) {
-                          if (mounted) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('User created successfully. Login credentials sent via email.')),
-                            );
-                            _loadUsers();
-                          }
+                          Navigator.pop(dialogContext);
+                          ScaffoldMessenger.of(parentContext).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    'User created successfully. Login credentials sent via email.')),
+                          );
+                          _loadUsers();
                         } else {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(response.message ?? 'Failed to create user')),
-                            );
-                          }
+                          ScaffoldMessenger.of(parentContext).showSnackBar(
+                            SnackBar(
+                                content: Text(response.message ??
+                                    'Failed to create user')),
+                          );
                         }
                       }
                     },
@@ -706,7 +736,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             : const Text('Manage Users'),
         leading: IconButton(
           icon: Icon(_isSelectionMode ? Icons.close : Icons.arrow_back),
-          onPressed: _isSelectionMode ? _toggleSelectionMode : () => Navigator.of(context).pop(),
+          onPressed: _isSelectionMode
+              ? _toggleSelectionMode
+              : () => Navigator.of(context).pop(),
         ),
         actions: [
           if (!_isSelectionMode && _canAddUser)
@@ -732,7 +764,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(60),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
@@ -764,13 +797,15 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.people_outline, size: 64, color: Colors.grey),
+                      const Icon(Icons.people_outline,
+                          size: 64, color: Colors.grey),
                       const SizedBox(height: 16),
                       Text(
                         _searchQuery.isNotEmpty
                             ? 'No users found matching "$_searchQuery"'
                             : 'No users found',
-                        style: const TextStyle(fontSize: 16, color: Colors.grey),
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.grey),
                       ),
                       if (_canAddUser) ...[
                         const SizedBox(height: 24),
@@ -832,12 +867,14 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                 Expanded(
                                   child: Text(
                                     '${user['firstName'] ?? ''} ${user['lastName'] ?? ''}',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 if (!isActive)
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
                                       color: Colors.red.shade100,
                                       borderRadius: BorderRadius.circular(4),
@@ -863,7 +900,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                     Text(
                                       'Role: ${Roles.getRoleDisplayName(user['role'] ?? 'parishioner')}',
                                       style: TextStyle(
-                                        color: _getRoleColor(user['role'] ?? 'parishioner'),
+                                        color: _getRoleColor(
+                                            user['role'] ?? 'parishioner'),
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -884,8 +922,11 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                             ),
                             trailing: _isSelectionMode
                                 ? Icon(
-                                    isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-                                    color: isSelected ? Colors.blue : Colors.grey,
+                                    isSelected
+                                        ? Icons.check_circle
+                                        : Icons.radio_button_unchecked,
+                                    color:
+                                        isSelected ? Colors.blue : Colors.grey,
                                   )
                                 : null,
                           ),

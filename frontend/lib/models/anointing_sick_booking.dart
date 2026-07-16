@@ -100,7 +100,7 @@ class AnointingSickBooking {
       if (preferredTimeSlot != null) 'preferredTimeSlot': preferredTimeSlot,
       if (priestId != null) 'priestId': priestId,
       if (notes != null) 'notes': notes!.map((n) => n.toJson()).toList(),
-      if (status != null) 'status': status,
+      'status': status,
     };
   }
 

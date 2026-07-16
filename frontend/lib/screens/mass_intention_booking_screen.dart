@@ -310,7 +310,7 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
                 children: [
                   _buildSection(title: "Intention Details", children: [
                     DropdownButtonFormField<String>(
-                      value: _selectedType,
+                      initialValue: _selectedType,
                       decoration: const InputDecoration(
                           labelText: "Intention Type *",
                           border: OutlineInputBorder()),
@@ -348,7 +348,7 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
                     Consumer<ParishProvider>(
                       builder: (context, parishProvider, _) {
                         return DropdownButtonFormField<int>(
-                          value: parishProvider.selectedParish?.id,
+                          initialValue: parishProvider.selectedParish?.id,
                           decoration: const InputDecoration(
                             labelText: "Preferred Parish *",
                             border: OutlineInputBorder(),
@@ -414,7 +414,7 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
                       ),
                     if (_availableSchedules.isNotEmpty)
                       DropdownButtonFormField<String>(
-                        value: _selectedTime,
+                        initialValue: _selectedTime,
                         decoration: const InputDecoration(
                           labelText: "Mass Time *",
                           border: OutlineInputBorder(),

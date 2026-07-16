@@ -80,7 +80,7 @@ class _AdminRecordsScreenState extends State<AdminRecordsScreen> {
             padding: const EdgeInsets.all(16),
             color: Colors.grey[100],
             child: DropdownButtonFormField<String>(
-              value: _selectedType,
+              initialValue: _selectedType,
               decoration: const InputDecoration(
                 labelText: 'Sacrament Type',
                 border: OutlineInputBorder(),

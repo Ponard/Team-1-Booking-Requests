@@ -437,8 +437,6 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
           Provider.of<WeddingProvider>(context, listen: false);
       final parishProvider =
           Provider.of<ParishProvider>(context, listen: false);
-      final priestProvider =
-          Provider.of<PriestProvider>(context, listen: false);
 
       if (authProvider.currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -786,7 +784,7 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                     Consumer<ParishProvider>(
                       builder: (context, parishProvider, _) {
                         return DropdownButtonFormField<int>(
-                          value: parishProvider.selectedParish?.id,
+                          initialValue: parishProvider.selectedParish?.id,
                           decoration: const InputDecoration(
                             labelText: "Preferred Parish *",
                             border: OutlineInputBorder(),
@@ -900,7 +898,7 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                             ? _selectedPriestId
                             : null;
                         return DropdownButtonFormField<int>(
-                          value: validPriestId,
+                          initialValue: validPriestId,
                           decoration: const InputDecoration(
                             labelText:
                                 "Preferred Priest (Optional) - Subject to availability",

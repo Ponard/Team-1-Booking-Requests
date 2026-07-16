@@ -99,7 +99,7 @@ class ApiClient {
       throw Exception('No access token. Please login.');
     }
 
-    print('[api_client.postWithAuth] endpoint: $endpoint, body type: ${body.runtimeType}, body: $body');
+    // print('[api_client.postWithAuth] endpoint: $endpoint, body type: ${body.runtimeType}, body: $body');
 
     var response = await ApiConfig.postWithAuth(endpoint, token, body);
 
