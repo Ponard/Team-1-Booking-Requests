@@ -332,6 +332,7 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
               child: pw.Text(
                 'Mass Intentions',
                 style:
+                    // ignore: prefer_const_constructors
                     pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
               ),
             ),
@@ -368,6 +369,7 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
               pw.Text(
                 'Intention Type $typeIndex: $type',
                 style:
+                    // ignore: prefer_const_constructors
                     pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
               ),
             );
@@ -397,6 +399,7 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
               pw.Center(
                 child: pw.Text(
                   'No mass intentions found for the selected date.',
+                  // ignore: prefer_const_constructors
                   style: pw.TextStyle(
                       fontSize: 14, fontStyle: pw.FontStyle.italic),
                 ),
