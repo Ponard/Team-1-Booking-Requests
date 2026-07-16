@@ -90,7 +90,7 @@ class ApiConfig {
         return null;
       }
     } catch (e) {
-      print('Token refresh error: $e');
+      // print('Token refresh error: $e');
       return null;
     }
   }
@@ -131,8 +131,8 @@ class ApiConfig {
   static Future<http.Response> postWithAuth(
       String endpoint, String token, dynamic body,
       {bool retried = false}) async {
-    print(
-        '[ApiConfig.postWithAuth] endpoint: $endpoint, body type: ${body.runtimeType}, body: $body');
+    // print(
+    //     '[ApiConfig.postWithAuth] endpoint: $endpoint, body type: ${body.runtimeType}, body: $body');
     final uri = Uri.parse('$baseUrl$endpoint');
     final headers = getAuthHeaders(token);
 

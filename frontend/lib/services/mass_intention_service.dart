@@ -5,7 +5,8 @@ import '../config/api_config.dart';
 import 'api_client.dart';
 
 class MassIntentionService {
-  static final MassIntentionService _instance = MassIntentionService._internal();
+  static final MassIntentionService _instance =
+      MassIntentionService._internal();
   factory MassIntentionService() => _instance;
   MassIntentionService._internal();
 
@@ -26,7 +27,8 @@ class MassIntentionService {
       if (status != null) queryParams.add('status=$status');
       if (parishId != null) queryParams.add('parishId=$parishId');
       if (type != null) queryParams.add('type=$type');
-      if (massScheduleDate != null) queryParams.add('massScheduleDate=$massScheduleDate');
+      if (massScheduleDate != null)
+        queryParams.add('massScheduleDate=$massScheduleDate');
 
       String endpoint = ApiConfig.massIntentionsEndpoint;
       if (queryParams.isNotEmpty) {
@@ -67,19 +69,20 @@ class MassIntentionService {
     required int id,
   }) async {
     try {
-      print('Fetching mass intention by ID: $id');
-      print('Endpoint: ${ApiConfig.massIntentionsEndpoint}/$id');
+      // print('Fetching mass intention by ID: $id');
+      // print('Endpoint: ${ApiConfig.massIntentionsEndpoint}/$id');
       final response = await _apiClient.getWithAuth(
         '${ApiConfig.massIntentionsEndpoint}/$id',
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      // print('Response status: ${response.statusCode}');
+      // print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('Parsed data: $data');
-        final intention = MassIntention.fromJson(data['intention'] ?? data['massIntention'] ?? data);
+        // print('Parsed data: $data');
+        final intention = MassIntention.fromJson(
+            data['intention'] ?? data['massIntention'] ?? data);
 
         return ApiResponse<MassIntention>(
           success: true,
@@ -95,7 +98,7 @@ class MassIntentionService {
         );
       }
     } catch (e) {
-      print('Exception fetching mass intention: $e');
+      // print('Exception fetching mass intention: $e');
       return ApiResponse<MassIntention>(
         success: false,
         message: 'Network error fetching mass intention: $e',
@@ -128,20 +131,22 @@ class MassIntentionService {
         if (notes != null && notes.isNotEmpty) 'notes': notes,
       };
 
-      print('[MassIntentionService] Request body notes: ${notes != null ? json.encode(notes) : 'null'}');
+      // print(
+      //     '[MassIntentionService] Request body notes: ${notes != null ? json.encode(notes) : 'null'}');
 
       final response = await _apiClient.postWithAuth(
         ApiConfig.massIntentionsEndpoint,
         json.encode(requestBody),
       );
 
-      print('Mass Intention response status: ${response.statusCode}');
-      print('Mass Intention response body: ${response.body}');
+      // print('Mass Intention response status: ${response.statusCode}');
+      // print('Mass Intention response body: ${response.body}');
 
       if (response.statusCode == 201) {
         final data = json.decode(response.body);
-        print('Parsed mass intention data: $data');
-        final intention = MassIntention.fromJson(data['intention'] ?? data['massIntention'] ?? data);
+        // print('Parsed mass intention data: $data');
+        final intention = MassIntention.fromJson(
+            data['intention'] ?? data['massIntention'] ?? data);
 
         return ApiResponse<MassIntention>(
           success: true,
@@ -157,8 +162,8 @@ class MassIntentionService {
         );
       }
     } catch (e, stackTrace) {
-      print('Error creating mass intention: $e');
-      print('Stack trace: $stackTrace');
+      // print('Error creating mass intention: $e');
+      // print('Stack trace: $stackTrace');
       return ApiResponse<MassIntention>(
         success: false,
         message: 'Network error creating mass intention: $e',
@@ -167,7 +172,7 @@ class MassIntentionService {
     }
   }
 
-Future<ApiResponse<MassIntention>> updateMassIntention({
+  Future<ApiResponse<MassIntention>> updateMassIntention({
     required int id,
     required String type,
     required String intentionDetails,
@@ -199,12 +204,13 @@ Future<ApiResponse<MassIntention>> updateMassIntention({
         json.encode(requestBody),
       );
 
-      print('Update mass intention response status: ${response.statusCode}');
-      print('Update mass intention response body: ${response.body}');
+      // print('Update mass intention response status: ${response.statusCode}');
+      // print('Update mass intention response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final intention = MassIntention.fromJson(data['intention'] ?? data['massIntention'] ?? data);
+        final intention = MassIntention.fromJson(
+            data['intention'] ?? data['massIntention'] ?? data);
 
         return ApiResponse<MassIntention>(
           success: true,
@@ -220,8 +226,8 @@ Future<ApiResponse<MassIntention>> updateMassIntention({
         );
       }
     } catch (e, stackTrace) {
-      print('Error updating mass intention: $e');
-      print('Stack trace: $stackTrace');
+      // print('Error updating mass intention: $e');
+      // print('Stack trace: $stackTrace');
       return ApiResponse<MassIntention>(
         success: false,
         message: 'Network error updating mass intention: $e',
@@ -236,7 +242,7 @@ Future<ApiResponse<MassIntention>> updateMassIntention({
     List<Map<String, dynamic>>? notes,
   }) async {
     try {
-      print('Updating mass intention $id status to: $status');
+      // print('Updating mass intention $id status to: $status');
       final requestBody = {
         'status': status,
         if (notes != null && notes.isNotEmpty) 'notes': notes,
@@ -247,11 +253,12 @@ Future<ApiResponse<MassIntention>> updateMassIntention({
         json.encode(requestBody),
       );
 
-      print('Update status response: ${response.statusCode} - ${response.body}');
+      // print(
+      //     'Update status response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('Parsed update response: $data');
+        // print('Parsed update response: $data');
         final intention = MassIntention.fromJson(data['intention'] ?? data);
 
         return ApiResponse<MassIntention>(
@@ -261,15 +268,17 @@ Future<ApiResponse<MassIntention>> updateMassIntention({
         );
       } else {
         final errorData = json.decode(response.body);
-        print('Error response: $errorData');
+        // print('Error response: $errorData');
         return ApiResponse<MassIntention>(
           success: false,
-          message: errorData['message'] ?? errorData['error'] ?? 'Failed to update mass intention status',
+          message: errorData['message'] ??
+              errorData['error'] ??
+              'Failed to update mass intention status',
           statusCode: response.statusCode,
         );
       }
     } catch (e) {
-      print('Exception updating status: $e');
+      // print('Exception updating status: $e');
       return ApiResponse<MassIntention>(
         success: false,
         message: 'Network error updating mass intention status: $e',
@@ -301,7 +310,8 @@ Future<ApiResponse<MassIntention>> updateMassIntention({
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final intention = MassIntention.fromJson(data['intention'] ?? data['massIntention'] ?? data);
+        final intention = MassIntention.fromJson(
+            data['intention'] ?? data['massIntention'] ?? data);
 
         return ApiResponse<MassIntention>(
           success: true,

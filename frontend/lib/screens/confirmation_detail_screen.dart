@@ -633,7 +633,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
                             trailing: doc.isVerified == true
                                 ? Icon(Icons.check_circle,
                                     color: Colors.green[600])
-                                : const Icon(Icons.pending, color: Colors.orange),
+                                : const Icon(Icons.pending,
+                                    color: Colors.orange),
                             onTap: () => _openDocument(doc),
                           ),
                         )

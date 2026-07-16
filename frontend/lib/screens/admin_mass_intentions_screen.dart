@@ -231,16 +231,16 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
         massTime: _selectedTime,
       );
 
-      print(
-          '[MassIntentionsScreen] Request: parishId=$_selectedParishId, startDate=$_selectedDate, massTime=$_selectedTime');
-      print('[MassIntentionsScreen] Response success: ${response.success}');
-      print('[MassIntentionsScreen] Response message: ${response.message}');
-      print(
-          '[MassIntentionsScreen] Response data keys: ${response.data?.keys.toList()}');
-      print(
-          '[MassIntentionsScreen] Mass intentions count: ${(response.data?['massIntentions'] as List?)?.length ?? 0}');
-      print(
-          '[MassIntentionsScreen] Mass intentions data: ${response.data?['massIntentions']}');
+      // print(
+      //     '[MassIntentionsScreen] Request: parishId=$_selectedParishId, startDate=$_selectedDate, massTime=$_selectedTime');
+      // print('[MassIntentionsScreen] Response success: ${response.success}');
+      // print('[MassIntentionsScreen] Response message: ${response.message}');
+      // print(
+      //     '[MassIntentionsScreen] Response data keys: ${response.data?.keys.toList()}');
+      // print(
+      //     '[MassIntentionsScreen] Mass intentions count: ${(response.data?['massIntentions'] as List?)?.length ?? 0}');
+      // print(
+      //     '[MassIntentionsScreen] Mass intentions data: ${response.data?['massIntentions']}');
 
       if (mounted) {
         if (response.success && response.data != null) {

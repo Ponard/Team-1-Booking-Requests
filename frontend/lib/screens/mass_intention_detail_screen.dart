@@ -57,13 +57,13 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
       return;
     }
 
-    print('=== Loading mass intention ID: ${widget.massIntentionId} ===');
+    // print('=== Loading mass intention ID: ${widget.massIntentionId} ===');
     final result = await _massIntentionService.getMassIntentionById(
         id: widget.massIntentionId!);
-    print('Result success: ${result.success}');
-    print('Result data: ${result.data}');
-    print('Result message: ${result.message}');
-    print('Result errors: ${result.errors}');
+    // print('Result success: ${result.success}');
+    // print('Result data: ${result.data}');
+    // print('Result message: ${result.message}');
+    // print('Result errors: ${result.errors}');
 
     if (mounted && result.success && result.data != null) {
       final intention = result.data!;
@@ -91,20 +91,20 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         _selectedType = mapTypeToFrontend(intention.type);
 
         final massSchedule = intention.massSchedule ?? '';
-        print('[MassIntentionDetail] massSchedule: "$massSchedule"');
+        // print('[MassIntentionDetail] massSchedule: "$massSchedule"');
         if (massSchedule.isNotEmpty && massSchedule.contains('T')) {
           final utcDate = DateTime.parse(massSchedule);
           final phDate = utcDate.add(const Duration(hours: 8));
           _dateController.text =
               '${phDate.year}-${phDate.month.toString().padLeft(2, '0')}-${phDate.day.toString().padLeft(2, '0')}';
           _selectedTime = _normalizeTime(intention.preferredTime);
-          print(
-              '[MassIntentionDetail] Parsed date (PH): "${_dateController.text}", time: "$_selectedTime"');
+          // print(
+          //     '[MassIntentionDetail] Parsed date (PH): "${_dateController.text}", time: "$_selectedTime"');
         } else {
           _dateController.text = intention.dateRequested ?? '';
           _selectedTime = _normalizeTime(intention.preferredTime);
-          print(
-              '[MassIntentionDetail] Fallback date: "${_dateController.text}", time: "$_selectedTime"');
+          // print(
+          //     '[MassIntentionDetail] Fallback date: "${_dateController.text}", time: "$_selectedTime"');
         }
         _preferredTimeController.text = _selectedTime ?? '';
 
@@ -130,7 +130,7 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         }
       }
     } else if (mounted) {
-      print('Failed to load: ${result.message}');
+      // print('Failed to load: ${result.message}');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(result.message ?? 'Failed to load mass intention')));
     }
@@ -150,22 +150,22 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         Provider.of<MassScheduleProvider>(context, listen: false);
     int? parishId = _intention?.parishId;
 
-    print(
-        '[MassIntentionDetail] Loading schedules for parishId: $parishId, date: $date (${_getDayName(date.weekday)})');
-    print('[MassIntentionDetail] _intention.parishId: ${_intention?.parishId}');
+    // print(
+    //     '[MassIntentionDetail] Loading schedules for parishId: $parishId, date: $date (${_getDayName(date.weekday)})');
+    // print('[MassIntentionDetail] _intention.parishId: ${_intention?.parishId}');
 
     await scheduleProvider.loadSchedules(parishId: parishId);
 
-    print(
-        '[MassIntentionDetail] All loaded schedules: ${scheduleProvider.schedules.length}');
-    for (final s in scheduleProvider.schedules) {
-      print(
-          '  - ${s.dayOfWeek} ${s.startTime} active: ${s.isActive} parishId: ${s.parishId}');
-    }
+    // print(
+    //     '[MassIntentionDetail] All loaded schedules: ${scheduleProvider.schedules.length}');
+    // for (final s in scheduleProvider.schedules) {
+    //   print(
+    //       '  - ${s.dayOfWeek} ${s.startTime} active: ${s.isActive} parishId: ${s.parishId}');
+    // }
 
     final schedules = scheduleProvider.getSchedulesForDate(date);
-    print(
-        '[MassIntentionDetail] Filtered schedules for ${_getDayName(date.weekday)}: ${schedules.length}');
+    // print(
+    //     '[MassIntentionDetail] Filtered schedules for ${_getDayName(date.weekday)}: ${schedules.length}');
 
     final normalizedSelectedTime = _normalizeTime(_selectedTime);
 

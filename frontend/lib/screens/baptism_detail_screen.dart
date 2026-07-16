@@ -59,9 +59,9 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
   final TextEditingController _preferredTimeController =
       TextEditingController();
   final TextEditingController _newNoteController = TextEditingController();
-  
+
   int? _selectedPriestId;
-  
+
   List<Document> _documents = [];
 
   @override
@@ -101,7 +101,7 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         _documents = booking.documents ?? [];
         _birthCertificateFile = null;
       });
-      
+
       final authProvider = context.read<AuthProvider>();
 
       if (booking.parishId != null) {
@@ -112,11 +112,11 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
       }
 
       // Debug: Print documents count
-      print('=== BAPTISM DETAIL: Documents loaded: ${_documents.length} ===');
-      for (var doc in _documents) {
-        print(
-            'Document: id=${doc.id}, type=${doc.documentType}, fileName=${doc.fileName}, fileUrl=${doc.fileUrl}');
-      }
+      // print('=== BAPTISM DETAIL: Documents loaded: ${_documents.length} ===');
+      // for (var doc in _documents) {
+      //   print(
+      //       'Document: id=${doc.id}, type=${doc.documentType}, fileName=${doc.fileName}, fileUrl=${doc.fileUrl}');
+      // }
       if (widget.fromStatusButton && isEditable) {
         setState(() => _isEditMode = true);
       } else {
@@ -295,7 +295,7 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
       );
       if (!deleteResult.success) {
         // Log but continue
-        print('Failed to delete old document: ${deleteResult.message}');
+        // print('Failed to delete old document: ${deleteResult.message}');
       }
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(uploadResult.message ?? 'Document replaced')));
@@ -349,21 +349,21 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
   }
 
   Future<void> _saveChanges() async {
-    print('=== SAVE BUTTON CLICKED ===');
-    
+    // print('=== SAVE BUTTON CLICKED ===');
+
     if (!_validateForm()) {
-      print('Validation failed');
+      // print('Validation failed');
       return;
     }
 
     if (widget.baptismId == null) {
-      print('No baptism ID');
+      // print('No baptism ID');
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Invalid booking ID')));
       return;
     }
 
-    print('Starting save...');
+    // print('Starting save...');
     setState(() => _isSaving = true);
 
     try {
@@ -396,11 +396,11 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         notes: notesToAdd,
       );
 
-      print('Save result: ${result.success} - ${result.message}');
+      // print('Save result: ${result.success} - ${result.message}');
 
       if (mounted) {
         setState(() => _isSaving = false);
-        
+
         if (result.success) {
           ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Booking updated successfully')));
@@ -413,7 +413,7 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         }
       }
     } catch (e) {
-      print('Error: $e');
+      // print('Error: $e');
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context)
@@ -511,59 +511,59 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Baptism Details"),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(false),
+        appBar: AppBar(
+          title: const Text("Baptism Details"),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          actions: [
+            if (_isEditMode)
+              IconButton(
+                icon: Icon(_isSaving ? Icons.edit : Icons.save),
+                tooltip: _isSaving ? 'Saving...' : 'Save changes',
+                color: _isSaving ? Colors.orange : null,
+                onPressed: _saveChanges,
+              )
+            else if (!_showStatusButtons && canEdit)
+              IconButton(
+                icon: const Icon(Icons.edit),
+                tooltip: 'Edit',
+                onPressed: _toggleEditMode,
+              )
+            else
+              const SizedBox.shrink(),
+          ],
         ),
-        actions: [
-          if (_isEditMode)
-            IconButton(
-              icon: Icon(_isSaving ? Icons.edit : Icons.save),
-              tooltip: _isSaving ? 'Saving...' : 'Save changes',
-              color: _isSaving ? Colors.orange : null,
-              onPressed: _saveChanges,
-            )
-          else if (!_showStatusButtons && canEdit)
-            IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: 'Edit',
-              onPressed: _toggleEditMode,
-            )
-          else
-            const SizedBox.shrink(),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          _buildSectionTitle('Child Information'),
+              _buildSectionTitle('Child Information'),
               _textField('Child\'s Full Name *', _childNameController,
                   enabled: _isEditMode),
               _textField('Date of Birth *', _dobController,
                   enabled: _isEditMode,
                   readOnly: _isEditMode,
                   onTap: _selectDob),
-          
-          _buildSectionTitle('Parents'),
-          Row(children: [
+
+              _buildSectionTitle('Parents'),
+              Row(children: [
                 Expanded(
                     child: _textField("Father's Name *", _fatherNameController,
                         enabled: _isEditMode)),
-            const SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                     child: _textField("Mother's Name *", _motherNameController,
                         enabled: _isEditMode)),
-          ]),
+              ]),
               _textField("Contact Email", _contactEmailController,
                   enabled: _isEditMode),
               _textField("Contact Phone *", _contactPhoneController,
                   enabled: _isEditMode),
-          
-          _buildSectionTitle('Booking Details'),
+
+              _buildSectionTitle('Booking Details'),
               _textField("Parish",
                   TextEditingController(text: _booking?.parishName ?? ''),
                   enabled: false),
@@ -575,192 +575,192 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
                   enabled: _isEditMode,
                   readOnly: _isEditMode,
                   onTap: _selectTime),
-          if (_isEditMode)
-            _buildPriestDropdown()
-          else
+              if (_isEditMode)
+                _buildPriestDropdown()
+              else
                 _textField("Preferred Priest",
                     TextEditingController(text: _booking?.priestName ?? ''),
                     enabled: false),
 
-          const SizedBox(height: 20),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "PSA Birth Certificate *",
+              const SizedBox(height: 20),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "PSA Birth Certificate *",
                         style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Please upload a copy of the PSA birth certificate. Accepted formats: PDF, JPG, PNG",
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    onPressed: _pickBirthCertificateFile,
-                    icon: const Icon(Icons.attach_file),
-                    label: Text(
-                      _birthCertificateFile != null
-                          ? 'File Selected: ${_birthCertificateFile!.name}'
-                          : 'Select Birth Certificate File',
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _birthCertificateFile != null
-                          ? Colors.green[100]
-                          : Colors.grey[200],
-                      foregroundColor: Colors.black87,
-                    ),
-                  ),
-                  if (_birthCertificateFile != null) ...[
-                    const SizedBox(height: 12),
-                    _isUploading
-                        ? const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                height: 20,
-                                width: 20,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        "Please upload a copy of the PSA birth certificate. Accepted formats: PDF, JPG, PNG",
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: _pickBirthCertificateFile,
+                        icon: const Icon(Icons.attach_file),
+                        label: Text(
+                          _birthCertificateFile != null
+                              ? 'File Selected: ${_birthCertificateFile!.name}'
+                              : 'Select Birth Certificate File',
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _birthCertificateFile != null
+                              ? Colors.green[100]
+                              : Colors.grey[200],
+                          foregroundColor: Colors.black87,
+                        ),
+                      ),
+                      if (_birthCertificateFile != null) ...[
+                        const SizedBox(height: 12),
+                        _isUploading
+                            ? const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    height: 20,
+                                    width: 20,
                                     child: CircularProgressIndicator(
                                         strokeWidth: 2),
-                              ),
-                              SizedBox(width: 12),
-                              Text('Uploading...'),
-                            ],
-                          )
-                        : ElevatedButton.icon(
+                                  ),
+                                  SizedBox(width: 12),
+                                  Text('Uploading...'),
+                                ],
+                              )
+                            : ElevatedButton.icon(
                                 onPressed: _isUploading
                                     ? null
                                     : _uploadBirthCertificate,
-                            icon: const Icon(Icons.cloud_upload),
-                            label: const Text('Upload Birth Certificate'),
-                          ),
-                  ],
-                  const SizedBox(height: 16),
-                  if (_documents.isNotEmpty) ...[
-                    const Text(
-                      'Uploaded Documents',
+                                icon: const Icon(Icons.cloud_upload),
+                                label: const Text('Upload Birth Certificate'),
+                              ),
+                      ],
+                      const SizedBox(height: 16),
+                      if (_documents.isNotEmpty) ...[
+                        const Text(
+                          'Uploaded Documents',
                           style: TextStyle(
                               fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8),
-                    ..._documents.map((doc) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        leading: _getDocumentIcon(doc),
+                        ),
+                        const SizedBox(height: 8),
+                        ..._documents.map((doc) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: ListTile(
+                                leading: _getDocumentIcon(doc),
                                 title: Text(doc.documentType
                                         ?.toUpperCase()
                                         .replaceAll('_', ' ') ??
                                     'DOCUMENT'),
-                        subtitle: Text(doc.fileName ?? 'File'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Verification status
-                            if (doc.isVerified == true)
+                                subtitle: Text(doc.fileName ?? 'File'),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // Verification status
+                                    if (doc.isVerified == true)
                                       const Icon(Icons.check_circle,
                                           color: Colors.green, size: 20)
-                            else if (doc.isVerified == false)
+                                    else if (doc.isVerified == false)
                                       const Icon(Icons.pending,
                                           color: Colors.orange, size: 20),
-                            const SizedBox(width: 8),
-                            // Actions menu
-                            PopupMenuButton<String>(
-                              onSelected: (value) {
-                                if (value == 'view') _openDocument(doc);
+                                    const SizedBox(width: 8),
+                                    // Actions menu
+                                    PopupMenuButton<String>(
+                                      onSelected: (value) {
+                                        if (value == 'view') _openDocument(doc);
                                         if (value == 'delete') {
                                           _deleteDocument(doc);
                                         }
                                         if (value == 'replace') {
                                           _replaceDocument(doc);
                                         }
-                              },
-                              itemBuilder: (context) => [
+                                      },
+                                      itemBuilder: (context) => [
                                         const PopupMenuItem(
                                             value: 'view', child: Text('View')),
-                                if (isAdmin || isOwner)
+                                        if (isAdmin || isOwner)
                                           const PopupMenuItem(
                                               value: 'delete',
                                               child: Text('Delete')),
-                                if (isAdmin || isOwner)
+                                        if (isAdmin || isOwner)
                                           const PopupMenuItem(
                                               value: 'replace',
                                               child: Text('Replace')),
-                              ],
-                            ),
-                          ],
-                        ),
-                        onTap: () => _openDocument(doc),
-                      ),
-                    )),
-                  ],
-                ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                onTap: () => _openDocument(doc),
+                              ),
+                            )),
+                      ],
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
 
-          // Display existing notes in conversation format
-          if (_booking?.notes != null && _booking!.notes!.isNotEmpty)
-            NotesDisplay(notes: _booking!.notes!),
+              // Display existing notes in conversation format
+              if (_booking?.notes != null && _booking!.notes!.isNotEmpty)
+                NotesDisplay(notes: _booking!.notes!),
 
-          // Add new note field (only in edit mode)
-          if (_isEditMode) ...[
-            const SizedBox(height: 16),
-            _buildSectionTitle('Add Note (Optional)'),
+              // Add new note field (only in edit mode)
+              if (_isEditMode) ...[
+                const SizedBox(height: 16),
+                _buildSectionTitle('Add Note (Optional)'),
                 _textField('Add a note', _newNoteController,
                     maxLines: 3, enabled: true),
-          ],
+              ],
 
-          const SizedBox(height: 20),
-          if (status == 'declined' && isOwner) ...[
-            Card(
-              color: Colors.orange.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Your booking was declined. Please make the necessary changes and resubmit.',
+              const SizedBox(height: 20),
+              if (status == 'declined' && isOwner) ...[
+                Card(
+                  color: Colors.orange.shade50,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Your booking was declined. Please make the necessary changes and resubmit.',
                           style: TextStyle(
                               color: Colors.orange,
                               fontWeight: FontWeight.w500),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        icon: _isSaving
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            icon: _isSaving
                                 ? const SizedBox(
                                     width: 20,
                                     height: 20,
                                     child: CircularProgressIndicator(
                                         strokeWidth: 2, color: Colors.white))
-                            : const Icon(Icons.refresh),
+                                : const Icon(Icons.refresh),
                             label: Text(_isSaving
                                 ? 'Resubmitting...'
                                 : 'Resubmit Booking'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.white,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                              foregroundColor: Colors.white,
+                            ),
+                            onPressed: _isSaving ? null : _resubmitBooking,
+                          ),
                         ),
-                        onPressed: _isSaving ? null : _resubmitBooking,
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-          
-          _buildStatusSection(isAdmin, widget.baptismId ?? 0),
-        ]),
-      ),
-    ));
+                const SizedBox(height: 16),
+              ],
+
+              _buildStatusSection(isAdmin, widget.baptismId ?? 0),
+            ]),
+          ),
+        ));
   }
 
   Widget _textField(String label, TextEditingController controller,
@@ -781,9 +781,9 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
           border: enabled
               ? const OutlineInputBorder()
               : OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none,
-          ),
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
           filled: enabled,
           fillColor: enabled ? null : Colors.grey[100],
         ),
@@ -805,9 +805,9 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
       if (_newNoteController.text.trim().isNotEmpty) {
         notes = [
           {
-          'author': isParishioner ? 'parishioner' : 'admin',
-          'content': _newNoteController.text.trim(),
-          'authorId': currentUser?.id,
+            'author': isParishioner ? 'parishioner' : 'admin',
+            'content': _newNoteController.text.trim(),
+            'authorId': currentUser?.id,
           }
         ];
       }
@@ -848,8 +848,8 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
   Widget _buildPriestDropdown() {
     return Consumer<PriestProvider>(
       builder: (context, priestProvider, _) {
-        final validPriestId = _selectedPriestId != null && 
-            priestProvider.priests.any((p) => p.id == _selectedPriestId) 
+        final validPriestId = _selectedPriestId != null &&
+                priestProvider.priests.any((p) => p.id == _selectedPriestId)
             ? _selectedPriestId
             : null;
         return Padding(
@@ -866,9 +866,9 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
                 child: Text("No preference"),
               ),
               ...priestProvider.priests.map((priest) => DropdownMenuItem<int>(
-                value: priest.id,
-                child: Text(priest.fullName),
-              )),
+                    value: priest.id,
+                    child: Text(priest.fullName),
+                  )),
             ],
             onChanged: (value) {
               setState(() {
@@ -992,7 +992,7 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
               ],
             )
           else
-          // Fallback UI for parish_staff
+            // Fallback UI for parish_staff
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 8.0),
               child: Text(

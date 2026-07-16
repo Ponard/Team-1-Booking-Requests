@@ -19,7 +19,7 @@ class FileService {
       final picker = ImagePicker();
       return await picker.pickImage(source: source);
     } catch (e) {
-      print('Error picking image: $e');
+      // print('Error picking image: $e');
       return null;
     }
   }
@@ -32,7 +32,8 @@ class FileService {
     Map<String, String>? additionalFields,
   }) async {
     try {
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.filesEndpoint}/upload');
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}${ApiConfig.filesEndpoint}/upload');
       final request = http.MultipartRequest('POST', uri);
 
       if (kIsWeb) {
@@ -48,7 +49,8 @@ class FileService {
         if (file.path == null) {
           throw Exception('File path is null on mobile platform');
         }
-        request.files.add(await http.MultipartFile.fromPath('file', file.path!));
+        request.files
+            .add(await http.MultipartFile.fromPath('file', file.path!));
       }
 
       // Add additional fields
@@ -61,19 +63,19 @@ class FileService {
       request.headers['Authorization'] = 'Bearer $token';
 
       // Send request with timeout
-      final streamedResponse = await request.send()
-        .timeout(
-          const Duration(seconds: 60),
-          onTimeout: () {
-            throw const HttpException('Upload timeout - file too large or connection slow');
-          },
-        );
+      final streamedResponse = await request.send().timeout(
+        const Duration(seconds: 60),
+        onTimeout: () {
+          throw const HttpException(
+              'Upload timeout - file too large or connection slow');
+        },
+      );
 
       // Convert to Response so we can read the body easily
       final response = await http.Response.fromStream(streamedResponse);
 
       final Map<String, dynamic> data =
-      response.body.isNotEmpty ? json.decode(response.body) : {};
+          response.body.isNotEmpty ? json.decode(response.body) : {};
 
       if (response.statusCode == 201) {
         return ApiResponse<Map<String, dynamic>>(
@@ -90,28 +92,28 @@ class FileService {
         );
       }
     } on http.ClientException catch (e) {
-      print('HTTP Client Exception during upload: $e');
+      // print('HTTP Client Exception during upload: $e');
       return ApiResponse<Map<String, dynamic>>(
         success: false,
         message: 'Connection error. Please check your internet connection.',
         errors: [e.toString()],
       );
     } on HttpException catch (e) {
-      print('HTTP Exception during upload: $e');
+      // print('HTTP Exception during upload: $e');
       return ApiResponse<Map<String, dynamic>>(
         success: false,
         message: e.message,
         errors: [e.toString()],
       );
     } on FormatException catch (e) {
-      print('Invalid response format during upload: $e');
+      // print('Invalid response format during upload: $e');
       return ApiResponse<Map<String, dynamic>>(
         success: false,
         message: 'Server response error. Please try again.',
         errors: [e.toString()],
       );
     } catch (e) {
-      print('Unexpected error during upload: $e');
+      // print('Unexpected error during upload: $e');
       return ApiResponse<Map<String, dynamic>>(
         success: false,
         message: 'Network error during upload: $e',
@@ -126,14 +128,15 @@ class FileService {
     String category = 'general',
   }) async {
     try {
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.filesEndpoint}?category=$category');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.filesEndpoint}?category=$category');
       final response = await http.get(
         uri,
         headers: {'Authorization': 'Bearer $token'},
       );
 
       final Map<String, dynamic> data =
-      response.body.isNotEmpty ? json.decode(response.body) : {};
+          response.body.isNotEmpty ? json.decode(response.body) : {};
 
       if (response.statusCode == 200) {
         return ApiResponse<List<dynamic>>(
@@ -172,7 +175,7 @@ class FileService {
       );
 
       final Map<String, dynamic> data =
-      response.body.isNotEmpty ? json.decode(response.body) : {};
+          response.body.isNotEmpty ? json.decode(response.body) : {};
 
       if (response.statusCode == 200) {
         return ApiResponse<void>(

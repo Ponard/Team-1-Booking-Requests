@@ -71,10 +71,10 @@ class MyApp extends StatelessWidget {
       case '/baptism-detail':
         {
           final args = settings.arguments as Map<String, dynamic>? ?? {};
-          print('=== NAVIGATING TO BAPTISM DETAIL ===');
-          print('Arguments: $args');
-          print('ID: ${args['id']}');
-          print('fromStatusButton: ${args['fromStatusButton']}');
+          // print('=== NAVIGATING TO BAPTISM DETAIL ===');
+          // print('Arguments: $args');
+          // print('ID: ${args['id']}');
+          // print('fromStatusButton: ${args['fromStatusButton']}');
           return MaterialPageRoute(
             builder: (_) => BaptismDetailScreen(
               baptismId: args['id'] as int?,
@@ -85,13 +85,15 @@ class MyApp extends StatelessWidget {
       case '/wedding-booking':
         return MaterialPageRoute(builder: (_) => const WeddingBookingScreen());
       case '/confirmation-booking':
-        return MaterialPageRoute(builder: (_) => const ConfirmationBookingScreen());
+        return MaterialPageRoute(
+            builder: (_) => const ConfirmationBookingScreen());
       case '/eucharist':
         return MaterialPageRoute(builder: (_) => const EucharistScreen());
       case '/reconciliation':
         return MaterialPageRoute(builder: (_) => const ReconciliationScreen());
       case '/anointing-the-sick':
-        return MaterialPageRoute(builder: (_) => const AnointingTheSickScreen());
+        return MaterialPageRoute(
+            builder: (_) => const AnointingTheSickScreen());
       case '/mass-intention':
         return MaterialPageRoute(builder: (_) => const MassIntentionScreen());
       case '/mass-intention-detail':
