@@ -117,7 +117,7 @@ All detail screens now display notes using the `NotesDisplay` widget:
 
 ### Create Screens
 All create forms send notes as array:
-- ✅ `Anointing_The_Sick.dart` - Lines 122-134, 156 (creates notesToAdd array)
+- ✅ `anointing_sick_booking_screen.dart` - Lines 122-134, 156 (creates notesToAdd array)
 
 ## API Testing Results
 

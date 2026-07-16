@@ -81,7 +81,7 @@ All 6 booking screens have been successfully integrated with their respective ba
 
 ---
 
-### 3. **Eucharist Screen** (`Eucharist_Screen.dart`)
+### 3. **Eucharist Screen** (`eucharist_booking_screen.dart`)
 **Provider:** `EucharistProvider`  
 **Service:** `EucharistService`  
 **Endpoint:** `POST /api/sacraments/eucharist`
@@ -112,7 +112,7 @@ All 6 booking screens have been successfully integrated with their respective ba
 
 ---
 
-### 4. **Reconciliation Screen** (`Reconciliation_Screen.dart`)
+### 4. **Reconciliation Screen** (`reconciliation_booking_screen.dart`)
 **Provider:** `ReconciliationProvider`  
 **Service:** `ReconciliationService`  
 **Endpoint:** `POST /api/sacraments/reconciliations`
@@ -140,7 +140,7 @@ All 6 booking screens have been successfully integrated with their respective ba
 
 ---
 
-### 5. **Anointing the Sick Screen** (`Anointing_The_Sick.dart`)
+### 5. **Anointing the Sick Screen** (`anointing_sick_booking_screen.dart`)
 **Provider:** `AnointingSickProvider`  
 **Service:** `AnointingSickService`  
 **Endpoint:** `POST /api/sacraments/anointing-sick`
@@ -172,7 +172,7 @@ All 6 booking screens have been successfully integrated with their respective ba
 
 ---
 
-### 6. **Funeral Mass Screen** (`Funeral_Mass_Screen.dart`)
+### 6. **Funeral Mass Screen** (`funeral_mass_booking_screen.dart`)
 **Provider:** `FuneralMassProvider`  
 **Service:** `FuneralMassService`  
 **Endpoint:** `POST /api/sacraments/funeral-mass`
