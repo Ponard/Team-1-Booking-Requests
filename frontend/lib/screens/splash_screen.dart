@@ -22,7 +22,7 @@ class _SplashScreenState extends State<SplashScreen> {
     await Future.delayed(const Duration(seconds: 2));
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
+
     // Check if user is logged in and navigate accordingly
     if (authProvider.isAuthenticated) {
       Navigator.of(context).pushReplacementNamed('/home');

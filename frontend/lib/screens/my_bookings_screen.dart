@@ -225,15 +225,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final userRole = authProvider.currentUser?.role ?? 'parishioner';
-    final isAdmin = [
-      'parish_admin',
-      'parish_staff',
-      'diocese_admin',
-      'diocese_staff'
-    ].contains(userRole);
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {

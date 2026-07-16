@@ -437,8 +437,6 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
           Provider.of<WeddingProvider>(context, listen: false);
       final parishProvider =
           Provider.of<ParishProvider>(context, listen: false);
-      final priestProvider =
-          Provider.of<PriestProvider>(context, listen: false);
 
       if (authProvider.currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(

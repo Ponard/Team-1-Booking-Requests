@@ -10,14 +10,11 @@ class AdminMassScheduleScreen extends StatefulWidget {
   const AdminMassScheduleScreen({super.key});
 
   @override
-  State<AdminMassScheduleScreen> createState() => _AdminMassScheduleScreenState();
+  State<AdminMassScheduleScreen> createState() =>
+      _AdminMassScheduleScreenState();
 }
 
 class _AdminMassScheduleScreenState extends State<AdminMassScheduleScreen> {
-  final List<String> _daysOfWeek = [
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-  ];
-
   @override
   void initState() {
     super.initState();

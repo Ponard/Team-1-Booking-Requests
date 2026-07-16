@@ -265,8 +265,6 @@ class _EucharistScreenState extends State<EucharistScreen> {
           Provider.of<EucharistProvider>(context, listen: false);
       final parishProvider =
           Provider.of<ParishProvider>(context, listen: false);
-      final priestProvider =
-          Provider.of<PriestProvider>(context, listen: false);
 
       if (authProvider.currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(

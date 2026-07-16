@@ -204,7 +204,7 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
     }
 
     // Navigate to document preview screen
-    final result = await Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => DocumentPreviewScreen(document: document),
