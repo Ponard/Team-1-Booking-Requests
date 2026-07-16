@@ -1,3 +1,13 @@
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/parish_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/child_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/parent_information_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -365,306 +375,141 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                   const SizedBox(height: 20),
 
                   // Child Info Section
-                  _buildSection(title: "Child Information", children: [
-                    TextFormField(
-                      controller: _childNameController,
-                      decoration: const InputDecoration(
-                        labelText: "Child's Full Name *",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) =>
-                          value == null || value.trim().isEmpty
-                              ? "Required"
-                              : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _dobController,
-                      decoration: const InputDecoration(
-                        labelText: "Date of Birth *",
-                        hintText: "YYYY-MM-DD",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
-                      readOnly: true,
-                      onTap: () async {
-                        FocusScope.of(context).requestFocus(FocusNode());
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime.now(),
-                        );
-                        if (pickedDate != null) {
-                          _dobController.text =
-                              "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-                        }
-                      },
-                    ),
-                  ]),
+                  ChildInformationSection(
+                    childNameController: _childNameController,
+                    dobController: _dobController,
+                  ),
 
                   // Parents Info Section
-                  _buildSection(title: "Parents / Godparents", children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _fatherNameController,
-                            decoration: const InputDecoration(
-                              labelText: "Father's Name *",
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) =>
-                                value == null || value.trim().isEmpty
-                                    ? "Required"
-                                    : null,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _motherNameController,
-                            decoration: const InputDecoration(
-                              labelText: "Mother's Name *",
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) =>
-                                value == null || value.trim().isEmpty
-                                    ? "Required"
-                                    : null,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _godparentsController,
-                      decoration: const InputDecoration(
-                        labelText:
-                            "Godparents' Names (separate with semicolon)",
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ]),
+                  ParentInformationSection(
+                    fatherController: _fatherNameController,
+                    motherController: _motherNameController,
+                    godparentsController: _godparentsController,
+                  ),
 
-                  _buildSection(title: "Contact Information", children: [
-                    TextFormField(
-                      controller: _contactEmailController,
-                      decoration: const InputDecoration(
-                        labelText: "Email *",
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: Validators.emailValidator,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _contactPhoneController,
-                      decoration: const InputDecoration(
-                        labelText: "Contact Number *",
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.phone,
-                      validator: Validators.phoneValidator,
-                    ),
-                  ]),
+                  // Contact Info Section
+                  ContactInformationSection(
+                    emailController: _contactEmailController,
+                    phoneController: _contactPhoneController,
+                    emailValidator: Validators.emailValidator,
+                    phoneValidator: Validators.phoneValidator,
+                  ),
 
                   // Booking Preferences
-                  _buildSection(title: "Booking Preferences", children: [
-                    Consumer<ParishProvider>(
-                      builder: (context, parishProvider, _) {
-                        return DropdownButtonFormField<int>(
-                          initialValue: parishProvider.selectedParish?.id,
-                          decoration: const InputDecoration(
-                            labelText: "Preferred Parish *",
-                            border: OutlineInputBorder(),
-                          ),
-                          items: parishProvider.parishes
-                              .map((parish) => DropdownMenuItem(
-                                    value: parish.id,
-                                    child: Text(parish.name),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            final parish = parishProvider.parishes
-                                .firstWhere((p) => p.id == value);
-                            setState(() {
-                              _selectedPriestId = null;
-                            });
-                            parishProvider.selectParish(parish);
-                            Provider.of<PriestProvider>(
-                              context,
-                              listen: false,
-                            ).loadPriestsByParish(parish.id!);
-                          },
-                          validator: (value) =>
-                              value == null ? "Please select a parish" : null,
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _preferredDateController,
-                      decoration: const InputDecoration(
-                        labelText: "Preferred Baptism Date *",
-                        hintText: "YYYY-MM-DD",
-                        border: OutlineInputBorder(),
+                  BookingSection(
+                    title: 'Booking Preferences',
+                    children: [
+                      ParishDropdown(
+                        onParishChanged: () {
+                          setState(() => _selectedPriestId = null);
+                        },
                       ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
-                      readOnly: true,
-                      onTap: () async {
-                        FocusScope.of(context).requestFocus(FocusNode());
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime.now(),
-                          lastDate:
-                              DateTime.now().add(const Duration(days: 365)),
-                        );
-                        if (pickedDate != null) {
-                          _preferredDateController.text =
-                              "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _preferredTimeController,
-                      decoration: const InputDecoration(
-                        labelText: "Preferred Time Slot *",
-                        hintText: "HH:MM",
-                        border: OutlineInputBorder(),
+                      BookingDateField(
+                        controller: _preferredDateController,
+                        label: 'Preferred Baptism Date *',
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                        validator: Validators.requiredField,
                       ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
-                      readOnly: true,
-                      onTap: () async {
-                        FocusScope.of(context).requestFocus(FocusNode());
-                        TimeOfDay? pickedTime = await showTimePicker(
-                          context: context,
-                          initialTime: TimeOfDay.now(),
-                        );
-                        if (pickedTime != null && mounted) {
-                          _preferredTimeController.text =
-                              "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    Consumer<PriestProvider>(
-                      builder: (context, priestProvider, _) {
-                        final validPriestId = _selectedPriestId != null &&
-                                priestProvider.priests
-                                    .any((p) => p.id == _selectedPriestId)
-                            ? _selectedPriestId
-                            : null;
-                        return DropdownButtonFormField<int>(
-                          initialValue: validPriestId,
-                          decoration: const InputDecoration(
-                            labelText:
-                                "Preferred Priest (Optional) - Subject to availability",
-                            border: OutlineInputBorder(),
-                          ),
-                          items: [
-                            const DropdownMenuItem<int>(
-                              value: null,
-                              child: Text("No preference"),
-                            ),
-                            ...priestProvider.priests
-                                .map((priest) => DropdownMenuItem<int>(
-                                      value: priest.id,
-                                      child: Text(priest.fullName),
-                                    )),
-                          ],
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedPriestId = value;
-                            });
-                          },
-                        );
-                      },
-                    ),
-                  ]),
+                      BookingTimeField(
+                        controller: _preferredTimeController,
+                        label: 'Preferred Time Slot *',
+                        validator: Validators.requiredField,
+                      ),
+                      PriestDropdown(
+                        selectedPriestId: _selectedPriestId,
+                        onChanged: (value) {
+                          setState(() => _selectedPriestId = value);
+                        },
+                      ),
+                    ],
+                  ),
 
                   // Additional Notes
-                  _buildSection(title: "Additional Information", children: [
-                    TextFormField(
-                      controller: _notesController,
-                      decoration: const InputDecoration(
-                        labelText: "Additional Notes",
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 3,
-                    ),
-                  ]),
+                  AdditionalInformationSection(
+                    notesController: _notesController,
+                  ),
 
                   // Document Upload Section
-                  _buildSection(title: "Required Documents", children: [
-                    const Text(
-                      "PSA Birth Certificate *",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      "Please upload a copy of the PSA birth certificate. Accepted formats: PDF, JPG, PNG",
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton.icon(
-                      onPressed: _pickBirthCertificateFile,
-                      icon: const Icon(Icons.attach_file),
-                      label: Text(
-                        _birthCertificateFile != null
-                            ? 'File Selected: ${_birthCertificateFile!.name}'
-                            : 'Select Birth Certificate File',
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _birthCertificateFile != null
-                            ? Colors.green[100]
-                            : Colors.grey[200],
-                        foregroundColor: Colors.black87,
-                      ),
-                    ),
-                    if (_birthCertificateFile != null) ...[
-                      const SizedBox(height: 12),
-                      _isUploadingFile
-                          ? const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2),
-                                ),
-                                SizedBox(width: 12),
-                                Text('Uploading...'),
-                              ],
-                            )
-                          : ElevatedButton.icon(
-                              onPressed: _uploadedFileData == null
-                                  ? _uploadBirthCertificate
-                                  : null,
-                              icon: const Icon(Icons.cloud_upload),
-                              label: Text(
-                                _uploadedFileData != null
-                                    ? 'Uploaded Successfully'
-                                    : 'Upload Birth Certificate',
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _uploadedFileData != null
-                                    ? Colors.green
-                                    : null,
-                                foregroundColor: _uploadedFileData != null
-                                    ? Colors.white
-                                    : null,
-                              ),
-                            ),
+                  // _buildSection(title: "Required Documents", children: [
+                  //   const Text(
+                  //     "PSA Birth Certificate *",
+                  //     style:
+                  //         TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  //   ),
+                  //   const SizedBox(height: 8),
+                  //   const Text(
+                  //     "Please upload a copy of the PSA birth certificate. Accepted formats: PDF, JPG, PNG",
+                  //     style: TextStyle(fontSize: 14, color: Colors.grey),
+                  //   ),
+                  //   const SizedBox(height: 12),
+                  //   ElevatedButton.icon(
+                  //     onPressed: _pickBirthCertificateFile,
+                  //     icon: const Icon(Icons.attach_file),
+                  //     label: Text(
+                  //       _birthCertificateFile != null
+                  //           ? 'File Selected: ${_birthCertificateFile!.name}'
+                  //           : 'Select Birth Certificate File',
+                  //     ),
+                  //     style: ElevatedButton.styleFrom(
+                  //       backgroundColor: _birthCertificateFile != null
+                  //           ? Colors.green[100]
+                  //           : Colors.grey[200],
+                  //       foregroundColor: Colors.black87,
+                  //     ),
+                  //   ),
+                  //   if (_birthCertificateFile != null) ...[
+                  //     const SizedBox(height: 12),
+                  //     _isUploadingFile
+                  //         ? const Row(
+                  //             mainAxisAlignment: MainAxisAlignment.center,
+                  //             children: [
+                  //               SizedBox(
+                  //                 height: 20,
+                  //                 width: 20,
+                  //                 child:
+                  //                     CircularProgressIndicator(strokeWidth: 2),
+                  //               ),
+                  //               SizedBox(width: 12),
+                  //               Text('Uploading...'),
+                  //             ],
+                  //           )
+                  //         : ElevatedButton.icon(
+                  //             onPressed: _uploadedFileData == null
+                  //                 ? _uploadBirthCertificate
+                  //                 : null,
+                  //             icon: const Icon(Icons.cloud_upload),
+                  //             label: Text(
+                  //               _uploadedFileData != null
+                  //                   ? 'Uploaded Successfully'
+                  //                   : 'Upload Birth Certificate',
+                  //             ),
+                  //             style: ElevatedButton.styleFrom(
+                  //               backgroundColor: _uploadedFileData != null
+                  //                   ? Colors.green
+                  //                   : null,
+                  //               foregroundColor: _uploadedFileData != null
+                  //                   ? Colors.white
+                  //                   : null,
+                  //             ),
+                  //           ),
+                  //   ],
+                  // ]),
+                  BookingSection(
+                    title: "Required Documents",
+                    children: [
+                      DocumentUploadSection(
+                        title: "PSA Birth Certificate *",
+                        description:
+                            "Please upload a copy of the PSA birth certificate. Accepted formats: PDF, JPG, PNG",
+                        file: _birthCertificateFile,
+                        isUploading: _isUploadingFile,
+                        isUploaded: _uploadedFileData != null,
+                        onPick: _pickBirthCertificateFile,
+                        onUpload: _uploadBirthCertificate,
+                      )
                     ],
-                  ]),
+                  ),
 
                   const SizedBox(height: 20),
 
