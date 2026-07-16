@@ -117,7 +117,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
 
     if (mounted && result.success && result.data != null) {
       final booking = result.data!;
-      final status = booking.status.toLowerCase() ?? 'pending';
+      final status = booking.status.toLowerCase();
       final isEditable = status == 'pending' || status == 'declined';
       setState(() {
         _booking = booking;
@@ -604,9 +604,8 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 12, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: _getStatusColor(_booking!.status
-                                                    .toLowerCase() ??
-                                                'pending')
+                                        color: _getStatusColor(
+                                                _booking!.status.toLowerCase())
                                             .withValues(alpha: 0.2),
                                         borderRadius: BorderRadius.circular(12),
                                       ),

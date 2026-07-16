@@ -67,7 +67,7 @@ class _ReconciliationDetailScreenState
 
     if (mounted && result.success && result.data != null) {
       final booking = result.data!;
-      final status = booking.status.toLowerCase() ?? 'pending';
+      final status = booking.status.toLowerCase();
       final isEditable = status == 'pending' || status == 'declined';
       setState(() {
         _booking = booking;

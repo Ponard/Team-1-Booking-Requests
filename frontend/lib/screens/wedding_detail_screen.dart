@@ -295,7 +295,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
       // Auto-enable edit mode if fromStatusButton (with editable status) or user is owner and booking is editable
       final currentUser = authProvider.currentUser;
       final isOwner = booking.userId == currentUser?.id;
-      final status = booking.status.toLowerCase() ?? 'pending';
+      final status = booking.status.toLowerCase();
       final isEditable = status == 'pending' || status == 'declined';
       if (widget.fromStatusButton && isEditable) {
         setState(() => _isEditMode = true);
