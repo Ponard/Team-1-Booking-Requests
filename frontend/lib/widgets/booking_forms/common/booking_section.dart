@@ -13,7 +13,7 @@ class BookingSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Card(
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -29,9 +29,10 @@ class BookingSection extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: Colors.blue,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               ...children,
             ],
           ),
