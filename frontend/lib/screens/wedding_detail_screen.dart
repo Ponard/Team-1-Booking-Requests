@@ -5,9 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../providers/auth_provider.dart';
-import '../providers/parish_provider.dart';
 import '../providers/priest_provider.dart';
-import '../providers/wedding_provider.dart';
 import '../services/wedding_service.dart';
 import '../utils/sacrament_icons.dart';
 import '../services/file_service.dart';
@@ -98,125 +96,125 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
 
   String get _displayBookingStatus {
     if (_booking == null) return 'PENDING';
-    final status = (_booking?.status?.toUpperCase() ?? 'PENDING');
+    final status = (_booking?.status.toUpperCase() ?? 'PENDING');
     return status;
   }
 
-  bool get _canChangeStatus {
-    if (_booking == null) return false;
-    final status = _booking!.status?.toLowerCase();
-    if (status == 'pending') {
-      return true;
-    } else if (status == 'approved') {
-      final scheduledDate = _booking!.preferredDate;
-      if (scheduledDate != null && scheduledDate.isNotEmpty) {
-        try {
-          final now = DateTime.now();
-          final bookingDate = DateTime.parse(scheduledDate);
-          final today = DateTime(now.year, now.month, now.day);
-          final eventDate =
-              DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
-          return eventDate.isBefore(today);
-        } catch (e) {
-          return false;
-        }
-      }
-      return false;
-    }
-    return false;
-  }
+  // bool get _canChangeStatus {
+  //   if (_booking == null) return false;
+  //   final status = _booking!.status.toLowerCase();
+  //   if (status == 'pending') {
+  //     return true;
+  //   } else if (status == 'approved') {
+  //     final scheduledDate = _booking!.preferredDate;
+  //     if (scheduledDate != null && scheduledDate.isNotEmpty) {
+  //       try {
+  //         final now = DateTime.now();
+  //         final bookingDate = DateTime.parse(scheduledDate);
+  //         final today = DateTime(now.year, now.month, now.day);
+  //         final eventDate =
+  //             DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
+  //         return eventDate.isBefore(today);
+  //       } catch (e) {
+  //         return false;
+  //       }
+  //     }
+  //     return false;
+  //   }
+  //   return false;
+  // }
 
-  String get _actionButtonText {
-    if (_booking == null) return 'Approve';
-    final status = _booking!.status?.toLowerCase();
-    if (status == 'pending') return 'Approve';
-    if (status == 'approved') return 'Mark as Completed';
-    return 'Approve';
-  }
+  // String get _actionButtonText {
+  //   if (_booking == null) return 'Approve';
+  //   final status = _booking!.status.toLowerCase();
+  //   if (status == 'pending') return 'Approve';
+  //   if (status == 'approved') return 'Mark as Completed';
+  //   return 'Approve';
+  // }
 
-  Widget _buildStatusSection(bool isAdmin) {
-    if (!isAdmin || _showStatusButtons) return const SizedBox.shrink();
+  // Widget _buildStatusSection(bool isAdmin) {
+  //   if (!isAdmin || _showStatusButtons) return const SizedBox.shrink();
 
-    final displayStatus = _displayBookingStatus;
-    final canChangeStatus = _canChangeStatus;
-    final actionButtonText = _actionButtonText;
-    final status = _booking?.status?.toLowerCase();
+  //   final displayStatus = _displayBookingStatus;
+  //   final canChangeStatus = _canChangeStatus;
+  //   final actionButtonText = _actionButtonText;
+  //   final status = _booking?.status.toLowerCase();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-        const Text(
-          'Status',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(
-                width: 120,
-                child: Text(
-                  'Status',
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  displayStatus,
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (status == 'pending') ...[
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.check_circle),
-                  label: const Text('Approve'),
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  onPressed: () => _updateBookingStatus('approved'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.cancel),
-                  label: const Text('Decline'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  onPressed: () => _updateBookingStatus('declined'),
-                ),
-              ),
-            ],
-          ),
-        ] else if (status == 'approved') ...[
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: Text(actionButtonText),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                  onPressed: canChangeStatus
-                      ? () => _updateBookingStatus('completed')
-                      : null,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ],
-    );
-  }
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       const SizedBox(height: 16),
+  //       const Text(
+  //         'Status',
+  //         style: TextStyle(
+  //           fontSize: 16,
+  //           fontWeight: FontWeight.bold,
+  //           color: Colors.blue,
+  //         ),
+  //       ),
+  //       Padding(
+  //         padding: const EdgeInsets.symmetric(vertical: 6),
+  //         child: Row(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             const SizedBox(
+  //               width: 120,
+  //               child: Text(
+  //                 'Status',
+  //                 style: TextStyle(fontWeight: FontWeight.w500),
+  //               ),
+  //             ),
+  //             Expanded(
+  //               child: Text(
+  //                 displayStatus,
+  //                 style: const TextStyle(fontSize: 14),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //       if (status == 'pending') ...[
+  //         Row(
+  //           children: [
+  //             Expanded(
+  //               child: ElevatedButton.icon(
+  //                 icon: const Icon(Icons.check_circle),
+  //                 label: const Text('Approve'),
+  //                 style:
+  //                     ElevatedButton.styleFrom(backgroundColor: Colors.green),
+  //                 onPressed: () => _updateBookingStatus('approved'),
+  //               ),
+  //             ),
+  //             const SizedBox(width: 12),
+  //             Expanded(
+  //               child: ElevatedButton.icon(
+  //                 icon: const Icon(Icons.cancel),
+  //                 label: const Text('Decline'),
+  //                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+  //                 onPressed: () => _updateBookingStatus('declined'),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ] else if (status == 'approved') ...[
+  //         Row(
+  //           children: [
+  //             Expanded(
+  //               child: ElevatedButton.icon(
+  //                 icon: const Icon(Icons.check_circle_outline),
+  //                 label: Text(actionButtonText),
+  //                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+  //                 onPressed: canChangeStatus
+  //                     ? () => _updateBookingStatus('completed')
+  //                     : null,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //     ],
+  //   );
+  // }
 
   @override
   void initState() {
@@ -297,7 +295,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
       // Auto-enable edit mode if fromStatusButton (with editable status) or user is owner and booking is editable
       final currentUser = authProvider.currentUser;
       final isOwner = booking.userId == currentUser?.id;
-      final status = booking.status?.toLowerCase() ?? 'pending';
+      final status = booking.status.toLowerCase();
       final isEditable = status == 'pending' || status == 'declined';
       if (widget.fromStatusButton && isEditable) {
         setState(() => _isEditMode = true);
@@ -547,8 +545,9 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   }
 
   Future<void> _uploadConfirmationCertificate() async {
-    if (_confirmationCertificateFile == null || widget.weddingId == null)
+    if (_confirmationCertificateFile == null || widget.weddingId == null) {
       return;
+    }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
@@ -706,6 +705,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   }
 
   Future<void> _deleteBooking() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -728,7 +728,6 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
 
     setState(() => _isSaving = true);
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null) {
       if (mounted) {
@@ -813,7 +812,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
       'diocese_staff'
     ].contains(role);
     final isOwner = _booking?.userId == currentUser?.id;
-    final status = _booking?.status?.toLowerCase();
+    final status = _booking?.status.toLowerCase();
     final canEdit =
         isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
     final effectiveStatus = _displayBookingStatus.toLowerCase();
@@ -863,10 +862,9 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 12, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: _getStatusColor(_booking!.status
-                                                    ?.toLowerCase() ??
-                                                'pending')
-                                            .withOpacity(0.2),
+                                        color: _getStatusColor(
+                                                _booking!.status.toLowerCase())
+                                            .withValues(alpha: 0.2),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
@@ -884,7 +882,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                 if (!_showStatusButtons && isAdmin)
                                   Row(
                                     children: [
-                                      if (_booking!.status?.toLowerCase() ==
+                                      if (_booking!.status.toLowerCase() ==
                                           'pending')
                                         ElevatedButton(
                                           onPressed: () =>
@@ -893,10 +891,10 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                                               backgroundColor: Colors.red),
                                           child: const Text('Decline'),
                                         ),
-                                      if (_booking!.status?.toLowerCase() ==
+                                      if (_booking!.status.toLowerCase() ==
                                           'pending')
                                         const SizedBox(width: 8),
-                                      if (_booking!.status?.toLowerCase() ==
+                                      if (_booking!.status.toLowerCase() ==
                                           'pending')
                                         ElevatedButton(
                                           onPressed: () =>
@@ -1098,7 +1096,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 12),
                               child: DropdownButtonFormField<int>(
-                                value: validPriestId,
+                                initialValue: validPriestId,
                                 decoration: const InputDecoration(
                                   labelText: "Preferred Priest (Optional)",
                                   border: OutlineInputBorder(),
@@ -1347,7 +1345,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.2),
+                      color: Colors.green.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(
@@ -1401,7 +1399,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                 leading: const Icon(Icons.check_circle,
                     color: Colors.green, size: 20),
                 title: Text(
-                  uploadedData?['originalFilename'] ?? 'Uploaded',
+                  uploadedData['originalFilename'] ?? 'Uploaded',
                   style: const TextStyle(fontSize: 14),
                 ),
               ),

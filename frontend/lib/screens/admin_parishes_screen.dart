@@ -54,7 +54,8 @@ class _AdminParishesScreenState extends State<AdminParishesScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.message ?? 'Failed to load parishes')),
+          SnackBar(
+              content: Text(response.message ?? 'Failed to load parishes')),
         );
       }
     }
@@ -97,18 +98,22 @@ class _AdminParishesScreenState extends State<AdminParishesScreen> {
   }
 
   void _showParishDialog(dynamic parish) {
+    final parentContext = context;
     final nameController = TextEditingController(text: parish?['name'] ?? '');
-    final addressController = TextEditingController(text: parish?['address'] ?? '');
-    final emailController = TextEditingController(text: parish?['contactEmail'] ?? '');
-    final phoneController = TextEditingController(text: parish?['contactPhone'] ?? '');
+    final addressController =
+        TextEditingController(text: parish?['address'] ?? '');
+    final emailController =
+        TextEditingController(text: parish?['contactEmail'] ?? '');
+    final phoneController =
+        TextEditingController(text: parish?['contactPhone'] ?? '');
     bool isActive = parish?['isActive'] ?? true;
     final formKey = GlobalKey<FormState>();
     final isEditing = parish != null;
 
     showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
+      context: parentContext,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (_, setDialogState) => AlertDialog(
           title: Text(isEditing ? 'Edit Parish' : 'Add New Parish'),
           content: SizedBox(
             width: double.maxFinite,
@@ -175,13 +180,14 @@ class _AdminParishesScreenState extends State<AdminParishesScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
-                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  final authProvider =
+                      Provider.of<AuthProvider>(parentContext, listen: false);
                   final token = authProvider.token;
 
                   if (token == null) return;
@@ -193,8 +199,12 @@ class _AdminParishesScreenState extends State<AdminParishesScreen> {
                           {
                             'name': nameController.text,
                             'address': addressController.text,
-                            'contactEmail': emailController.text.isEmpty ? null : emailController.text,
-                            'contactPhone': phoneController.text.isEmpty ? null : phoneController.text,
+                            'contactEmail': emailController.text.isEmpty
+                                ? null
+                                : emailController.text,
+                            'contactPhone': phoneController.text.isEmpty
+                                ? null
+                                : phoneController.text,
                             'isActive': isActive,
                           },
                         )
@@ -203,26 +213,35 @@ class _AdminParishesScreenState extends State<AdminParishesScreen> {
                           {
                             'name': nameController.text,
                             'address': addressController.text,
-                            'contactEmail': emailController.text.isEmpty ? null : emailController.text,
-                            'contactPhone': phoneController.text.isEmpty ? null : phoneController.text,
+                            'contactEmail': emailController.text.isEmpty
+                                ? null
+                                : emailController.text,
+                            'contactPhone': phoneController.text.isEmpty
+                                ? null
+                                : phoneController.text,
                             'isActive': true,
                           },
                         );
 
+                  if (!parentContext.mounted) return;
+
                   if (response.success) {
-                    if (mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(isEditing ? 'Parish updated successfully' : 'Parish created successfully')),
-                      );
-                      _loadParishes();
-                    }
+                    Navigator.pop(dialogContext);
+                    ScaffoldMessenger.of(parentContext).showSnackBar(
+                      SnackBar(
+                          content: Text(isEditing
+                              ? 'Parish updated successfully'
+                              : 'Parish created successfully')),
+                    );
+                    _loadParishes();
                   } else {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(response.message ?? (isEditing ? 'Failed to update parish' : 'Failed to create parish'))),
-                      );
-                    }
+                    ScaffoldMessenger.of(parentContext).showSnackBar(
+                      SnackBar(
+                          content: Text(response.message ??
+                              (isEditing
+                                  ? 'Failed to update parish'
+                                  : 'Failed to create parish'))),
+                    );
                   }
                 }
               },
@@ -285,13 +304,15 @@ class _AdminParishesScreenState extends State<AdminParishesScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.church_outlined, size: 64, color: Colors.grey),
+                      const Icon(Icons.church_outlined,
+                          size: 64, color: Colors.grey),
                       const SizedBox(height: 16),
                       Text(
                         _searchQuery.isNotEmpty
                             ? 'No parishes found matching "$_searchQuery"'
                             : 'No parishes found',
-                        style: const TextStyle(fontSize: 16, color: Colors.grey),
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.grey),
                       ),
                       const SizedBox(height: 24),
                       if (_canAddParish)
@@ -317,7 +338,8 @@ class _AdminParishesScreenState extends State<AdminParishesScreen> {
                             backgroundColor: parish['isActive'] == true
                                 ? Colors.green
                                 : Colors.grey,
-                            child: const Icon(Icons.church, color: Colors.white),
+                            child:
+                                const Icon(Icons.church, color: Colors.white),
                           ),
                           title: Text(
                             parish['name'] ?? 'Unknown Parish',
@@ -335,7 +357,8 @@ class _AdminParishesScreenState extends State<AdminParishesScreen> {
                             ],
                           ),
                           trailing: parish['isActive'] == true
-                              ? const Icon(Icons.check_circle, color: Colors.green)
+                              ? const Icon(Icons.check_circle,
+                                  color: Colors.green)
                               : const Icon(Icons.cancel, color: Colors.grey),
                           onTap: () {
                             _showEditParishDialog(parish);

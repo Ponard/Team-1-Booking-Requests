@@ -5,9 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../providers/auth_provider.dart';
-import '../providers/parish_provider.dart';
 import '../providers/priest_provider.dart';
-import '../providers/eucharist_provider.dart';
 import '../services/eucharist_service.dart';
 import '../services/file_service.dart';
 import '../models/document.dart';
@@ -119,7 +117,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
 
     if (mounted && result.success && result.data != null) {
       final booking = result.data!;
-      final status = booking.status?.toLowerCase() ?? 'pending';
+      final status = booking.status.toLowerCase();
       final isEditable = status == 'pending' || status == 'declined';
       setState(() {
         _booking = booking;
@@ -398,6 +396,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
   }
 
   Future<void> _deleteBooking() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -420,7 +419,6 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
 
     setState(() => _isSaving = true);
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null) {
       if (mounted) {
@@ -531,7 +529,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
 
   String get _displayStatus {
     if (_booking == null) return 'PENDING';
-    final status = (_booking?.status?.toUpperCase() ?? 'PENDING');
+    final status = (_booking?.status.toUpperCase() ?? 'PENDING');
     return status;
   }
 
@@ -554,7 +552,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
       'diocese_staff'
     ].contains(role);
     final isOwner = _booking?.userId == currentUser?.id;
-    final status = _booking?.status?.toLowerCase();
+    final status = _booking?.status.toLowerCase();
     final canEdit =
         isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
     final effectiveStatus = _displayStatus.toLowerCase();
@@ -606,10 +604,9 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 12, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: _getStatusColor(_booking!.status
-                                                    ?.toLowerCase() ??
-                                                'pending')
-                                            .withOpacity(0.2),
+                                        color: _getStatusColor(
+                                                _booking!.status.toLowerCase())
+                                            .withValues(alpha: 0.2),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
@@ -626,7 +623,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                                 if (!_showStatusButtons && isAdmin)
                                   Row(
                                     children: [
-                                      if (_booking!.status?.toLowerCase() ==
+                                      if (_booking!.status.toLowerCase() ==
                                           'pending')
                                         ElevatedButton(
                                           onPressed: () =>
@@ -635,10 +632,10 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                                               backgroundColor: Colors.red),
                                           child: const Text('Decline'),
                                         ),
-                                      if (_booking!.status?.toLowerCase() ==
+                                      if (_booking!.status.toLowerCase() ==
                                           'pending')
                                         const SizedBox(width: 8),
-                                      if (_booking!.status?.toLowerCase() ==
+                                      if (_booking!.status.toLowerCase() ==
                                           'pending')
                                         ElevatedButton(
                                           onPressed: () =>
@@ -856,7 +853,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 12),
                               child: DropdownButtonFormField<int>(
-                                value: validPriestId,
+                                initialValue: validPriestId,
                                 decoration: const InputDecoration(
                                   labelText: "Preferred Priest (Optional)",
                                   border: OutlineInputBorder(),
@@ -1074,7 +1071,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.2),
+                      color: Colors.green.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(
@@ -1128,7 +1125,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                 leading: const Icon(Icons.check_circle,
                     color: Colors.green, size: 20),
                 title: Text(
-                  uploadedData?['originalFilename'] ?? 'Uploaded',
+                  uploadedData['originalFilename'] ?? 'Uploaded',
                   style: const TextStyle(fontSize: 14),
                 ),
               ),

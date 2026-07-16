@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:http/src/response.dart';
+import 'package:http/http.dart';
 
 import '../models/parish.dart';
 import '../models/api_response.dart';
@@ -14,9 +14,10 @@ class ParishService {
   Future<ApiResponse<List<Parish>>> getAllParishes({String? token}) async {
     try {
       late final Response response;
-      
+
       if (token != null) {
-        response = await ApiConfig.getWithAuth(ApiConfig.parishesEndpoint, token);
+        response =
+            await ApiConfig.getWithAuth(ApiConfig.parishesEndpoint, token);
       } else {
         response = await ApiConfig.get(ApiConfig.parishesEndpoint);
       }
@@ -52,9 +53,10 @@ class ParishService {
   Future<ApiResponse<Parish>> getParishById(int id, {String? token}) async {
     try {
       late final Response response;
-      
+
       if (token != null) {
-        response = await ApiConfig.getWithAuth('${ApiConfig.parishesEndpoint}/$id', token);
+        response = await ApiConfig.getWithAuth(
+            '${ApiConfig.parishesEndpoint}/$id', token);
       } else {
         response = await ApiConfig.get('${ApiConfig.parishesEndpoint}/$id');
       }
@@ -113,7 +115,7 @@ class ParishService {
       }
 
       late final Response response;
-      
+
       if (token != null) {
         response = await ApiConfig.getWithAuth(endpoint, token);
       } else {
@@ -148,11 +150,12 @@ class ParishService {
   }
 
   // Get parishes by service offered
-  Future<ApiResponse<List<Parish>>> getParishesByService(String service, {String? token}) async {
+  Future<ApiResponse<List<Parish>>> getParishesByService(String service,
+      {String? token}) async {
     try {
       final endpoint = '${ApiConfig.parishesEndpoint}/by-service/$service';
       late final Response response;
-      
+
       if (token != null) {
         response = await ApiConfig.getWithAuth(endpoint, token);
       } else {
@@ -186,3 +189,4 @@ class ParishService {
     }
   }
 }
+

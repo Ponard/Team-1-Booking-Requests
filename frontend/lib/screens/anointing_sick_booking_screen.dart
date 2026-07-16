@@ -3,32 +3,31 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/parish_provider.dart';
-import '../providers/funeral_mass_provider.dart';
+import '../providers/anointing_sick_provider.dart';
 import '../providers/priest_provider.dart';
-import '../widgets/custom_button.dart';
 import '../utils/validators.dart';
 
-class FuneralMassScreen extends StatefulWidget {
-  static const routeName = '/funeral-mass';
+class AnointingTheSickScreen extends StatefulWidget {
+  static const routeName = '/anointing-the-sick';
 
-  const FuneralMassScreen({super.key});
+  const AnointingTheSickScreen({super.key});
 
   @override
-  State<FuneralMassScreen> createState() => _FuneralMassScreenState();
+  State<AnointingTheSickScreen> createState() => _AnointingTheSickScreenState();
 }
 
-class _FuneralMassScreenState extends State<FuneralMassScreen> {
+class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers
-  final _deceasedNameController = TextEditingController();
-  final _dateOfDeathController = TextEditingController();
-  final _wakeStartDateController = TextEditingController();
-  final _wakeEndDateController = TextEditingController();
-  final _wakeLocationController = TextEditingController();
+  // Controllers for required fields
+  final _sickPersonNameController = TextEditingController();
   final _contactPersonController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
+  final _contactEmailController = TextEditingController();
+  final _contactPhoneController = TextEditingController();
+  final _locationController = TextEditingController();
+
+  // Controllers for optional fields
+  final _locationAddressController = TextEditingController();
   final _preferredDateController = TextEditingController();
   final _preferredTimeController = TextEditingController();
   final _additionalNotesController = TextEditingController();
@@ -50,14 +49,14 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
 
       // Set default contact email and person to current user's info
       if (authProvider.currentUser?.email != null) {
-        _emailController.text = authProvider.currentUser!.email;
+        _contactEmailController.text = authProvider.currentUser!.email;
       }
       if (authProvider.currentUser?.fullName != null) {
         _contactPersonController.text = authProvider.currentUser!.fullName;
       }
 
       await parishProvider.loadParishesByService(
-        'funeral_mass',
+        'anointing_sick',
         token: authProvider.token,
       );
 
@@ -80,45 +79,48 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
 
   @override
   void dispose() {
-    _deceasedNameController.dispose();
-    _dateOfDeathController.dispose();
-    _wakeStartDateController.dispose();
-    _wakeEndDateController.dispose();
-    _wakeLocationController.dispose();
+    _sickPersonNameController.dispose();
     _contactPersonController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
+    _contactEmailController.dispose();
+    _contactPhoneController.dispose();
+    _locationController.dispose();
+    _locationAddressController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
     _additionalNotesController.dispose();
     super.dispose();
   }
 
-  Future<void> _submitForm() async {
+  Future<void> _handleSubmission() async {
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final funeralMassProvider =
-          Provider.of<FuneralMassProvider>(context, listen: false);
+      final anointingSickProvider =
+          Provider.of<AnointingSickProvider>(context, listen: false);
       final parishProvider =
           Provider.of<ParishProvider>(context, listen: false);
-      final priestProvider =
-          Provider.of<PriestProvider>(context, listen: false);
 
       if (authProvider.currentUser == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Please login to submit a booking.")),
-          );
-        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please login to submit a booking.")),
+        );
         return;
       }
 
       if (parishProvider.selectedParish == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Please select a parish.")),
-          );
-        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select a parish.")),
+        );
+        return;
+      }
+
+      final token = authProvider.token;
+      if (token == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Authentication token not available.")),
+        );
         return;
       }
 
@@ -146,27 +148,25 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
         ];
       }
 
-      final success = await funeralMassProvider.createFuneralMassBooking(
-        token: authProvider.token!,
+      final success = await anointingSickProvider.createAnointingSickBooking(
+        token: token,
         parishId: parishProvider.selectedParish!.id!,
-        deceasedFullName: _deceasedNameController.text.trim(),
-        representativeName: _contactPersonController.text.trim(),
-        contactEmail: _emailController.text.trim(),
-        contactPhone: _phoneController.text.trim(),
-        preferredDate: formatDate(_preferredDateController.text),
-        preferredTimeSlot: _preferredTimeController.text,
-        dateOfDeath: _dateOfDeathController.text.trim().isEmpty
+        sickPersonName: _sickPersonNameController.text.trim(),
+        contactPersonName: _contactPersonController.text.trim(),
+        contactEmail: _contactEmailController.text.trim(),
+        contactPhone: _contactPhoneController.text.trim(),
+        location: _locationController.text.trim(),
+        locationAddress: _locationAddressController.text.trim().isEmpty
             ? null
-            : formatDate(_dateOfDeathController.text),
-        wakeStartDate: _wakeStartDateController.text.trim().isEmpty
+            : _locationAddressController.text.trim(),
+
+        //QA FIX: Added trim method inside formatDate
+        preferredDate: _preferredDateController.text.isEmpty
             ? null
-            : formatDate(_wakeStartDateController.text),
-        wakeEndDate: _wakeEndDateController.text.trim().isEmpty
+            : formatDate(_preferredDateController.text.trim()),
+        preferredTimeSlot: _preferredTimeController.text.trim().isEmpty
             ? null
-            : formatDate(_wakeEndDateController.text),
-        wakeLocation: _wakeLocationController.text.trim().isEmpty
-            ? null
-            : _wakeLocationController.text.trim(),
+            : _preferredTimeController.text.trim(),
         priestId: _selectedPriestId,
         notes: notesToAdd,
       );
@@ -177,7 +177,7 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
           builder: (context) => AlertDialog(
             title: const Text("Booking Submitted"),
             content: const Text(
-                "Your funeral mass booking request has been submitted. The parish will contact you to confirm details."),
+                "Your Anointing of the Sick booking request has been submitted. The parish will contact you to confirm arrangements."),
             actions: [
               TextButton(
                 onPressed: () {
@@ -192,7 +192,7 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(funeralMassProvider.errorMessage ??
+              content: Text(anointingSickProvider.errorMessage ??
                   "Failed to submit booking.")),
         );
       }
@@ -203,7 +203,7 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
       {required String title, required List<Widget> children}) {
     return Card(
       elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -230,7 +230,7 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Funeral Mass Booking"),
+        title: const Text("Anointing of the Sick"),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -240,7 +240,7 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16.0),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 450),
@@ -250,112 +250,73 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
-                    "Fill out the form below to submit your funeral mass booking request. All fields marked with * are required.",
+                    "Fill out the form below to submit your booking request. All fields marked with * are required.",
                     style: TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 5),
                   const Text(
-                    "The Parish office will contact you immediately to coordinate the priest's schedule for the mass and interment.",
+                    "Subject to availability. Parish will confirm your booking arrangements.",
                     style: TextStyle(
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.grey),
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey,
+                    ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
 
-                  // Deceased Information Section
+                  // Urgent Notice
+                  Card(
+                    color: Colors.red[50],
+                    child: const Padding(
+                      padding: EdgeInsets.all(12.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.priority_high, color: Colors.red),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              "For urgent cases requiring immediate attention, please call the Parish office directly.",
+                              style: TextStyle(
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Patient Information Section
                   _buildSection(
-                    title: "Deceased Information",
+                    title: "Patient Information",
                     children: [
                       TextFormField(
-                        controller: _deceasedNameController,
+                        controller: _sickPersonNameController,
                         decoration: const InputDecoration(
-                          labelText: "Full Name of the Deceased *",
+                          labelText: "Patient Full Name *",
                           border: OutlineInputBorder(),
                         ),
-                        validator: (value) => value == null || value.isEmpty
-                            ? "Enter deceased name"
-                            : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? "Required" : null,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
-                        controller: _dateOfDeathController,
+                        controller: _locationController,
                         decoration: const InputDecoration(
-                          labelText: "Date of Death (Optional)",
-                          hintText: "YYYY-MM-DD",
+                          labelText:
+                              "Location (Hospital Name / Home Address) *",
                           border: OutlineInputBorder(),
                         ),
-                        onTap: () async {
-                          FocusScope.of(context).requestFocus(FocusNode());
-                          DateTime? pickedDate = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime(1900),
-                            lastDate: DateTime.now(),
-                          );
-                          if (pickedDate != null) {
-                            _dateOfDeathController.text =
-                                "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-
-                  // Wake Information Section
-                  _buildSection(
-                    title: "Wake Information",
-                    children: [
-                      TextFormField(
-                        controller: _wakeStartDateController,
-                        decoration: const InputDecoration(
-                          labelText: "Wake Start Date (Optional)",
-                          hintText: "YYYY-MM-DD",
-                          border: OutlineInputBorder(),
-                        ),
-                        onTap: () async {
-                          FocusScope.of(context).requestFocus(FocusNode());
-                          DateTime? pickedDate = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime.now(),
-                            lastDate:
-                                DateTime.now().add(const Duration(days: 365)),
-                          );
-                          if (pickedDate != null) {
-                            _wakeStartDateController.text =
-                                "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-                          }
-                        },
+                        maxLines: 2,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? "Required" : null,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
-                        controller: _wakeEndDateController,
+                        controller: _locationAddressController,
                         decoration: const InputDecoration(
-                          labelText: "Wake End Date (Optional)",
-                          hintText: "YYYY-MM-DD",
-                          border: OutlineInputBorder(),
-                        ),
-                        onTap: () async {
-                          FocusScope.of(context).requestFocus(FocusNode());
-                          DateTime? pickedDate = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime.now(),
-                            lastDate:
-                                DateTime.now().add(const Duration(days: 365)),
-                          );
-                          if (pickedDate != null) {
-                            _wakeEndDateController.text =
-                                "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _wakeLocationController,
-                        decoration: const InputDecoration(
-                          labelText: "Wake Location/Chapel (Optional)",
+                          labelText: "Detailed Address (Optional)",
                           border: OutlineInputBorder(),
                         ),
                         maxLines: 2,
@@ -370,7 +331,8 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                       TextFormField(
                         controller: _contactPersonController,
                         decoration: const InputDecoration(
-                          labelText: "Family Representative Name *",
+                          labelText:
+                              "Contact Person Name (Relative/Guardian) *",
                           border: OutlineInputBorder(),
                         ),
                         validator: (value) =>
@@ -378,25 +340,17 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
-                        controller: _emailController,
+                        controller: _contactEmailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
                           labelText: "Email *",
                           border: OutlineInputBorder(),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Required";
-                          }
-                          if (!value.contains('@')) {
-                            return "Enter a valid email";
-                          }
-                          return null;
-                        },
+                        validator: Validators.emailValidator,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
-                        controller: _phoneController,
+                        controller: _contactPhoneController,
                         keyboardType: TextInputType.phone,
                         decoration: const InputDecoration(
                           labelText: "Contact Number *",
@@ -407,14 +361,14 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                     ],
                   ),
 
-                  // Schedule & Requirements Section
+                  // Booking Preferences Section
                   _buildSection(
                     title: "Booking Preferences",
                     children: [
                       Consumer<ParishProvider>(
                         builder: (context, parishProvider, _) {
                           return DropdownButtonFormField<int>(
-                            value: parishProvider.selectedParish?.id,
+                            initialValue: parishProvider.selectedParish?.id,
                             decoration: const InputDecoration(
                               labelText: "Preferred Parish *",
                               border: OutlineInputBorder(),
@@ -451,12 +405,10 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                       TextFormField(
                         controller: _preferredDateController,
                         decoration: const InputDecoration(
-                          labelText: "Preferred Funeral Mass Date *",
+                          labelText: "Preferred Anointing Date (Optional)",
                           hintText: "YYYY-MM-DD",
                           border: OutlineInputBorder(),
                         ),
-                        validator: (value) =>
-                            value == null || value.isEmpty ? "Required" : null,
                         onTap: () async {
                           FocusScope.of(context).requestFocus(FocusNode());
                           DateTime? pickedDate = await showDatePicker(
@@ -476,12 +428,10 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                       TextFormField(
                         controller: _preferredTimeController,
                         decoration: const InputDecoration(
-                          labelText: "Preferred Time Slot *",
+                          labelText: "Preferred Time Slot (Optional)",
                           hintText: "HH:MM",
                           border: OutlineInputBorder(),
                         ),
-                        validator: (value) =>
-                            value == null || value.isEmpty ? "Required" : null,
                         onTap: () async {
                           FocusScope.of(context).requestFocus(FocusNode());
                           TimeOfDay? pickedTime = await showTimePicker(
@@ -503,7 +453,7 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                               ? _selectedPriestId
                               : null;
                           return DropdownButtonFormField<int>(
-                            value: validPriestId,
+                            initialValue: validPriestId,
                             decoration: const InputDecoration(
                               labelText:
                                   "Preferred Priest (Optional) - Subject to availability",
@@ -531,28 +481,54 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                     ],
                   ),
 
-                  const SizedBox(height: 12),
-                  _buildSection(title: "Additional Information", children: [
-                    TextFormField(
-                      controller: _additionalNotesController,
-                      decoration: const InputDecoration(
-                        labelText: "Additional Notes (Optional)",
-                        border: OutlineInputBorder(),
+                  // Additional Notes Section
+                  _buildSection(
+                    title: "Additional Information",
+                    children: [
+                      TextFormField(
+                        controller: _additionalNotesController,
+                        decoration: const InputDecoration(
+                          labelText:
+                              "Additional Notes (Patient Condition, Special Requests)",
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
                       ),
-                      maxLines: 3,
-                    ),
-                  ]),
+                    ],
+                  ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
                   // Submit Button with loading state
-                  Consumer<FuneralMassProvider>(
-                    builder: (context, funeralMassProvider, _) {
-                      return CustomButton(
-                        text: "Submit Request",
-                        onPressed:
-                            funeralMassProvider.isLoading ? null : _submitForm,
-                        isLoading: funeralMassProvider.isLoading,
+                  Consumer<AnointingSickProvider>(
+                    builder: (context, anointingSickProvider, _) {
+                      return Center(
+                        child: ElevatedButton(
+                          onPressed: anointingSickProvider.isLoading
+                              ? null
+                              : _handleSubmission,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 14, horizontal: 28),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: anointingSickProvider.isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : const Text("Submit Request",
+                                  style: TextStyle(fontSize: 16)),
+                        ),
                       );
                     },
                   ),

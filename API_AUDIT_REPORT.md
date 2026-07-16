@@ -76,10 +76,10 @@ This is correct, BUT the admin service passes the full path when it should only 
 |--------|------|----------------|-------|
 | Wedding | `wedding_booking_screen.dart` | ✅ WeddingService | Submit shows dialog only |
 | Confirmation | `confirmation_booking_screen.dart` | ✅ ConfirmationService | Submit shows dialog only |
-| Eucharist | `Eucharist_Screen.dart` | ✅ EucharistService | Empty callback `/* Submit Logic */` |
-| Reconciliation | `Reconciliation_Screen.dart` | ✅ ReconciliationService | Empty callback `/* Submit Logic */` |
-| Anointing Sick | `Anointing_The_Sick.dart` | ✅ AnointingSickService | Only shows SnackBar |
-| Funeral Mass | `Funeral_Mass_Screen.dart` | ✅ FuneralMassService | Only prints to console |
+| Eucharist | `eucharist_booking_screen.dart` | ✅ EucharistService | Empty callback `/* Submit Logic */` |
+| Reconciliation | `reconciliation_booking_screen.dart` | ✅ ReconciliationService | Empty callback `/* Submit Logic */` |
+| Anointing Sick | `anointing_sick_booking_screen.dart` | ✅ AnointingSickService | Only shows SnackBar |
+| Funeral Mass | `funeral_mass_booking_screen.dart` | ✅ FuneralMassService | Only prints to console |
 
 **Working Booking Screens:**
 - ✅ Baptism (fully integrated with file upload)

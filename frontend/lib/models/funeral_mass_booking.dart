@@ -111,7 +111,7 @@ class FuneralMassBooking {
       if (priestId != null) 'priestId': priestId,
       if (additionalNotes != null) 'additionalNotes': additionalNotes,
       if (notes != null) 'notes': notes!.map((n) => n.toJson()).toList(),
-      if (status != null) 'status': status,
+      'status': status,
       if (adminNotes != null) 'adminNotes': adminNotes,
     };
   }
@@ -157,7 +157,7 @@ class FuneralMassBooking {
       wakeLocation: wakeLocation ?? this.wakeLocation,
       preferredDate: preferredDate ?? this.preferredDate,
       preferredTimeSlot: preferredTimeSlot ?? this.preferredTimeSlot,
-      priestId: priestId ?? this.priestId,
+      priestId: priestId ?? priestId,
       additionalNotes: additionalNotes ?? this.additionalNotes,
       notes: notes ?? this.notes,
       status: status ?? this.status,

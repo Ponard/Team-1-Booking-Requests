@@ -10,14 +10,11 @@ class AdminMassScheduleScreen extends StatefulWidget {
   const AdminMassScheduleScreen({super.key});
 
   @override
-  State<AdminMassScheduleScreen> createState() => _AdminMassScheduleScreenState();
+  State<AdminMassScheduleScreen> createState() =>
+      _AdminMassScheduleScreenState();
 }
 
 class _AdminMassScheduleScreenState extends State<AdminMassScheduleScreen> {
-  final List<String> _daysOfWeek = [
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -29,7 +26,8 @@ class _AdminMassScheduleScreenState extends State<AdminMassScheduleScreen> {
   Future<void> _loadSchedules() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final parishProvider = Provider.of<ParishProvider>(context, listen: false);
-    final scheduleProvider = Provider.of<MassScheduleProvider>(context, listen: false);
+    final scheduleProvider =
+        Provider.of<MassScheduleProvider>(context, listen: false);
 
     await parishProvider.loadAllParishes();
 
@@ -56,11 +54,13 @@ class _AdminMassScheduleScreenState extends State<AdminMassScheduleScreen> {
   }
 
   Future<void> _deleteSchedule(MassSchedule schedule) async {
+    final provider = Provider.of<MassScheduleProvider>(context, listen: false);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Schedule'),
-        content: Text('Are you sure you want to delete the ${schedule.dayOfWeek} ${schedule.startTime} mass schedule?'),
+        content: Text(
+            'Are you sure you want to delete the ${schedule.dayOfWeek} ${schedule.startTime} mass schedule?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -75,12 +75,12 @@ class _AdminMassScheduleScreenState extends State<AdminMassScheduleScreen> {
     );
 
     if (confirmed == true) {
-      final provider = Provider.of<MassScheduleProvider>(context, listen: false);
       final success = await provider.deleteSchedule(schedule.id!);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(success ? 'Schedule deleted' : 'Failed to delete schedule'),
+            content: Text(
+                success ? 'Schedule deleted' : 'Failed to delete schedule'),
             backgroundColor: success ? Colors.green : Colors.red,
           ),
         );
@@ -180,8 +180,10 @@ class _AdminMassScheduleScreenState extends State<AdminMassScheduleScreen> {
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: schedule.isActive
-                            ? Theme.of(context).primaryColor.withOpacity(0.1)
-                            : Colors.grey.withOpacity(0.1),
+                            ? Theme.of(context)
+                                .primaryColor
+                                .withValues(alpha: 0.1)
+                            : Colors.grey.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
@@ -196,7 +198,9 @@ class _AdminMassScheduleScreenState extends State<AdminMassScheduleScreen> {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: schedule.isActive ? null : Colors.grey,
-                        decoration: schedule.isActive ? null : TextDecoration.lineThrough,
+                        decoration: schedule.isActive
+                            ? null
+                            : TextDecoration.lineThrough,
                       ),
                     ),
                     subtitle: Column(
@@ -207,9 +211,9 @@ class _AdminMassScheduleScreenState extends State<AdminMassScheduleScreen> {
                         if (schedule.priestName != null)
                           Text('Priest: ${schedule.priestName}'),
                         if (schedule.intentionCutoffTime != null)
-                          Text('Intention cutoff: ${_formatTime(schedule.intentionCutoffTime!)}'),
-                        if (schedule.notes != null)
-                          Text(schedule.notes!),
+                          Text(
+                              'Intention cutoff: ${_formatTime(schedule.intentionCutoffTime!)}'),
+                        if (schedule.notes != null) Text(schedule.notes!),
                       ],
                     ),
                     trailing: Row(
@@ -221,10 +225,12 @@ class _AdminMassScheduleScreenState extends State<AdminMassScheduleScreen> {
                         ),
                         IconButton(
                           icon: const Icon(Icons.edit, size: 20),
-                          onPressed: () => _showScheduleForm(schedule: schedule),
+                          onPressed: () =>
+                              _showScheduleForm(schedule: schedule),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                          icon: const Icon(Icons.delete,
+                              size: 20, color: Colors.red),
                           onPressed: () => _deleteSchedule(schedule),
                         ),
                       ],
@@ -266,7 +272,13 @@ class _ScheduleFormDialog extends StatefulWidget {
 class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
   final _formKey = GlobalKey<FormState>();
   final List<String> _daysOfWeek = [
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday'
   ];
   final Set<String> _selectedDays = {};
   final TextEditingController _cutoffController = TextEditingController();
@@ -322,7 +334,9 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedDays.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one day'), backgroundColor: Colors.red),
+        const SnackBar(
+            content: Text('Please select at least one day'),
+            backgroundColor: Colors.red),
       );
       return;
     }
@@ -340,7 +354,8 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
     }
 
     bool allSuccess = true;
-    final cutoffValue = _cutoffController.text.isNotEmpty ? _cutoffController.text : null;
+    final cutoffValue =
+        _cutoffController.text.isNotEmpty ? _cutoffController.text : null;
     for (final day in _selectedDays) {
       bool success;
       if (widget.schedule != null) {
@@ -385,7 +400,8 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.currentUser;
-    final isParishLevel = user != null && ['parish_admin', 'parish_staff'].contains(user.role);
+    final isParishLevel =
+        user != null && ['parish_admin', 'parish_staff'].contains(user.role);
 
     return AlertDialog(
       title: Text(widget.schedule != null ? 'Edit Schedule' : 'Add Schedule'),
@@ -401,11 +417,12 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
                   Consumer<ParishProvider>(
                     builder: (context, parishProvider, _) {
                       final validParishId = _selectedParishId != null &&
-                          parishProvider.parishes.any((p) => p.id == _selectedParishId)
+                              parishProvider.parishes
+                                  .any((p) => p.id == _selectedParishId)
                           ? _selectedParishId
                           : null;
                       return DropdownButtonFormField<int>(
-                        value: validParishId,
+                        initialValue: validParishId,
                         decoration: const InputDecoration(
                           labelText: 'Parish',
                           border: OutlineInputBorder(),
@@ -424,7 +441,9 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
                 const SizedBox(height: 12),
                 const Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Days of Week *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                  child: Text('Days of Week *',
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                 ),
                 const SizedBox(height: 4),
                 Wrap(
@@ -468,7 +487,9 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
                         onSaved: (v) => _startTime = v,
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Required';
-                          if (!RegExp(r'^\d{1,2}:\d{2}$').hasMatch(v)) return 'Format: HH:MM';
+                          if (!RegExp(r'^\d{1,2}:\d{2}$').hasMatch(v)) {
+                            return 'Format: HH:MM';
+                          }
                           return null;
                         },
                       ),
@@ -485,7 +506,9 @@ class _ScheduleFormDialogState extends State<_ScheduleFormDialog> {
                         onSaved: (v) => _endTime = v,
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Required';
-                          if (!RegExp(r'^\d{1,2}:\d{2}$').hasMatch(v)) return 'Format: HH:MM';
+                          if (!RegExp(r'^\d{1,2}:\d{2}$').hasMatch(v)) {
+                            return 'Format: HH:MM';
+                          }
                           return null;
                         },
                       ),

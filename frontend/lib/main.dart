@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 import 'providers/app_provider.dart';
 import 'providers/auth_provider.dart';
@@ -28,14 +27,14 @@ import 'screens/wedding_booking_screen.dart';
 import 'screens/wedding_detail_screen.dart';
 import 'screens/confirmation_booking_screen.dart';
 import 'screens/confirmation_detail_screen.dart';
-import 'screens/Eucharist_Screen.dart';
+import 'screens/eucharist_booking_screen.dart';
 import 'screens/eucharist_detail_screen.dart';
-import 'screens/Reconciliation_Screen.dart';
-import 'screens/Anointing_The_Sick.dart';
+import 'screens/reconciliation_booking_screen.dart';
+import 'screens/anointing_sick_booking_screen.dart';
 import 'screens/anointing_sick_detail_screen.dart';
-import 'screens/Mass_Intention_Screen.dart';
+import 'screens/mass_intention_booking_screen.dart';
 import 'screens/mass_intention_detail_screen.dart';
-import 'screens/Funeral_Mass_Screen.dart';
+import 'screens/funeral_mass_booking_screen.dart';
 import 'screens/funeral_mass_detail_screen.dart';
 import 'screens/reconciliation_detail_screen.dart';
 import 'screens/my_bookings_screen.dart';
@@ -51,7 +50,7 @@ import 'screens/priest_schedule_screen.dart';
 import 'config/app_constants.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -60,22 +59,22 @@ class MyApp extends StatelessWidget {
   Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
-        return MaterialPageRoute(builder: (_) => SplashScreen());
+        return MaterialPageRoute(builder: (_) => const SplashScreen());
       case '/login':
-        return MaterialPageRoute(builder: (_) => LoginScreen());
+        return MaterialPageRoute(builder: (_) => const LoginScreen());
       case '/home':
-        return MaterialPageRoute(builder: (_) => HomeScreen());
+        return MaterialPageRoute(builder: (_) => const HomeScreen());
       case '/register':
-        return MaterialPageRoute(builder: (_) => RegisterScreen());
+        return MaterialPageRoute(builder: (_) => const RegisterScreen());
       case '/baptism-booking':
-        return MaterialPageRoute(builder: (_) => BaptismBookingScreen());
+        return MaterialPageRoute(builder: (_) => const BaptismBookingScreen());
       case '/baptism-detail':
         {
           final args = settings.arguments as Map<String, dynamic>? ?? {};
-          print('=== NAVIGATING TO BAPTISM DETAIL ===');
-          print('Arguments: $args');
-          print('ID: ${args['id']}');
-          print('fromStatusButton: ${args['fromStatusButton']}');
+          // print('=== NAVIGATING TO BAPTISM DETAIL ===');
+          // print('Arguments: $args');
+          // print('ID: ${args['id']}');
+          // print('fromStatusButton: ${args['fromStatusButton']}');
           return MaterialPageRoute(
             builder: (_) => BaptismDetailScreen(
               baptismId: args['id'] as int?,
@@ -84,17 +83,19 @@ class MyApp extends StatelessWidget {
           );
         }
       case '/wedding-booking':
-        return MaterialPageRoute(builder: (_) => WeddingBookingScreen());
+        return MaterialPageRoute(builder: (_) => const WeddingBookingScreen());
       case '/confirmation-booking':
-        return MaterialPageRoute(builder: (_) => ConfirmationBookingScreen());
+        return MaterialPageRoute(
+            builder: (_) => const ConfirmationBookingScreen());
       case '/eucharist':
-        return MaterialPageRoute(builder: (_) => EucharistScreen());
+        return MaterialPageRoute(builder: (_) => const EucharistScreen());
       case '/reconciliation':
-        return MaterialPageRoute(builder: (_) => ReconciliationScreen());
+        return MaterialPageRoute(builder: (_) => const ReconciliationScreen());
       case '/anointing-the-sick':
-        return MaterialPageRoute(builder: (_) => AnointingTheSickScreen());
+        return MaterialPageRoute(
+            builder: (_) => const AnointingTheSickScreen());
       case '/mass-intention':
-        return MaterialPageRoute(builder: (_) => MassIntentionScreen());
+        return MaterialPageRoute(builder: (_) => const MassIntentionScreen());
       case '/mass-intention-detail':
         {
           final args = settings.arguments as Map<String, dynamic>? ?? {};
@@ -166,17 +167,17 @@ class MyApp extends StatelessWidget {
           );
         }
       case '/funeral-mass':
-        return MaterialPageRoute(builder: (_) => FuneralMassScreen());
+        return MaterialPageRoute(builder: (_) => const FuneralMassScreen());
       case '/admin-dashboard':
-        return MaterialPageRoute(builder: (_) => AdminDashboardScreen());
+        return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
       case '/admin-bookings':
-        return MaterialPageRoute(builder: (_) => AdminBookingsScreen());
+        return MaterialPageRoute(builder: (_) => const AdminBookingsScreen());
       case '/admin-parishes':
-        return MaterialPageRoute(builder: (_) => AdminParishesScreen());
+        return MaterialPageRoute(builder: (_) => const AdminParishesScreen());
       case '/admin-users':
-        return MaterialPageRoute(builder: (_) => AdminUsersScreen());
+        return MaterialPageRoute(builder: (_) => const AdminUsersScreen());
       case '/admin-records':
-        return MaterialPageRoute(builder: (_) => AdminRecordsScreen());
+        return MaterialPageRoute(builder: (_) => const AdminRecordsScreen());
       case '/admin-mass-intentions':
         return MaterialPageRoute(
             builder: (_) => const AdminMassIntentionsScreen());
@@ -184,13 +185,13 @@ class MyApp extends StatelessWidget {
         return MaterialPageRoute(
             builder: (_) => const AdminMassScheduleScreen());
       case '/change-password':
-        return MaterialPageRoute(builder: (_) => ChangePasswordScreen());
+        return MaterialPageRoute(builder: (_) => const ChangePasswordScreen());
       case '/forgot-password':
-        return MaterialPageRoute(builder: (_) => ForgotPasswordScreen());
+        return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
       case '/profile':
-        return MaterialPageRoute(builder: (_) => ProfileScreen());
+        return MaterialPageRoute(builder: (_) => const ProfileScreen());
       case '/my-bookings':
-        return MaterialPageRoute(builder: (_) => MyBookingsScreen());
+        return MaterialPageRoute(builder: (_) => const MyBookingsScreen());
       case '/my-profile':
         return MaterialPageRoute(builder: (_) => const MyProfileScreen());
       case '/priest-schedule':
