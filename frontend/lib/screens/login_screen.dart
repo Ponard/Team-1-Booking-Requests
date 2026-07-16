@@ -45,14 +45,14 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _signInWithGoogle() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    bool success = await authProvider.signInWithGoogle();
+  // void _signInWithGoogle() async {
+  //   final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  //   bool success = await authProvider.signInWithGoogle();
 
-    if (success) {
-      Navigator.of(context).pushReplacementNamed('/home');
-    }
-  }
+  //   if (success) {
+  //     Navigator.of(context).pushReplacementNamed('/home');
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

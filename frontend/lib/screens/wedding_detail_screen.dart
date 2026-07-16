@@ -100,121 +100,121 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
     return status;
   }
 
-  bool get _canChangeStatus {
-    if (_booking == null) return false;
-    final status = _booking!.status.toLowerCase();
-    if (status == 'pending') {
-      return true;
-    } else if (status == 'approved') {
-      final scheduledDate = _booking!.preferredDate;
-      if (scheduledDate != null && scheduledDate.isNotEmpty) {
-        try {
-          final now = DateTime.now();
-          final bookingDate = DateTime.parse(scheduledDate);
-          final today = DateTime(now.year, now.month, now.day);
-          final eventDate =
-              DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
-          return eventDate.isBefore(today);
-        } catch (e) {
-          return false;
-        }
-      }
-      return false;
-    }
-    return false;
-  }
+  // bool get _canChangeStatus {
+  //   if (_booking == null) return false;
+  //   final status = _booking!.status.toLowerCase();
+  //   if (status == 'pending') {
+  //     return true;
+  //   } else if (status == 'approved') {
+  //     final scheduledDate = _booking!.preferredDate;
+  //     if (scheduledDate != null && scheduledDate.isNotEmpty) {
+  //       try {
+  //         final now = DateTime.now();
+  //         final bookingDate = DateTime.parse(scheduledDate);
+  //         final today = DateTime(now.year, now.month, now.day);
+  //         final eventDate =
+  //             DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
+  //         return eventDate.isBefore(today);
+  //       } catch (e) {
+  //         return false;
+  //       }
+  //     }
+  //     return false;
+  //   }
+  //   return false;
+  // }
 
-  String get _actionButtonText {
-    if (_booking == null) return 'Approve';
-    final status = _booking!.status.toLowerCase();
-    if (status == 'pending') return 'Approve';
-    if (status == 'approved') return 'Mark as Completed';
-    return 'Approve';
-  }
+  // String get _actionButtonText {
+  //   if (_booking == null) return 'Approve';
+  //   final status = _booking!.status.toLowerCase();
+  //   if (status == 'pending') return 'Approve';
+  //   if (status == 'approved') return 'Mark as Completed';
+  //   return 'Approve';
+  // }
 
-  Widget _buildStatusSection(bool isAdmin) {
-    if (!isAdmin || _showStatusButtons) return const SizedBox.shrink();
+  // Widget _buildStatusSection(bool isAdmin) {
+  //   if (!isAdmin || _showStatusButtons) return const SizedBox.shrink();
 
-    final displayStatus = _displayBookingStatus;
-    final canChangeStatus = _canChangeStatus;
-    final actionButtonText = _actionButtonText;
-    final status = _booking?.status.toLowerCase();
+  //   final displayStatus = _displayBookingStatus;
+  //   final canChangeStatus = _canChangeStatus;
+  //   final actionButtonText = _actionButtonText;
+  //   final status = _booking?.status.toLowerCase();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-        const Text(
-          'Status',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(
-                width: 120,
-                child: Text(
-                  'Status',
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  displayStatus,
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (status == 'pending') ...[
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.check_circle),
-                  label: const Text('Approve'),
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  onPressed: () => _updateBookingStatus('approved'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.cancel),
-                  label: const Text('Decline'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  onPressed: () => _updateBookingStatus('declined'),
-                ),
-              ),
-            ],
-          ),
-        ] else if (status == 'approved') ...[
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: Text(actionButtonText),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                  onPressed: canChangeStatus
-                      ? () => _updateBookingStatus('completed')
-                      : null,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ],
-    );
-  }
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       const SizedBox(height: 16),
+  //       const Text(
+  //         'Status',
+  //         style: TextStyle(
+  //           fontSize: 16,
+  //           fontWeight: FontWeight.bold,
+  //           color: Colors.blue,
+  //         ),
+  //       ),
+  //       Padding(
+  //         padding: const EdgeInsets.symmetric(vertical: 6),
+  //         child: Row(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             const SizedBox(
+  //               width: 120,
+  //               child: Text(
+  //                 'Status',
+  //                 style: TextStyle(fontWeight: FontWeight.w500),
+  //               ),
+  //             ),
+  //             Expanded(
+  //               child: Text(
+  //                 displayStatus,
+  //                 style: const TextStyle(fontSize: 14),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //       if (status == 'pending') ...[
+  //         Row(
+  //           children: [
+  //             Expanded(
+  //               child: ElevatedButton.icon(
+  //                 icon: const Icon(Icons.check_circle),
+  //                 label: const Text('Approve'),
+  //                 style:
+  //                     ElevatedButton.styleFrom(backgroundColor: Colors.green),
+  //                 onPressed: () => _updateBookingStatus('approved'),
+  //               ),
+  //             ),
+  //             const SizedBox(width: 12),
+  //             Expanded(
+  //               child: ElevatedButton.icon(
+  //                 icon: const Icon(Icons.cancel),
+  //                 label: const Text('Decline'),
+  //                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+  //                 onPressed: () => _updateBookingStatus('declined'),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ] else if (status == 'approved') ...[
+  //         Row(
+  //           children: [
+  //             Expanded(
+  //               child: ElevatedButton.icon(
+  //                 icon: const Icon(Icons.check_circle_outline),
+  //                 label: Text(actionButtonText),
+  //                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+  //                 onPressed: canChangeStatus
+  //                     ? () => _updateBookingStatus('completed')
+  //                     : null,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //     ],
+  //   );
+  // }
 
   @override
   void initState() {
