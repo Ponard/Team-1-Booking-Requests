@@ -180,7 +180,7 @@ class BaptismService {
           statusCode: response.statusCode,
         );
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       // print('Error creating baptism booking: $e');
       // print('Stack trace: $stackTrace');
       return ApiResponse<BaptismBooking>(

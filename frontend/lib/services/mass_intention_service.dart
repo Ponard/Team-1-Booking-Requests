@@ -162,7 +162,7 @@ class MassIntentionService {
           statusCode: response.statusCode,
         );
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       // print('Error creating mass intention: $e');
       // print('Stack trace: $stackTrace');
       return ApiResponse<MassIntention>(
@@ -226,7 +226,7 @@ class MassIntentionService {
           statusCode: response.statusCode,
         );
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       // print('Error updating mass intention: $e');
       // print('Stack trace: $stackTrace');
       return ApiResponse<MassIntention>(
