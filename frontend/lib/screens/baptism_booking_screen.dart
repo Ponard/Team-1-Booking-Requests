@@ -8,6 +8,7 @@ import 'package:diocese_frontend/widgets/booking_forms/sections/child_informatio
 import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/parent_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/sponsors_information_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -360,7 +361,10 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                   ParentInformationSection(
                     fatherController: _fatherNameController,
                     motherController: _motherNameController,
-                    godparentsController: _godparentsController,
+                  ),
+
+                  SponsorsInformationSection(
+                    sponsorsController: _godparentsController,
                   ),
 
                   // Contact Info Section

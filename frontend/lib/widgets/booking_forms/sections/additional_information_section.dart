@@ -6,10 +6,12 @@ import '../common/booking_text_field.dart';
 class AdditionalInformationSection extends StatelessWidget {
   final TextEditingController notesController;
 
+  final String label;
   final bool enabled;
 
   const AdditionalInformationSection({
     super.key,
+    this.label = "Additional Notes",
     required this.notesController,
     this.enabled = true,
   });
@@ -21,7 +23,7 @@ class AdditionalInformationSection extends StatelessWidget {
       children: [
         BookingTextField(
           controller: notesController,
-          label: "Additional Notes",
+          label: label,
           enabled: enabled,
           maxLines: 3,
         ),

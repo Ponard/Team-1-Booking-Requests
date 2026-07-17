@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/utils/validators.dart';
 import 'package:flutter/material.dart';
 
 import '../common/booking_section.dart';
@@ -9,6 +10,9 @@ class ContactInformationSection extends StatelessWidget {
 
   final bool enabled;
 
+  final TextEditingController? contactPersonController;
+  final String contactPersonLabel;
+
   final String? Function(String?)? emailValidator;
   final String? Function(String?)? phoneValidator;
 
@@ -17,6 +21,8 @@ class ContactInformationSection extends StatelessWidget {
     required this.emailController,
     required this.phoneController,
     this.enabled = true,
+    this.contactPersonController,
+    this.contactPersonLabel = "Contact Person Name (Relative/Guardian) *",
     this.emailValidator,
     this.phoneValidator,
   });
@@ -26,6 +32,12 @@ class ContactInformationSection extends StatelessWidget {
     return BookingSection(
       title: "Contact Information",
       children: [
+        if (contactPersonController != null)
+          BookingTextField(
+            controller: contactPersonController!,
+            label: contactPersonLabel,
+            validator: Validators.requiredField,
+          ),
         BookingTextField(
           controller: emailController,
           label: "Email *",

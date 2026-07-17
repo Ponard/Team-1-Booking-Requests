@@ -1,4 +1,14 @@
 import 'package:diocese_frontend/utils/validators.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/parish_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/couple_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/sponsors_information_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -599,90 +609,6 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
     }
   }
 
-  Widget _buildSection(
-      {required String title, required List<Widget> children}) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue),
-            ),
-            const SizedBox(height: 12),
-            ...children,
-          ],
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _buildDocumentUploadSection({
-    required String title,
-    required String description,
-    required PlatformFile? file,
-    required bool isUploading,
-    required Map<String, dynamic>? uploadedData,
-    required VoidCallback onPick,
-    required VoidCallback onUpload,
-  }) {
-    return [
-      Text(
-        title,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-      ),
-      const SizedBox(height: 8),
-      Text(description,
-          style: const TextStyle(fontSize: 14, color: Colors.grey)),
-      const SizedBox(height: 12),
-      ElevatedButton.icon(
-        onPressed: isUploading ? null : onPick,
-        icon: const Icon(Icons.attach_file),
-        label: Text(
-            file != null ? "File Selected: ${file.name}" : "Select Document"),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: file != null ? Colors.green[100] : Colors.grey[200],
-          foregroundColor: Colors.black87,
-        ),
-      ),
-      if (file != null) ...[
-        const SizedBox(height: 12),
-        isUploading
-            ? const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  SizedBox(width: 12),
-                  Text('Uploading...'),
-                ],
-              )
-            : ElevatedButton.icon(
-                onPressed: uploadedData == null ? onUpload : null,
-                icon: const Icon(Icons.cloud_upload),
-                label: Text(
-                  uploadedData != null ? 'Uploaded Successfully' : 'Upload',
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: uploadedData != null ? Colors.green : null,
-                  foregroundColor: uploadedData != null ? Colors.white : null,
-                ),
-              ),
-      ],
-    ];
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -721,269 +647,115 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                   const SizedBox(height: 20),
 
                   // Couple Info
-                  _buildSection(title: "Couple Information", children: [
-                    TextFormField(
-                      controller: _groomNameController,
-                      decoration: const InputDecoration(
-                        labelText: "Groom's Full Name *",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _brideNameController,
-                      decoration: const InputDecoration(
-                        labelText: "Bride's Full Name *",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
-                    ),
-                  ]),
+                  CoupleInformationSection(
+                    groomController: _groomNameController,
+                    brideController: _brideNameController,
+                  ),
 
                   // Sponsors
-                  _buildSection(title: "Sponsors / Godparents", children: [
-                    TextFormField(
-                      controller: _godparentsController,
-                      decoration: const InputDecoration(
-                        labelText: "Godparents' Details *",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
-                    ),
-                  ]),
+                  SponsorsInformationSection(
+                    sponsorsController: _godparentsController,
+                  ),
 
                   // Contact
-                  _buildSection(title: "Contact Information", children: [
-                    TextFormField(
-                      controller: _contactEmailController,
-                      decoration: const InputDecoration(
-                        labelText: "Email *",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: Validators.emailValidator,
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _contactPhoneController,
-                      decoration: const InputDecoration(
-                        labelText: "Contact Number *",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: Validators.phoneValidator,
-                      keyboardType: TextInputType.phone,
-                    ),
-                  ]),
+                  ContactInformationSection(
+                    emailController: _contactEmailController,
+                    phoneController: _contactPhoneController,
+                    emailValidator: Validators.emailValidator,
+                    phoneValidator: Validators.phoneValidator,
+                  ),
 
                   // Booking Preferences
-                  _buildSection(title: "Booking Preferences", children: [
-                    Consumer<ParishProvider>(
-                      builder: (context, parishProvider, _) {
-                        return DropdownButtonFormField<int>(
-                          initialValue: parishProvider.selectedParish?.id,
-                          decoration: const InputDecoration(
-                            labelText: "Preferred Parish *",
-                            border: OutlineInputBorder(),
-                          ),
-                          items: parishProvider.parishes
-                              .map((parish) => DropdownMenuItem(
-                                    value: parish.id,
-                                    child: Text(parish.name),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            final authProvider = Provider.of<AuthProvider>(
-                                context,
-                                listen: false);
-                            final parish = parishProvider.parishes
-                                .firstWhere((p) => p.id == value);
-                            // Clear any previously selected priest
-                            setState(() {
-                              _selectedPriestId = null;
-                            });
-                            parishProvider.selectParish(parish);
-                            Provider.of<PriestProvider>(
-                              context,
-                              listen: false,
-                            ).loadPriestsByParish(parish.id!,
-                                token: authProvider.token);
-                          },
-                          validator: (value) =>
-                              value == null ? "Please select a parish" : null,
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _preferredDateController,
-                      decoration: const InputDecoration(
-                        labelText: "Preferred Wedding Date *",
-                        hintText: "YYYY-MM-DD",
-                        border: OutlineInputBorder(),
+                  BookingSection(
+                    title: 'Booking Preferences',
+                    children: [
+                      ParishDropdown(
+                        onParishChanged: () {
+                          setState(() => _selectedPriestId = null);
+                        },
                       ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
-                      onTap: () async {
-                        FocusScope.of(context).requestFocus(FocusNode());
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime.now(),
-                          lastDate:
-                              DateTime.now().add(const Duration(days: 365)),
-                        );
-                        if (pickedDate != null) {
-                          _preferredDateController.text =
-                              "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _preferredTimeController,
-                      decoration: const InputDecoration(
-                        labelText: "Preferred Time Slot *",
-                        hintText: "HH:MM",
-                        border: OutlineInputBorder(),
+                      BookingDateField(
+                        controller: _preferredDateController,
+                        label: 'Preferred Wedding Date *',
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                        validator: Validators.requiredField,
                       ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
-                      onTap: () async {
-                        FocusScope.of(context).requestFocus(FocusNode());
-                        TimeOfDay? pickedTime = await showTimePicker(
-                          context: context,
-                          initialTime: TimeOfDay.now(),
-                        );
-                        if (pickedTime != null) {
-                          _preferredTimeController.text =
-                              "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _seminarScheduleController,
-                      decoration: const InputDecoration(
-                        labelText: "Seminar Schedule *",
-                        hintText: "YYYY-MM-DD",
-                        border: OutlineInputBorder(),
+                      BookingTimeField(
+                        controller: _preferredTimeController,
+                        label: 'Preferred Time Slot *',
+                        validator: Validators.requiredField,
                       ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Required" : null,
-                      onTap: () async {
-                        FocusScope.of(context).requestFocus(FocusNode());
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime.now(),
-                          lastDate:
-                              DateTime.now().add(const Duration(days: 730)),
-                        );
-                        if (pickedDate != null) {
-                          _seminarScheduleController.text =
-                              "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    Consumer<PriestProvider>(
-                      builder: (context, priestProvider, _) {
-                        final validPriestId = _selectedPriestId != null &&
-                                priestProvider.priests
-                                    .any((p) => p.id == _selectedPriestId)
-                            ? _selectedPriestId
-                            : null;
-                        return DropdownButtonFormField<int>(
-                          initialValue: validPriestId,
-                          decoration: const InputDecoration(
-                            labelText:
-                                "Preferred Priest (Optional) - Subject to availability",
-                            border: OutlineInputBorder(),
-                          ),
-                          items: [
-                            const DropdownMenuItem<int>(
-                              value: null,
-                              child: Text("No preference"),
-                            ),
-                            ...priestProvider.priests
-                                .map((priest) => DropdownMenuItem<int>(
-                                      value: priest.id,
-                                      child: Text(priest.fullName),
-                                    )),
-                          ],
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedPriestId = value;
-                            });
-                          },
-                        );
-                      },
-                    ),
-                  ]),
+                      BookingDateField(
+                        controller: _seminarScheduleController,
+                        label: 'Seminar Schedule *',
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 730)),
+                        validator: Validators.requiredField,
+                      ),
+                      PriestDropdown(
+                        selectedPriestId: _selectedPriestId,
+                        onChanged: (value) {
+                          setState(() => _selectedPriestId = value);
+                        },
+                      ),
+                    ],
+                  ),
 
                   // Required Documents - Separate uploads
-
-                  _buildSection(title: "Required Documents", children: [
-                    ..._buildDocumentUploadSection(
-                      title: "CENOMAR *",
-                      description:
-                          "Upload CENOMAR (Certificate of No Marriage) *",
-                      file: _cenomarFile,
-                      isUploading: _isUploadingCenomar,
-                      uploadedData: _uploadedCenomarData,
-                      onPick: _pickCenomar,
-                      onUpload: _uploadCenomar,
-                    ),
-                    const SizedBox(height: 24),
-                    ..._buildDocumentUploadSection(
-                      title: "Birth Certificate *",
-                      description:
-                          "Upload birth certificate of either the groom or bride *",
-                      file: _birthCertificateFile,
-                      isUploading: _isUploadingBirth,
-                      uploadedData: _uploadedBirthData,
-                      onPick: _pickBirthCertificate,
-                      onUpload: _uploadBirthCertificate,
-                    ),
-                    const SizedBox(height: 24),
-                    ..._buildDocumentUploadSection(
-                      title: "Baptismal Certificate *",
-                      description:
-                          "Upload baptismal certificate of either the groom or bride *",
-                      file: _baptismalCertificateFile,
-                      isUploading: _isUploadingBaptismal,
-                      uploadedData: _uploadedBaptismalData,
-                      onPick: _pickBaptismalCertificate,
-                      onUpload: _uploadBaptismalCertificate,
-                    ),
-                    const SizedBox(height: 24),
-                    ..._buildDocumentUploadSection(
-                      title: "Confirmation Certificate *",
-                      description:
-                          "Upload confirmation certificate of either the groom or bride *",
-                      file: _confirmationCertificateFile,
-                      isUploading: _isUploadingConfirmation,
-                      uploadedData: _uploadedConfirmationData,
-                      onPick: _pickConfirmationCertificate,
-                      onUpload: _uploadConfirmationCertificate,
-                    ),
-                  ]),
+                  BookingSection(
+                    title: "Required Documents",
+                    children: [
+                      DocumentUploadSection(
+                        title: "CENOMAR *",
+                        description:
+                            "Upload CENOMAR (Certificate of No Marriage) *",
+                        file: _cenomarFile,
+                        isUploading: _isUploadingCenomar,
+                        isUploaded: _uploadedCenomarData != null,
+                        onPick: _pickCenomar,
+                        onUpload: _uploadCenomar,
+                      ),
+                      const SizedBox(height: 24),
+                      DocumentUploadSection(
+                        title: "Birth Certificate *",
+                        description:
+                            "Upload birth certificate of either the groom or bride *",
+                        file: _birthCertificateFile,
+                        isUploading: _isUploadingBirth,
+                        isUploaded: _uploadedBirthData != null,
+                        onPick: _pickBirthCertificate,
+                        onUpload: _uploadBirthCertificate,
+                      ),
+                      const SizedBox(height: 24),
+                      DocumentUploadSection(
+                        title: "Baptismal Certificate *",
+                        description:
+                            "Upload baptismal certificate of either the groom or bride *",
+                        file: _baptismalCertificateFile,
+                        isUploading: _isUploadingBaptismal,
+                        isUploaded: _uploadedBaptismalData != null,
+                        onPick: _pickBaptismalCertificate,
+                        onUpload: _uploadBaptismalCertificate,
+                      ),
+                      const SizedBox(height: 24),
+                      DocumentUploadSection(
+                        title: "Confirmation Certificate *",
+                        description:
+                            "Upload confirmation certificate of either the groom or bride *",
+                        file: _confirmationCertificateFile,
+                        isUploading: _isUploadingConfirmation,
+                        isUploaded: _uploadedConfirmationData != null,
+                        onPick: _pickConfirmationCertificate,
+                        onUpload: _uploadConfirmationCertificate,
+                      ),
+                    ],
+                  ),
 
                   // Notes
-                  _buildSection(title: "Additional Information", children: [
-                    TextFormField(
-                      controller: _notesController,
-                      decoration: const InputDecoration(
-                        labelText: "Additional Notes",
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 3,
-                    ),
-                  ]),
+                  AdditionalInformationSection(
+                    notesController: _notesController,
+                  ),
 
                   const SizedBox(height: 20),
                   Consumer<WeddingProvider>(
