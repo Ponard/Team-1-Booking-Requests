@@ -1,3 +1,8 @@
+import 'package:diocese_frontend/utils/validators.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -308,42 +313,61 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildSection(title: "Intention Details", children: [
-                    DropdownButtonFormField<String>(
-                      initialValue: _selectedType,
-                      decoration: const InputDecoration(
-                          labelText: "Intention Type *",
-                          border: OutlineInputBorder()),
-                      items: [
-                        'Thanksgiving',
-                        'Petition',
-                        'Soul / Death Anniversary',
-                        'Healing',
-                        'Special Intention'
-                      ]
-                          .map((label) => DropdownMenuItem(
-                              value: label, child: Text(label)))
-                          .toList(),
-                      onChanged: (value) =>
-                          setState(() => _selectedType = value!),
+                  const Text(
+                    "Fill out the form below to submit your booking request. All fields marked with * are required.",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 5),
+                  const Text(
+                    "Subject to availability. Parish will confirm your booking.",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey,
                     ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _intentionForController,
-                      decoration: const InputDecoration(
-                          labelText: "Name of Person / Intention *",
-                          border: OutlineInputBorder()),
-                      validator: (value) => value!.isEmpty ? "Required" : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _offeredByController,
-                      decoration: const InputDecoration(
-                          labelText: "Offered By (Name/Family) *",
-                          border: OutlineInputBorder()),
-                      validator: (value) => value!.isEmpty ? "Required" : null,
-                    ),
-                  ]),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Intention Details
+                  BookingSection(
+                    title: "Intention Details",
+                    children: [
+                      BookingDropdown<String>(
+                        initialValue: _selectedType,
+                        label: "Intention Type *",
+                        items: const [
+                          'Thanksgiving',
+                          'Petition',
+                          'Soul / Death Anniversary',
+                          'Healing',
+                          'Special Intention',
+                        ]
+                            .map(
+                              (label) => DropdownMenuItem<String>(
+                                value: label,
+                                child: Text(label),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() => _selectedType = value!);
+                        },
+                      ),
+                      BookingTextField(
+                        controller: _intentionForController,
+                        label: "Name of Person / Intention *",
+                        validator: Validators.requiredField,
+                      ),
+                      BookingTextField(
+                        controller: _offeredByController,
+                        label: "Offered By (Name/Family) *",
+                        validator: Validators.requiredField,
+                      ),
+                    ],
+                  ),
+
+                  // TODO: refactor into BookingSection
+                  // Booking Preferences
                   _buildSection(title: "Booking Preferences", children: [
                     Consumer<ParishProvider>(
                       builder: (context, parishProvider, _) {
@@ -440,16 +464,14 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
                             value == null ? "Please select a mass time" : null,
                       ),
                   ]),
-                  _buildSection(title: "Additional Information", children: [
-                    TextFormField(
-                      controller: _notesController,
-                      decoration: const InputDecoration(
-                          labelText: "Additional Notes",
-                          border: OutlineInputBorder()),
-                      maxLines: 2,
-                    ),
-                  ]),
+
+                  // Additional Information
+                  AdditionalInformationSection(
+                    notesController: _notesController,
+                  ),
+
                   const SizedBox(height: 20),
+
                   Consumer<MassIntentionProvider>(
                     builder: (context, provider, _) {
                       return Center(
