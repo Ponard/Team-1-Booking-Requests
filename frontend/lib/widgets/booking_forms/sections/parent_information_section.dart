@@ -7,7 +7,6 @@ import '../common/booking_text_field.dart';
 class ParentInformationSection extends StatelessWidget {
   final TextEditingController fatherController;
   final TextEditingController motherController;
-  final TextEditingController godparentsController;
 
   final bool enabled;
 
@@ -15,14 +14,13 @@ class ParentInformationSection extends StatelessWidget {
     super.key,
     required this.fatherController,
     required this.motherController,
-    required this.godparentsController,
     this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return BookingSection(
-      title: "Parents / Godparents",
+      title: "Parent Information",
       children: [
         BookingTextField(
           controller: fatherController,
@@ -36,11 +34,6 @@ class ParentInformationSection extends StatelessWidget {
           label: "Mother's Name *",
           enabled: enabled,
           validator: Validators.requiredField,
-        ),
-        BookingTextField(
-          controller: godparentsController,
-          label: "Godparents' Names (separate with semicolon)",
-          enabled: enabled,
         ),
       ],
     );
