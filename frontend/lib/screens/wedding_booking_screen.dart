@@ -654,7 +654,7 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
 
                   // Sponsors
                   SponsorsInformationSection(
-                    godparentsController: _godparentsController,
+                    sponsorsController: _godparentsController,
                   ),
 
                   // Contact

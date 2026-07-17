@@ -4,11 +4,11 @@ import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field
 import 'package:flutter/material.dart';
 
 class SponsorsInformationSection extends StatelessWidget {
-  final TextEditingController godparentsController;
+  final TextEditingController sponsorsController;
 
   const SponsorsInformationSection({
     super.key,
-    required this.godparentsController,
+    required this.sponsorsController,
   });
 
   @override
@@ -17,7 +17,7 @@ class SponsorsInformationSection extends StatelessWidget {
       title: 'Sponsors / Godparents',
       children: [
         BookingTextField(
-          controller: godparentsController,
+          controller: sponsorsController,
           label: "Godparents' Details *",
           validator: Validators.requiredField,
         ),
