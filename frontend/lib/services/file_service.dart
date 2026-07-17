@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:file_picker/file_picker.dart';
 
 import '../config/api_config.dart';
@@ -32,47 +31,11 @@ class FileService {
     Map<String, String>? additionalFields,
   }) async {
     try {
-      final uri =
-          Uri.parse('${ApiConfig.baseUrl}${ApiConfig.filesEndpoint}/upload');
-      final request = http.MultipartRequest('POST', uri);
-
-      if (kIsWeb) {
-        if (file.bytes == null) {
-          throw Exception('File bytes are null on web platform');
-        }
-        request.files.add(http.MultipartFile.fromBytes(
-          'file',
-          file.bytes!,
-          filename: file.name,
-        ));
-      } else {
-        if (file.path == null) {
-          throw Exception('File path is null on mobile platform');
-        }
-        request.files
-            .add(await http.MultipartFile.fromPath('file', file.path!));
-      }
-
-      // Add additional fields
-      request.fields.addAll({
-        'category': category ?? 'general',
-        ...?additionalFields,
-      });
-
-      // Add authorization header
-      request.headers['Authorization'] = 'Bearer $token';
-
-      // Send request with timeout
-      final streamedResponse = await request.send().timeout(
-        const Duration(seconds: 60),
-        onTimeout: () {
-          throw const HttpException(
-              'Upload timeout - file too large or connection slow');
-        },
+      final response = await ApiConfig.sendMultipartWithAuth(
+        file: file,
+        category: category,
+        additionalFields: additionalFields,
       );
-
-      // Convert to Response so we can read the body easily
-      final response = await http.Response.fromStream(streamedResponse);
 
       final Map<String, dynamic> data =
           response.body.isNotEmpty ? json.decode(response.body) : {};
@@ -83,37 +46,33 @@ class FileService {
           data: data,
           message: data['message'],
         );
-      } else {
-        return ApiResponse<Map<String, dynamic>>(
-          success: false,
-          message: data['message'] ?? 'Upload failed',
-          statusCode: response.statusCode,
-          errors: data['errors'],
-        );
       }
+
+      return ApiResponse<Map<String, dynamic>>(
+        success: false,
+        message: data['message'] ?? 'Upload failed',
+        statusCode: response.statusCode,
+        errors: data['errors'],
+      );
     } on http.ClientException catch (e) {
-      // print('HTTP Client Exception during upload: $e');
       return ApiResponse<Map<String, dynamic>>(
         success: false,
         message: 'Connection error. Please check your internet connection.',
         errors: [e.toString()],
       );
     } on HttpException catch (e) {
-      // print('HTTP Exception during upload: $e');
       return ApiResponse<Map<String, dynamic>>(
         success: false,
         message: e.message,
         errors: [e.toString()],
       );
     } on FormatException catch (e) {
-      // print('Invalid response format during upload: $e');
       return ApiResponse<Map<String, dynamic>>(
         success: false,
         message: 'Server response error. Please try again.',
         errors: [e.toString()],
       );
     } catch (e) {
-      // print('Unexpected error during upload: $e');
       return ApiResponse<Map<String, dynamic>>(
         success: false,
         message: 'Network error during upload: $e',

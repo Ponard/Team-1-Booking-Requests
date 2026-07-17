@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_constants.dart';
@@ -207,6 +209,79 @@ class ApiConfig {
       final newToken = await _refreshToken();
       if (newToken != null) {
         return deleteWithAuth(endpoint, newToken, retried: true);
+      }
+    }
+
+    return response;
+  }
+
+  static Future<http.Response> sendMultipartWithAuth({
+    required PlatformFile file,
+    String? category,
+    Map<String, String>? additionalFields,
+    bool retried = false,
+  }) async {
+    final token = await _getAccessToken();
+
+    if (token == null) {
+      throw const HttpException('No access token available');
+    }
+
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$baseUrl${ApiConfig.filesEndpoint}/upload'),
+    );
+
+    if (kIsWeb) {
+      if (file.bytes == null) {
+        throw Exception('File bytes are null on web platform');
+      }
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          file.bytes!,
+          filename: file.name,
+        ),
+      );
+    } else {
+      if (file.path == null) {
+        throw Exception('File path is null on mobile platform');
+      }
+
+      request.files.add(
+        await http.MultipartFile.fromPath('file', file.path!),
+      );
+    }
+
+    request.fields.addAll({
+      'category': category ?? 'general',
+      ...?additionalFields,
+    });
+
+    request.headers['Authorization'] = 'Bearer $token';
+
+    final streamed = await request.send().timeout(
+      const Duration(seconds: 60),
+      onTimeout: () {
+        throw const HttpException(
+          'Upload timeout - file too large or connection slow',
+        );
+      },
+    );
+
+    final response = await http.Response.fromStream(streamed);
+
+    if (response.statusCode == 401 && !retried) {
+      final newToken = await _refreshToken();
+
+      if (newToken != null) {
+        return sendMultipartWithAuth(
+          file: file,
+          category: category,
+          additionalFields: additionalFields,
+          retried: true,
+        );
       }
     }
 
