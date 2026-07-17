@@ -133,8 +133,22 @@ class ApiConfig {
   static Future<http.Response> postWithAuth(
       String endpoint, String token, dynamic body,
       {bool retried = false}) async {
+    final token = await _getAccessToken();
+
+    if (token == null) {
+      return http.Response(
+        json.encode({
+          'error': 'Unauthorized',
+          'message': 'No access token available',
+        }),
+        401,
+        headers: {'content-type': 'application/json'},
+      );
+    }
+
     // print(
     //     '[ApiConfig.postWithAuth] endpoint: $endpoint, body type: ${body.runtimeType}, body: $body');
+
     final uri = Uri.parse('$baseUrl$endpoint');
     final headers = getAuthHeaders(token);
 
@@ -156,6 +170,19 @@ class ApiConfig {
   static Future<http.Response> putWithAuth(
       String endpoint, String token, dynamic body,
       {bool retried = false}) async {
+    final token = await _getAccessToken();
+
+    if (token == null) {
+      return http.Response(
+        json.encode({
+          'error': 'Unauthorized',
+          'message': 'No access token available',
+        }),
+        401,
+        headers: {'content-type': 'application/json'},
+      );
+    }
+
     final uri = Uri.parse('$baseUrl$endpoint');
     final headers = getAuthHeaders(token);
 
@@ -177,6 +204,19 @@ class ApiConfig {
   static Future<http.Response> patchWithAuth(
       String endpoint, String token, dynamic body,
       {bool retried = false}) async {
+    final token = await _getAccessToken();
+
+    if (token == null) {
+      return http.Response(
+        json.encode({
+          'error': 'Unauthorized',
+          'message': 'No access token available',
+        }),
+        401,
+        headers: {'content-type': 'application/json'},
+      );
+    }
+
     final uri = Uri.parse('$baseUrl$endpoint');
     final headers = getAuthHeaders(token);
 
@@ -197,6 +237,19 @@ class ApiConfig {
 
   static Future<http.Response> deleteWithAuth(String endpoint, String token,
       {bool retried = false}) async {
+    final token = await _getAccessToken();
+
+    if (token == null) {
+      return http.Response(
+        json.encode({
+          'error': 'Unauthorized',
+          'message': 'No access token available',
+        }),
+        401,
+        headers: {'content-type': 'application/json'},
+      );
+    }
+
     final uri = Uri.parse('$baseUrl$endpoint');
     final headers = getAuthHeaders(token);
 
