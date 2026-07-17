@@ -1,3 +1,11 @@
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/parish_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -199,33 +207,6 @@ class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
     }
   }
 
-  Widget _buildSection(
-      {required String title, required List<Widget> children}) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
-            ),
-            const SizedBox(height: 12),
-            ...children,
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -287,216 +268,74 @@ class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Patient Information Section
-                  _buildSection(
+                  // Patient Information
+                  BookingSection(
                     title: "Patient Information",
                     children: [
-                      TextFormField(
+                      BookingTextField(
                         controller: _sickPersonNameController,
-                        decoration: const InputDecoration(
-                          labelText: "Patient Full Name *",
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) =>
-                            value == null || value.isEmpty ? "Required" : null,
+                        label: "Patient Full Name *",
+                        validator: Validators.requiredField,
                       ),
-                      const SizedBox(height: 12),
-                      TextFormField(
+                      BookingTextField(
                         controller: _locationController,
-                        decoration: const InputDecoration(
-                          labelText:
-                              "Location (Hospital Name / Home Address) *",
-                          border: OutlineInputBorder(),
-                        ),
+                        label: "Location (Hospital Name / Home Address) *",
                         maxLines: 2,
-                        validator: (value) =>
-                            value == null || value.isEmpty ? "Required" : null,
+                        validator: Validators.requiredField,
                       ),
-                      const SizedBox(height: 12),
-                      TextFormField(
+                      BookingTextField(
                         controller: _locationAddressController,
-                        decoration: const InputDecoration(
-                          labelText: "Detailed Address (Optional)",
-                          border: OutlineInputBorder(),
-                        ),
+                        label: "Detailed Address (Optional)",
                         maxLines: 2,
                       ),
                     ],
                   ),
 
-                  // Contact Information Section
-                  _buildSection(
-                    title: "Contact Information",
-                    children: [
-                      TextFormField(
-                        controller: _contactPersonController,
-                        decoration: const InputDecoration(
-                          labelText:
-                              "Contact Person Name (Relative/Guardian) *",
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) =>
-                            value == null || value.isEmpty ? "Required" : null,
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _contactEmailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          labelText: "Email *",
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: Validators.emailValidator,
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _contactPhoneController,
-                        keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                          labelText: "Contact Number *",
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: Validators.phoneValidator,
-                      ),
-                    ],
+                  // Contact Information
+                  ContactInformationSection(
+                    contactPersonController: _contactPersonController,
+                    emailController: _contactEmailController,
+                    phoneController: _contactPhoneController,
+                    emailValidator: Validators.emailValidator,
+                    phoneValidator: Validators.phoneValidator,
                   ),
 
-                  // Booking Preferences Section
-                  _buildSection(
+                  // Booking Preferences
+                  BookingSection(
                     title: "Booking Preferences",
                     children: [
-                      Consumer<ParishProvider>(
-                        builder: (context, parishProvider, _) {
-                          return DropdownButtonFormField<int>(
-                            initialValue: parishProvider.selectedParish?.id,
-                            decoration: const InputDecoration(
-                              labelText: "Preferred Parish *",
-                              border: OutlineInputBorder(),
-                            ),
-                            items: parishProvider.parishes
-                                .map((parish) => DropdownMenuItem(
-                                      value: parish.id,
-                                      child: Text(parish.name),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
-                              final authProvider = Provider.of<AuthProvider>(
-                                  context,
-                                  listen: false);
-                              final parish = parishProvider.parishes
-                                  .firstWhere((p) => p.id == value);
-                              // Clear any previously selected priest
-                              setState(() {
-                                _selectedPriestId = null;
-                              });
-                              parishProvider.selectParish(parish);
-                              Provider.of<PriestProvider>(
-                                context,
-                                listen: false,
-                              ).loadPriestsByParish(parish.id!,
-                                  token: authProvider.token);
-                            },
-                            validator: (value) =>
-                                value == null ? "Please select a parish" : null,
-                          );
+                      ParishDropdown(
+                        onParishChanged: () {
+                          setState(() => _selectedPriestId = null);
                         },
                       ),
-                      const SizedBox(height: 12),
-                      TextFormField(
+                      BookingDateField(
                         controller: _preferredDateController,
-                        decoration: const InputDecoration(
-                          labelText: "Preferred Anointing Date (Optional)",
-                          hintText: "YYYY-MM-DD",
-                          border: OutlineInputBorder(),
+                        label: "Preferred Anointing Date (Optional)",
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(
+                          const Duration(days: 365),
                         ),
-                        onTap: () async {
-                          FocusScope.of(context).requestFocus(FocusNode());
-                          DateTime? pickedDate = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime.now(),
-                            lastDate:
-                                DateTime.now().add(const Duration(days: 365)),
-                          );
-                          if (pickedDate != null) {
-                            _preferredDateController.text =
-                                "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-                          }
-                        },
                       ),
-                      const SizedBox(height: 12),
-                      TextFormField(
+                      BookingTimeField(
                         controller: _preferredTimeController,
-                        decoration: const InputDecoration(
-                          labelText: "Preferred Time Slot (Optional)",
-                          hintText: "HH:MM",
-                          border: OutlineInputBorder(),
-                        ),
-                        onTap: () async {
-                          FocusScope.of(context).requestFocus(FocusNode());
-                          TimeOfDay? pickedTime = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.now(),
-                          );
-                          if (pickedTime != null) {
-                            _preferredTimeController.text =
-                                "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
-                          }
-                        },
+                        label: "Preferred Time Slot (Optional)",
                       ),
-                      const SizedBox(height: 12),
-                      Consumer<PriestProvider>(
-                        builder: (context, priestProvider, _) {
-                          final validPriestId = _selectedPriestId != null &&
-                                  priestProvider.priests
-                                      .any((p) => p.id == _selectedPriestId)
-                              ? _selectedPriestId
-                              : null;
-                          return DropdownButtonFormField<int>(
-                            initialValue: validPriestId,
-                            decoration: const InputDecoration(
-                              labelText:
-                                  "Preferred Priest (Optional) - Subject to availability",
-                              border: OutlineInputBorder(),
-                            ),
-                            items: [
-                              const DropdownMenuItem<int>(
-                                value: null,
-                                child: Text("No preference"),
-                              ),
-                              ...priestProvider.priests
-                                  .map((priest) => DropdownMenuItem<int>(
-                                        value: priest.id,
-                                        child: Text(priest.fullName),
-                                      )),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedPriestId = value;
-                              });
-                            },
-                          );
+                      PriestDropdown(
+                        selectedPriestId: _selectedPriestId,
+                        onChanged: (value) {
+                          setState(() => _selectedPriestId = value);
                         },
                       ),
                     ],
                   ),
 
-                  // Additional Notes Section
-                  _buildSection(
-                    title: "Additional Information",
-                    children: [
-                      TextFormField(
-                        controller: _additionalNotesController,
-                        decoration: const InputDecoration(
-                          labelText:
-                              "Additional Notes (Patient Condition, Special Requests)",
-                          border: OutlineInputBorder(),
-                        ),
-                        maxLines: 3,
-                      ),
-                    ],
+                  // Additional Notes
+                  AdditionalInformationSection(
+                    notesController: _additionalNotesController,
+                    label:
+                        "Additional Notes\n(Patient Condition, Special Requests)",
                   ),
-
                   const SizedBox(height: 20),
 
                   // Submit Button with loading state
