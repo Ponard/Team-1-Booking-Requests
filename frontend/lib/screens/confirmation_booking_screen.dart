@@ -9,6 +9,7 @@ import 'package:diocese_frontend/widgets/booking_forms/sections/contact_informat
 import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/parent_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/sponsors_information_section.dart';
+import 'package:diocese_frontend/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -527,33 +528,11 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
 
                   Consumer<ConfirmationProvider>(
                     builder: (context, confirmationProvider, _) {
-                      return Center(
-                        child: ElevatedButton(
-                          onPressed: confirmationProvider.isLoading
-                              ? null
-                              : _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).primaryColor,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 14, horizontal: 28),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: confirmationProvider.isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
-                                  ),
-                                )
-                              : const Text("Submit Booking",
-                                  style: TextStyle(fontSize: 16)),
-                        ),
+                      return CustomButton(
+                        width: double.infinity,
+                        text: "Submit Booking",
+                        onPressed: _submitForm,
+                        isLoading: confirmationProvider.isLoading,
                       );
                     },
                   ),
