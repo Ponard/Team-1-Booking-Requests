@@ -341,9 +341,9 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                   Consumer<FuneralMassProvider>(
                     builder: (context, funeralMassProvider, _) {
                       return CustomButton(
-                        text: "Submit Request",
-                        onPressed:
-                            funeralMassProvider.isLoading ? null : _submitForm,
+                        width: double.infinity,
+                        text: "Submit Booking",
+                        onPressed: _submitForm,
                         isLoading: funeralMassProvider.isLoading,
                       );
                     },

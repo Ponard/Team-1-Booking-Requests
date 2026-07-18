@@ -9,6 +9,7 @@ import 'package:diocese_frontend/widgets/booking_forms/sections/contact_informat
 import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/parent_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/sponsors_information_section.dart';
+import 'package:diocese_frontend/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -29,9 +30,6 @@ class BaptismBookingScreen extends StatefulWidget {
 
 class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  // --- Double-Submission Guardrail State ---
-  bool _isSubmitting = false;
 
   // --- Controllers ---
   final TextEditingController _childNameController = TextEditingController();
@@ -216,9 +214,6 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
       return;
     }
 
-    // Trigger double-submission guardrail
-    setState(() => _isSubmitting = true);
-
     String formatDate(String date) {
       final parts = date.split('-');
       if (parts.length == 3) {
@@ -284,9 +279,6 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
     );
 
     if (!mounted) return;
-
-    // Release double-submission guardrail
-    setState(() => _isSubmitting = false);
 
     // 3. Handle UI Response
     if (success) {
@@ -432,34 +424,11 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                   // --- Main Submission Button with State Checking ---
                   Consumer<BaptismProvider>(
                     builder: (context, baptismProvider, _) {
-                      final bool isProcessing =
-                          baptismProvider.isLoading || _isSubmitting;
-
-                      return Center(
-                        child: ElevatedButton(
-                          // Disable button if processing or waiting for API
-                          onPressed: isProcessing ? null : _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).primaryColor,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 14, horizontal: 28),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: isProcessing
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
-                                  ),
-                                )
-                              : const Text("Submit Request",
-                                  style: TextStyle(fontSize: 16)),
-                        ),
+                      return CustomButton(
+                        width: double.infinity,
+                        text: "Submit Booking",
+                        onPressed: _submitForm,
+                        isLoading: baptismProvider.isLoading,
                       );
                     },
                   ),

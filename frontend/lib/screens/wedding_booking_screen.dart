@@ -9,6 +9,7 @@ import 'package:diocese_frontend/widgets/booking_forms/sections/contact_informat
 import 'package:diocese_frontend/widgets/booking_forms/sections/couple_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/sponsors_information_section.dart';
+import 'package:diocese_frontend/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -760,31 +761,11 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                   const SizedBox(height: 20),
                   Consumer<WeddingProvider>(
                     builder: (context, weddingProvider, _) {
-                      return Center(
-                        child: ElevatedButton(
-                          onPressed:
-                              weddingProvider.isLoading ? null : _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).primaryColor,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 14, horizontal: 28),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: weddingProvider.isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
-                                  ),
-                                )
-                              : const Text("Submit Booking",
-                                  style: TextStyle(fontSize: 16)),
-                        ),
+                      return CustomButton(
+                        width: double.infinity,
+                        text: "Submit Booking",
+                        onPressed: _submitForm,
+                        isLoading: weddingProvider.isLoading,
                       );
                     },
                   ),

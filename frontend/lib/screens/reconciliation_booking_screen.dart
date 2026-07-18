@@ -6,6 +6,7 @@ import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field
 import 'package:diocese_frontend/widgets/booking_forms/common/parish_dropdown.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
+import 'package:diocese_frontend/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -314,32 +315,11 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
                   const SizedBox(height: 24),
                   Consumer<ReconciliationProvider>(
                     builder: (context, reconciliationProvider, _) {
-                      return Center(
-                        child: ElevatedButton(
-                          onPressed: reconciliationProvider.isLoading
-                              ? null
-                              : _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).primaryColor,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 14, horizontal: 28),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: reconciliationProvider.isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
-                                  ),
-                                )
-                              : const Text("Submit Request",
-                                  style: TextStyle(fontSize: 16)),
-                        ),
+                      return CustomButton(
+                        width: double.infinity,
+                        text: "Submit Booking",
+                        onPressed: _submitForm,
+                        isLoading: reconciliationProvider.isLoading,
                       );
                     },
                   ),
