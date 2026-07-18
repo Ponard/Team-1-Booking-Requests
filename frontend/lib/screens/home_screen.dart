@@ -776,7 +776,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSpacing: 12,
                   mainAxisExtent: 160,
                 ),
-                itemBuilder: (context, index) {
+                itemBuilder: (itemContext, index) {
                   final service = services[index];
 
                   return InkWell(
@@ -784,8 +784,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       final submitted =
                           await Navigator.pushNamed(context, service["route"]!);
 
+                      if (!context.mounted) return;
+
                       if (submitted == true) {
                         await _loadBookingStats();
+
+                        if (!context.mounted) return;
+
+                        final messenger = ScaffoldMessenger.of(context);
+
+                        messenger
+                          ..hideCurrentSnackBar()
+                          ..showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "Your booking request has been submitted successfully.",
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
                       }
                     },
                     child: Container(

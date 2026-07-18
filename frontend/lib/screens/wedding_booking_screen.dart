@@ -583,23 +583,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
       );
 
       if (success && mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text("Booking Submitted"),
-            content: const Text(
-                "Your wedding booking request has been submitted. Parish will confirm availability."),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close dialog
-                  Navigator.of(context).pop(true); // Go back to home
-                },
-                child: const Text("OK"),
-              )
-            ],
-          ),
-        );
+        _formKey.currentState?.reset();
+        Navigator.of(context).pop(true); // Go back
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
