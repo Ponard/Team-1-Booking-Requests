@@ -3,6 +3,7 @@ import 'package:diocese_frontend/widgets/booking_forms/common/booking_dropdown.d
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -474,30 +475,11 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
 
                   Consumer<MassIntentionProvider>(
                     builder: (context, provider, _) {
-                      return Center(
-                        child: ElevatedButton(
-                          onPressed: provider.isLoading ? null : _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).primaryColor,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 14, horizontal: 28),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: provider.isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
-                                  ),
-                                )
-                              : const Text("Submit Mass Intention",
-                                  style: TextStyle(fontSize: 16)),
-                        ),
+                      return CustomButton(
+                        width: double.infinity,
+                        text: "Submit Booking",
+                        onPressed: _submitForm,
+                        isLoading: provider.isLoading,
                       );
                     },
                   ),
