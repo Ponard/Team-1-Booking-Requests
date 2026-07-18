@@ -178,23 +178,8 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
       );
 
       if (success && mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text("Booking Submitted"),
-            content: const Text(
-                "Your funeral mass booking request has been submitted. The parish will contact you to confirm details."),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close dialog
-                  Navigator.of(context).pop(true); // Go back
-                },
-                child: const Text("OK"),
-              )
-            ],
-          ),
-        );
+        _formKey.currentState?.reset();
+        Navigator.of(context).pop(true); // Go back
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

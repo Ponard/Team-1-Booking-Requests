@@ -229,23 +229,8 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
       );
 
       if (success && mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text("Mass Intention Submitted"),
-            content: const Text(
-                "Your mass intention request has been submitted successfully."),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop(true);
-                },
-                child: const Text("OK"),
-              ),
-            ],
-          ),
-        );
+        _formKey.currentState?.reset();
+        Navigator.of(context).pop(true); // Go back
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
