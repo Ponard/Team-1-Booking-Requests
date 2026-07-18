@@ -30,9 +30,6 @@ class BaptismBookingScreen extends StatefulWidget {
 class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // --- Double-Submission Guardrail State ---
-  bool _isSubmitting = false;
-
   // --- Controllers ---
   final TextEditingController _childNameController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
@@ -216,9 +213,6 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
       return;
     }
 
-    // Trigger double-submission guardrail
-    setState(() => _isSubmitting = true);
-
     String formatDate(String date) {
       final parts = date.split('-');
       if (parts.length == 3) {
@@ -284,9 +278,6 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
     );
 
     if (!mounted) return;
-
-    // Release double-submission guardrail
-    setState(() => _isSubmitting = false);
 
     // 3. Handle UI Response
     if (success) {
@@ -432,8 +423,7 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                   // --- Main Submission Button with State Checking ---
                   Consumer<BaptismProvider>(
                     builder: (context, baptismProvider, _) {
-                      final bool isProcessing =
-                          baptismProvider.isLoading || _isSubmitting;
+                      final bool isProcessing = baptismProvider.isLoading;
 
                       return Center(
                         child: ElevatedButton(
