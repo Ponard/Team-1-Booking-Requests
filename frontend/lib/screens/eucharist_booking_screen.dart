@@ -4,6 +4,8 @@ import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/parish_dropdown.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
@@ -29,6 +31,8 @@ class EucharistScreen extends StatefulWidget {
 
 class _EucharistScreenState extends State<EucharistScreen> {
   final _formKey = GlobalKey<FormState>();
+
+  final _bookingFormController = BookingFormController();
 
   // Controllers
   final TextEditingController _communicantNameController =
@@ -270,120 +274,121 @@ class _EucharistScreenState extends State<EucharistScreen> {
   }
 
   Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final eucharistProvider =
-          Provider.of<EucharistProvider>(context, listen: false);
-      final parishProvider =
-          Provider.of<ParishProvider>(context, listen: false);
+    if (!_formKey.currentState!.validate()) {
+      _bookingFormController.focusFirstInvalid();
+      return;
+    }
 
-      if (authProvider.currentUser == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please login to submit a booking.")),
-        );
-        return;
-      }
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final eucharistProvider =
+        Provider.of<EucharistProvider>(context, listen: false);
+    final parishProvider = Provider.of<ParishProvider>(context, listen: false);
 
-      if (parishProvider.selectedParish == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select a parish.")),
-        );
-        return;
-      }
-
-      final token = authProvider.token;
-      if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Authentication token not available.")),
-        );
-        return;
-      }
-
-      // Validate required documents are uploaded
-      if (_uploadedBirthData == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text("Please upload the required Birth Certificate.")),
-        );
-        return;
-      }
-      if (_uploadedBaptismalData == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content:
-                  Text("Please upload the required Baptismal Certificate.")),
-        );
-        return;
-      }
-
-      // Build documents array
-      final documents = [
-        {
-          'uploadedFile': _uploadedBirthData!['filename'],
-          'filePath': _uploadedBirthData!['path'],
-          'fileUrl': _uploadedBirthData!['url'],
-          'fileSize': _uploadedBirthData!['size'],
-          'mimeType': _uploadedBirthData!['mimeType'],
-          'documentType': 'birth_certificate',
-        },
-        {
-          'uploadedFile': _uploadedBaptismalData!['filename'],
-          'filePath': _uploadedBaptismalData!['path'],
-          'fileUrl': _uploadedBaptismalData!['url'],
-          'fileSize': _uploadedBaptismalData!['size'],
-          'mimeType': _uploadedBaptismalData!['mimeType'],
-          'documentType': 'baptismal_certificate',
-        },
-      ];
-
-      // Format dates to ISO format (YYYY-MM-DD)
-      String formatDate(String date) {
-        final parts = date.split('-');
-        if (parts.length == 3) {
-          return '${parts[0]}-${parts[1].padLeft(2, '0')}-${parts[2].padLeft(2, '0')}';
-        }
-        return date;
-      }
-
-      // Prepare notes array if a note was added
-      List<Map<String, dynamic>>? notesToAdd;
-      if (_notesController.text.trim().isNotEmpty) {
-        notesToAdd = [
-          {
-            'author': 'parishioner',
-            'content': _notesController.text.trim(),
-            'authorId': authProvider.currentUser!.id,
-          }
-        ];
-      }
-
-      final success = await eucharistProvider.createEucharistBooking(
-        token: token,
-        parishId: parishProvider.selectedParish!.id!,
-        communicantName: _communicantNameController.text.trim(),
-        fatherName: _fatherNameController.text.trim(),
-        motherName: _motherNameController.text.trim(),
-        contactEmail: _contactEmailController.text.trim(),
-        contactPhone: _contactPhoneController.text.trim(),
-
-        //QA Fix: Added .trim() in this code for the preferred date
-        preferredDate: formatDate(_preferredDateController.text.trim()),
-        preferredTimeSlot: _preferredTimeController.text.trim(),
-        priestId: _selectedPriestId,
-        notes: notesToAdd,
-        documents: documents,
+    if (authProvider.currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please login to submit a booking.")),
       );
+      return;
+    }
 
-      if (success && mounted) {
-        _formKey.currentState?.reset();
-        Navigator.of(context).pop(true); // Go back
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(eucharistProvider.errorMessage ??
-                  "Failed to submit booking.")),
-        );
+    if (parishProvider.selectedParish == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a parish.")),
+      );
+      return;
+    }
+
+    final token = authProvider.token;
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Authentication token not available.")),
+      );
+      return;
+    }
+
+    // Validate required documents are uploaded
+    if (_uploadedBirthData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Please upload the required Birth Certificate.")),
+      );
+      return;
+    }
+    if (_uploadedBaptismalData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Please upload the required Baptismal Certificate.")),
+      );
+      return;
+    }
+
+    // Build documents array
+    final documents = [
+      {
+        'uploadedFile': _uploadedBirthData!['filename'],
+        'filePath': _uploadedBirthData!['path'],
+        'fileUrl': _uploadedBirthData!['url'],
+        'fileSize': _uploadedBirthData!['size'],
+        'mimeType': _uploadedBirthData!['mimeType'],
+        'documentType': 'birth_certificate',
+      },
+      {
+        'uploadedFile': _uploadedBaptismalData!['filename'],
+        'filePath': _uploadedBaptismalData!['path'],
+        'fileUrl': _uploadedBaptismalData!['url'],
+        'fileSize': _uploadedBaptismalData!['size'],
+        'mimeType': _uploadedBaptismalData!['mimeType'],
+        'documentType': 'baptismal_certificate',
+      },
+    ];
+
+    // Format dates to ISO format (YYYY-MM-DD)
+    String formatDate(String date) {
+      final parts = date.split('-');
+      if (parts.length == 3) {
+        return '${parts[0]}-${parts[1].padLeft(2, '0')}-${parts[2].padLeft(2, '0')}';
       }
+      return date;
+    }
+
+    // Prepare notes array if a note was added
+    List<Map<String, dynamic>>? notesToAdd;
+    if (_notesController.text.trim().isNotEmpty) {
+      notesToAdd = [
+        {
+          'author': 'parishioner',
+          'content': _notesController.text.trim(),
+          'authorId': authProvider.currentUser!.id,
+        }
+      ];
+    }
+
+    final success = await eucharistProvider.createEucharistBooking(
+      token: token,
+      parishId: parishProvider.selectedParish!.id!,
+      communicantName: _communicantNameController.text.trim(),
+      fatherName: _fatherNameController.text.trim(),
+      motherName: _motherNameController.text.trim(),
+      contactEmail: _contactEmailController.text.trim(),
+      contactPhone: _contactPhoneController.text.trim(),
+
+      //QA Fix: Added .trim() in this code for the preferred date
+      preferredDate: formatDate(_preferredDateController.text.trim()),
+      preferredTimeSlot: _preferredTimeController.text.trim(),
+      priestId: _selectedPriestId,
+      notes: notesToAdd,
+      documents: documents,
+    );
+
+    if (success && mounted) {
+      _formKey.currentState?.reset();
+      Navigator.of(context).pop(true); // Go back
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                eucharistProvider.errorMessage ?? "Failed to submit booking.")),
+      );
     }
   }
 
@@ -405,127 +410,132 @@ class _EucharistScreenState extends State<EucharistScreen> {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 450),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    "Fill out the form below to submit your booking request. All fields marked with * are required.",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 5),
-                  const Text(
-                    "Subject to availability. Parish will confirm your booking.",
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.grey),
-                  ),
-                  const SizedBox(height: 20),
+            child: BookingFormScope(
+              controller: _bookingFormController,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      "Fill out the form below to submit your booking request. All fields marked with * are required.",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 5),
+                    const Text(
+                      "Subject to availability. Parish will confirm your booking.",
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.grey),
+                    ),
+                    const SizedBox(height: 20),
 
-                  // Communicant Information Section
-                  BookingSection(
-                    title: "Communicant Information",
-                    children: [
-                      BookingTextField(
+                    // Communicant Information Section
+                    BookingSection(
+                      title: "Communicant Information",
+                      children: [
+                        BookingTextField(
                           controller: _communicantNameController,
-                          label: "Communicant Name *"),
-                    ],
-                  ),
-
-                  // Parents Information Section
-                  ParentInformationSection(
-                    fatherController: _fatherNameController,
-                    motherController: _motherNameController,
-                  ),
-
-                  // Contact Information Section
-                  ContactInformationSection(
-                    emailController: _contactEmailController,
-                    phoneController: _contactPhoneController,
-                    emailValidator: Validators.emailValidator,
-                    phoneValidator: Validators.phoneValidator,
-                  ),
-
-                  // Booking Preferences
-                  BookingSection(
-                    title: "Booking Preferences",
-                    children: [
-                      ParishDropdown(
-                        onParishChanged: () {
-                          setState(() => _selectedPriestId = null);
-                        },
-                      ),
-                      BookingDateField(
-                        controller: _preferredDateController,
-                        label: "Preferred Eucharist Date *",
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(
-                          const Duration(days: 365),
+                          label: "Communicant Name *",
+                          validator: Validators.requiredField,
                         ),
-                        validator: Validators.requiredField,
-                      ),
-                      BookingTimeField(
-                        controller: _preferredTimeController,
-                        label: "Preferred Time Slot *",
-                        validator: Validators.requiredField,
-                      ),
-                      PriestDropdown(
-                        selectedPriestId: _selectedPriestId,
-                        onChanged: (value) {
-                          setState(() => _selectedPriestId = value);
-                        },
-                      ),
-                    ],
-                  ),
-                  // Required Documents - Separate uploads
-                  BookingSection(
-                    title: "Required Documents",
-                    children: [
-                      DocumentUploadSection(
-                        title: "Birth Certificate *",
-                        description:
-                            "Upload birth certificate of the communicant *",
-                        file: _birthCertificateFile,
-                        isUploading: _isUploadingBirth,
-                        isUploaded: _uploadedBirthData != null,
-                        onPick: _pickBirthCertificate,
-                        onUpload: _uploadBirthCertificate,
-                      ),
-                      const SizedBox(height: 24),
-                      DocumentUploadSection(
-                        title: "Baptismal Certificate *",
-                        description:
-                            "Upload baptismal certificate of the communicant *",
-                        file: _baptismalCertificateFile,
-                        isUploading: _isUploadingBaptismal,
-                        isUploaded: _uploadedBaptismalData != null,
-                        onPick: _pickBaptismalCertificate,
-                        onUpload: _uploadBaptismalCertificate,
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
 
-                  // Additional Information
-                  AdditionalInformationSection(
-                    notesController: _notesController,
-                  ),
+                    // Parents Information Section
+                    ParentInformationSection(
+                      fatherController: _fatherNameController,
+                      motherController: _motherNameController,
+                    ),
 
-                  const SizedBox(height: 20),
+                    // Contact Information Section
+                    ContactInformationSection(
+                      emailController: _contactEmailController,
+                      phoneController: _contactPhoneController,
+                      emailValidator: Validators.emailValidator,
+                      phoneValidator: Validators.phoneValidator,
+                    ),
 
-                  Consumer<EucharistProvider>(
-                    builder: (context, eucharistProvider, _) {
-                      return CustomButton(
-                        width: double.infinity,
-                        text: "Submit Booking",
-                        onPressed: _submitForm,
-                        isLoading: eucharistProvider.isLoading,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                ],
+                    // Booking Preferences
+                    BookingSection(
+                      title: "Booking Preferences",
+                      children: [
+                        ParishDropdown(
+                          onParishChanged: () {
+                            setState(() => _selectedPriestId = null);
+                          },
+                        ),
+                        BookingDateField(
+                          controller: _preferredDateController,
+                          label: "Preferred Eucharist Date *",
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(
+                            const Duration(days: 365),
+                          ),
+                          validator: Validators.requiredField,
+                        ),
+                        BookingTimeField(
+                          controller: _preferredTimeController,
+                          label: "Preferred Time Slot *",
+                          validator: Validators.requiredField,
+                        ),
+                        PriestDropdown(
+                          selectedPriestId: _selectedPriestId,
+                          onChanged: (value) {
+                            setState(() => _selectedPriestId = value);
+                          },
+                        ),
+                      ],
+                    ),
+                    // Required Documents - Separate uploads
+                    BookingSection(
+                      title: "Required Documents",
+                      children: [
+                        DocumentUploadSection(
+                          title: "Birth Certificate *",
+                          description:
+                              "Upload birth certificate of the communicant *",
+                          file: _birthCertificateFile,
+                          isUploading: _isUploadingBirth,
+                          isUploaded: _uploadedBirthData != null,
+                          onPick: _pickBirthCertificate,
+                          onUpload: _uploadBirthCertificate,
+                        ),
+                        const SizedBox(height: 24),
+                        DocumentUploadSection(
+                          title: "Baptismal Certificate *",
+                          description:
+                              "Upload baptismal certificate of the communicant *",
+                          file: _baptismalCertificateFile,
+                          isUploading: _isUploadingBaptismal,
+                          isUploaded: _uploadedBaptismalData != null,
+                          onPick: _pickBaptismalCertificate,
+                          onUpload: _uploadBaptismalCertificate,
+                        ),
+                      ],
+                    ),
+
+                    // Additional Information
+                    AdditionalInformationSection(
+                      notesController: _notesController,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    Consumer<EucharistProvider>(
+                      builder: (context, eucharistProvider, _) {
+                        return CustomButton(
+                          width: double.infinity,
+                          text: "Submit Booking",
+                          onPressed: _submitForm,
+                          isLoading: eucharistProvider.isLoading,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
           ),

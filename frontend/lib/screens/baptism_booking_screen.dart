@@ -3,6 +3,8 @@ import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.da
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/parish_dropdown.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/child_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
@@ -30,6 +32,8 @@ class BaptismBookingScreen extends StatefulWidget {
 
 class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
   final _formKey = GlobalKey<FormState>();
+
+  final _bookingFormController = BookingFormController();
 
   // --- Controllers ---
   final TextEditingController _childNameController = TextEditingController();
@@ -187,7 +191,10 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
 
   // --- Modernized Submission Logic ---
   Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      _bookingFormController.focusFirstInvalid();
+      return;
+    }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final baptismProvider =
@@ -309,116 +316,120 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 450),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    "Fill out the form below to submit your booking request. All fields marked with * are required.",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 5),
-                  const Text(
-                    "Subject to availability. Parish will confirm your booking and selected priest.",
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.grey),
-                  ),
-                  const SizedBox(height: 20),
+            child: BookingFormScope(
+              controller: _bookingFormController,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      "Fill out the form below to submit your booking request. All fields marked with * are required.",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 5),
+                    const Text(
+                      "Subject to availability. Parish will confirm your booking and selected priest.",
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.grey),
+                    ),
+                    const SizedBox(height: 20),
 
-                  // Child Info Section
-                  ChildInformationSection(
-                    childNameController: _childNameController,
-                    dobController: _dobController,
-                  ),
+                    // Child Info Section
+                    ChildInformationSection(
+                      childNameController: _childNameController,
+                      dobController: _dobController,
+                    ),
 
-                  // Parents Info Section
-                  ParentInformationSection(
-                    fatherController: _fatherNameController,
-                    motherController: _motherNameController,
-                  ),
+                    // Parents Info Section
+                    ParentInformationSection(
+                      fatherController: _fatherNameController,
+                      motherController: _motherNameController,
+                    ),
 
-                  SponsorsInformationSection(
-                    sponsorsController: _godparentsController,
-                  ),
+                    SponsorsInformationSection(
+                      sponsorsController: _godparentsController,
+                    ),
 
-                  // Contact Info Section
-                  ContactInformationSection(
-                    emailController: _contactEmailController,
-                    phoneController: _contactPhoneController,
-                    emailValidator: Validators.emailValidator,
-                    phoneValidator: Validators.phoneValidator,
-                  ),
+                    // Contact Info Section
+                    ContactInformationSection(
+                      emailController: _contactEmailController,
+                      phoneController: _contactPhoneController,
+                      emailValidator: Validators.emailValidator,
+                      phoneValidator: Validators.phoneValidator,
+                    ),
 
-                  // Booking Preferences
-                  BookingSection(
-                    title: 'Booking Preferences',
-                    children: [
-                      ParishDropdown(
-                        onParishChanged: () {
-                          setState(() => _selectedPriestId = null);
-                        },
-                      ),
-                      BookingDateField(
-                        controller: _preferredDateController,
-                        label: 'Preferred Baptism Date *',
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                        validator: Validators.requiredField,
-                      ),
-                      BookingTimeField(
-                        controller: _preferredTimeController,
-                        label: 'Preferred Time Slot *',
-                        validator: Validators.requiredField,
-                      ),
-                      PriestDropdown(
-                        selectedPriestId: _selectedPriestId,
-                        onChanged: (value) {
-                          setState(() => _selectedPriestId = value);
-                        },
-                      ),
-                    ],
-                  ),
+                    // Booking Preferences
+                    BookingSection(
+                      title: 'Booking Preferences',
+                      children: [
+                        ParishDropdown(
+                          onParishChanged: () {
+                            setState(() => _selectedPriestId = null);
+                          },
+                        ),
+                        BookingDateField(
+                          controller: _preferredDateController,
+                          label: 'Preferred Baptism Date *',
+                          firstDate: DateTime.now(),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
+                          validator: Validators.requiredField,
+                        ),
+                        BookingTimeField(
+                          controller: _preferredTimeController,
+                          label: 'Preferred Time Slot *',
+                          validator: Validators.requiredField,
+                        ),
+                        PriestDropdown(
+                          selectedPriestId: _selectedPriestId,
+                          onChanged: (value) {
+                            setState(() => _selectedPriestId = value);
+                          },
+                        ),
+                      ],
+                    ),
 
-                  // Additional Notes
-                  AdditionalInformationSection(
-                    notesController: _notesController,
-                  ),
+                    // Additional Notes
+                    AdditionalInformationSection(
+                      notesController: _notesController,
+                    ),
 
-                  // Document Upload Section
-                  BookingSection(
-                    title: "Required Documents",
-                    children: [
-                      DocumentUploadSection(
-                        title: "PSA Birth Certificate *",
-                        description:
-                            "Please upload a copy of the PSA birth certificate. Accepted formats: PDF, JPG, PNG",
-                        file: _birthCertificateFile,
-                        isUploading: _isUploadingFile,
-                        isUploaded: _uploadedFileData != null,
-                        onPick: _pickBirthCertificateFile,
-                        onUpload: _uploadBirthCertificate,
-                      )
-                    ],
-                  ),
+                    // Document Upload Section
+                    BookingSection(
+                      title: "Required Documents",
+                      children: [
+                        DocumentUploadSection(
+                          title: "PSA Birth Certificate *",
+                          description:
+                              "Please upload a copy of the PSA birth certificate. Accepted formats: PDF, JPG, PNG",
+                          file: _birthCertificateFile,
+                          isUploading: _isUploadingFile,
+                          isUploaded: _uploadedFileData != null,
+                          onPick: _pickBirthCertificateFile,
+                          onUpload: _uploadBirthCertificate,
+                        )
+                      ],
+                    ),
 
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  // --- Main Submission Button with State Checking ---
-                  Consumer<BaptismProvider>(
-                    builder: (context, baptismProvider, _) {
-                      return CustomButton(
-                        width: double.infinity,
-                        text: "Submit Booking",
-                        onPressed: _submitForm,
-                        isLoading: baptismProvider.isLoading,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                ],
+                    // --- Main Submission Button with State Checking ---
+                    Consumer<BaptismProvider>(
+                      builder: (context, baptismProvider, _) {
+                        return CustomButton(
+                          width: double.infinity,
+                          text: "Submit Booking",
+                          onPressed: _submitForm,
+                          isLoading: baptismProvider.isLoading,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
           ),
