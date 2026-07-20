@@ -198,6 +198,9 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final parishProvider = context.watch<ParishProvider>();
+    final hasSelectedParish = parishProvider.selectedParish != null;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Funeral Mass Booking"),
@@ -316,9 +319,11 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                         ),
                         PriestDropdown(
                           selectedPriestId: _selectedPriestId,
-                          onChanged: (value) {
-                            setState(() => _selectedPriestId = value);
-                          },
+                          onChanged: hasSelectedParish
+                              ? (value) {
+                                  setState(() => _selectedPriestId = value);
+                                }
+                              : null,
                         ),
                       ],
                     ),
