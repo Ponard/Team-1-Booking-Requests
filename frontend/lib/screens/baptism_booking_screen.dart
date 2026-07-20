@@ -302,6 +302,9 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final parishProvider = context.watch<ParishProvider>();
+    final hasSelectedParish = parishProvider.selectedParish != null;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Baptism Booking"),
@@ -385,9 +388,11 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                         ),
                         PriestDropdown(
                           selectedPriestId: _selectedPriestId,
-                          onChanged: (value) {
-                            setState(() => _selectedPriestId = value);
-                          },
+                          onChanged: hasSelectedParish
+                              ? (value) {
+                                  setState(() => _selectedPriestId = value);
+                                }
+                              : null,
                         ),
                       ],
                     ),
