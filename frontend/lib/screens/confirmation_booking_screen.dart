@@ -386,6 +386,9 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final parishProvider = context.watch<ParishProvider>();
+    final hasSelectedParish = parishProvider.selectedParish != null;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Confirmation Booking"),
@@ -479,9 +482,11 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
                         ),
                         PriestDropdown(
                           selectedPriestId: _selectedPriestId,
-                          onChanged: (value) {
-                            setState(() => _selectedPriestId = value);
-                          },
+                          onChanged: hasSelectedParish
+                              ? (value) {
+                                  setState(() => _selectedPriestId = value);
+                                }
+                              : null,
                         ),
                       ],
                     ),

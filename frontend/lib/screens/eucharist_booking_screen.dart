@@ -394,6 +394,9 @@ class _EucharistScreenState extends State<EucharistScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final parishProvider = context.watch<ParishProvider>();
+    final hasSelectedParish = parishProvider.selectedParish != null;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("First Holy Communion"),
@@ -482,9 +485,11 @@ class _EucharistScreenState extends State<EucharistScreen> {
                         ),
                         PriestDropdown(
                           selectedPriestId: _selectedPriestId,
-                          onChanged: (value) {
-                            setState(() => _selectedPriestId = value);
-                          },
+                          onChanged: hasSelectedParish
+                              ? (value) {
+                                  setState(() => _selectedPriestId = value);
+                                }
+                              : null,
                         ),
                       ],
                     ),
