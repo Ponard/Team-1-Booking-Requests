@@ -201,6 +201,9 @@ class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final parishProvider = context.watch<ParishProvider>();
+    final hasSelectedParish = parishProvider.selectedParish != null;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Anointing of the Sick"),
@@ -317,9 +320,11 @@ class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
                         ),
                         PriestDropdown(
                           selectedPriestId: _selectedPriestId,
-                          onChanged: (value) {
-                            setState(() => _selectedPriestId = value);
-                          },
+                          onChanged: hasSelectedParish
+                              ? (value) {
+                                  setState(() => _selectedPriestId = value);
+                                }
+                              : null,
                         ),
                       ],
                     ),
