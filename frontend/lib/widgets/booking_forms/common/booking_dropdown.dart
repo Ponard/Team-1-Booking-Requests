@@ -14,6 +14,8 @@ class BookingDropdown<T> extends StatefulWidget {
 
   final FormFieldValidator<T>? validator;
 
+  final Widget? hint;
+
   @override
   State<BookingDropdown<T>> createState() => _BookingDropdownState<T>();
 
@@ -24,6 +26,7 @@ class BookingDropdown<T> extends StatefulWidget {
     required this.items,
     this.onChanged,
     this.validator,
+    this.hint,
   });
 
   Widget build(BuildContext context) {
@@ -39,6 +42,7 @@ class BookingDropdown<T> extends StatefulWidget {
         items: items,
         onChanged: onChanged,
         validator: validator,
+        hint: hint,
       ),
     );
   }
