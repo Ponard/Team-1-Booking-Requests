@@ -4,6 +4,8 @@ import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/parish_dropdown.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
@@ -31,6 +33,8 @@ class ConfirmationBookingScreen extends StatefulWidget {
 
 class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
   final _formKey = GlobalKey<FormState>();
+
+  final _bookingFormController = BookingFormController();
 
   // Controllers
   final TextEditingController _confirmandNameController =
@@ -283,99 +287,100 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
   }
 
   Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final confirmationProvider =
-          Provider.of<ConfirmationProvider>(context, listen: false);
-      final parishProvider =
-          Provider.of<ParishProvider>(context, listen: false);
+    if (!_formKey.currentState!.validate()) {
+      _bookingFormController.focusFirstInvalid();
+      return;
+    }
 
-      if (authProvider.currentUser == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please login to submit a booking.")),
-        );
-        return;
-      }
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final confirmationProvider =
+        Provider.of<ConfirmationProvider>(context, listen: false);
+    final parishProvider = Provider.of<ParishProvider>(context, listen: false);
 
-      if (parishProvider.selectedParish == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select a parish.")),
-        );
-        return;
-      }
-
-      // Validate that both required documents are uploaded
-      if (_uploadedBaptismalData == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content:
-                  Text("Please upload the required Baptismal Certificate.")),
-        );
-        return;
-      }
-      if (_uploadedBirthData == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text("Please upload the required Birth Certificate.")),
-        );
-        return;
-      }
-
-      String formatDate(String date) {
-        final parts = date.split('-');
-        if (parts.length == 3) {
-          return '${parts[0]}-${parts[1].padLeft(2, '0')}-${parts[2].padLeft(2, '0')}';
-        }
-        return date;
-      }
-
-      // Prepare notes array if a note was added
-      List<Map<String, dynamic>>? notesToAdd;
-      if (_notesController.text.trim().isNotEmpty) {
-        notesToAdd = [
-          {
-            'author': 'parishioner',
-            'content': _notesController.text.trim(),
-            'authorId': authProvider.currentUser!.id,
-          }
-        ];
-      }
-
-      final success = await confirmationProvider.createConfirmationBooking(
-        token: authProvider.token!,
-        parishId: parishProvider.selectedParish!.id!,
-        confirmandName: _confirmandNameController.text.trim(),
-        fatherName: _fatherNameController.text.trim(),
-        motherName: _motherNameController.text.trim(),
-
-        //add the missing sponsor payload
-        sponsorName: _sponsorController.text.trim(),
-
-        contactEmail: _contactEmailController.text.trim().isNotEmpty
-            ? _contactEmailController.text.trim()
-            : authProvider.currentUser!.email,
-        contactPhone: _contactPhoneController.text.trim(),
-
-        //added the trim method to date and time
-        preferredDate: formatDate(_preferredDateController.text.trim()),
-        preferredTimeSlot: _preferredTimeController.text.trim(),
-
-        priestId: _selectedPriestId,
-        notes: notesToAdd,
-        baptismalCertificate: _uploadedBaptismalData,
-        birthCertificate: _uploadedBirthData,
+    if (authProvider.currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please login to submit a booking.")),
       );
+      return;
+    }
 
-      if (success && mounted) {
-        _formKey.currentState?.reset();
-        Navigator.of(context).pop(true); // Go back
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(confirmationProvider.errorMessage ??
-                  "Failed to submit booking.")),
-        );
+    if (parishProvider.selectedParish == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a parish.")),
+      );
+      return;
+    }
+
+    // Validate that both required documents are uploaded
+    if (_uploadedBaptismalData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Please upload the required Baptismal Certificate.")),
+      );
+      return;
+    }
+    if (_uploadedBirthData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Please upload the required Birth Certificate.")),
+      );
+      return;
+    }
+
+    String formatDate(String date) {
+      final parts = date.split('-');
+      if (parts.length == 3) {
+        return '${parts[0]}-${parts[1].padLeft(2, '0')}-${parts[2].padLeft(2, '0')}';
       }
+      return date;
+    }
+
+    // Prepare notes array if a note was added
+    List<Map<String, dynamic>>? notesToAdd;
+    if (_notesController.text.trim().isNotEmpty) {
+      notesToAdd = [
+        {
+          'author': 'parishioner',
+          'content': _notesController.text.trim(),
+          'authorId': authProvider.currentUser!.id,
+        }
+      ];
+    }
+
+    final success = await confirmationProvider.createConfirmationBooking(
+      token: authProvider.token!,
+      parishId: parishProvider.selectedParish!.id!,
+      confirmandName: _confirmandNameController.text.trim(),
+      fatherName: _fatherNameController.text.trim(),
+      motherName: _motherNameController.text.trim(),
+
+      //add the missing sponsor payload
+      sponsorName: _sponsorController.text.trim(),
+
+      contactEmail: _contactEmailController.text.trim().isNotEmpty
+          ? _contactEmailController.text.trim()
+          : authProvider.currentUser!.email,
+      contactPhone: _contactPhoneController.text.trim(),
+
+      //added the trim method to date and time
+      preferredDate: formatDate(_preferredDateController.text.trim()),
+      preferredTimeSlot: _preferredTimeController.text.trim(),
+
+      priestId: _selectedPriestId,
+      notes: notesToAdd,
+      baptismalCertificate: _uploadedBaptismalData,
+      birthCertificate: _uploadedBirthData,
+    );
+
+    if (success && mounted) {
+      _formKey.currentState?.reset();
+      Navigator.of(context).pop(true); // Go back
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(confirmationProvider.errorMessage ??
+                "Failed to submit booking.")),
+      );
     }
   }
 
@@ -397,132 +402,138 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 450),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    "Fill out the form below to submit your booking request. All fields marked with * are required.",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 5),
-                  const Text(
-                    "Subject to availability. Parish will confirm your booking and selected priest.",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                      color: Colors.grey,
+            child: BookingFormScope(
+              controller: _bookingFormController,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      "Fill out the form below to submit your booking request. All fields marked with * are required.",
+                      style: TextStyle(fontSize: 16),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 5),
+                    const Text(
+                      "Subject to availability. Parish will confirm your booking and selected priest.",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
 
-                  // Confirmand
-                  BookingSection(
-                    title: "Confirmand Information",
-                    children: [
-                      BookingTextField(
+                    // Confirmand
+                    BookingSection(
+                      title: "Confirmand Information",
+                      children: [
+                        BookingTextField(
                           controller: _confirmandNameController,
-                          label: "Confirmand Name *"),
-                    ],
-                  ),
+                          label: "Confirmand Name *",
+                          validator: Validators.requiredField,
+                        ),
+                      ],
+                    ),
 
-                  // Parent Information
-                  ParentInformationSection(
-                    fatherController: _fatherNameController,
-                    motherController: _motherNameController,
-                  ),
+                    // Parent Information
+                    ParentInformationSection(
+                      fatherController: _fatherNameController,
+                      motherController: _motherNameController,
+                    ),
 
-                  // Sponsor Information
-                  SponsorsInformationSection(
-                    sponsorsController: _sponsorController,
-                  ),
+                    // Sponsor Information
+                    SponsorsInformationSection(
+                      sponsorsController: _sponsorController,
+                    ),
 
-                  // Contact Information
-                  ContactInformationSection(
-                    emailController: _contactEmailController,
-                    phoneController: _contactPhoneController,
-                    emailValidator: Validators.emailValidator,
-                    phoneValidator: Validators.phoneValidator,
-                  ),
+                    // Contact Information
+                    ContactInformationSection(
+                      emailController: _contactEmailController,
+                      phoneController: _contactPhoneController,
+                      emailValidator: Validators.emailValidator,
+                      phoneValidator: Validators.phoneValidator,
+                    ),
 
-                  // Booking Preferences
-                  BookingSection(
-                    title: "Booking Preferences",
-                    children: [
-                      ParishDropdown(
-                        onParishChanged: () {
-                          setState(() => _selectedPriestId = null);
-                        },
-                      ),
-                      BookingDateField(
-                        controller: _preferredDateController,
-                        label: "Preferred Confirmation Date *",
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                        validator: Validators.requiredField,
-                      ),
-                      BookingTimeField(
-                        controller: _preferredTimeController,
-                        label: "Preferred Time Slot *",
-                        validator: Validators.requiredField,
-                      ),
-                      PriestDropdown(
-                        selectedPriestId: _selectedPriestId,
-                        onChanged: (value) {
-                          setState(() => _selectedPriestId = value);
-                        },
-                      ),
-                    ],
-                  ),
+                    // Booking Preferences
+                    BookingSection(
+                      title: "Booking Preferences",
+                      children: [
+                        ParishDropdown(
+                          onParishChanged: () {
+                            setState(() => _selectedPriestId = null);
+                          },
+                        ),
+                        BookingDateField(
+                          controller: _preferredDateController,
+                          label: "Preferred Confirmation Date *",
+                          firstDate: DateTime.now(),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
+                          validator: Validators.requiredField,
+                        ),
+                        BookingTimeField(
+                          controller: _preferredTimeController,
+                          label: "Preferred Time Slot *",
+                          validator: Validators.requiredField,
+                        ),
+                        PriestDropdown(
+                          selectedPriestId: _selectedPriestId,
+                          onChanged: (value) {
+                            setState(() => _selectedPriestId = value);
+                          },
+                        ),
+                      ],
+                    ),
 
-                  // Required Documents
-                  BookingSection(
-                    title: "Required Documents",
-                    children: [
-                      DocumentUploadSection(
-                        title: "Baptismal Certificate *",
-                        description:
-                            "Please upload a copy of the baptismal certificate. Accepted formats: PDF, JPG, PNG",
-                        file: _baptismalCertificate,
-                        isUploading: _isUploadingBaptismal,
-                        isUploaded: _uploadedBaptismalData != null,
-                        onPick: _pickBaptismalCertificate,
-                        onUpload: _uploadBaptismalCertificate,
-                      ),
-                      const SizedBox(height: 24),
-                      DocumentUploadSection(
-                        title: "Birth Certificate *",
-                        description:
-                            "Please upload a copy of the birth certificate. Accepted formats: PDF, JPG, PNG",
-                        file: _birthCertificate,
-                        isUploading: _isUploadingBirth,
-                        isUploaded: _uploadedBirthData != null,
-                        onPick: _pickBirthCertificate,
-                        onUpload: _uploadBirthCertificate,
-                      ),
-                    ],
-                  ),
+                    // Required Documents
+                    BookingSection(
+                      title: "Required Documents",
+                      children: [
+                        DocumentUploadSection(
+                          title: "Baptismal Certificate *",
+                          description:
+                              "Please upload a copy of the baptismal certificate. Accepted formats: PDF, JPG, PNG",
+                          file: _baptismalCertificate,
+                          isUploading: _isUploadingBaptismal,
+                          isUploaded: _uploadedBaptismalData != null,
+                          onPick: _pickBaptismalCertificate,
+                          onUpload: _uploadBaptismalCertificate,
+                        ),
+                        const SizedBox(height: 24),
+                        DocumentUploadSection(
+                          title: "Birth Certificate *",
+                          description:
+                              "Please upload a copy of the birth certificate. Accepted formats: PDF, JPG, PNG",
+                          file: _birthCertificate,
+                          isUploading: _isUploadingBirth,
+                          isUploaded: _uploadedBirthData != null,
+                          onPick: _pickBirthCertificate,
+                          onUpload: _uploadBirthCertificate,
+                        ),
+                      ],
+                    ),
 
-                  // Additional Information
-                  AdditionalInformationSection(
-                    notesController: _notesController,
-                  ),
+                    // Additional Information
+                    AdditionalInformationSection(
+                      notesController: _notesController,
+                    ),
 
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  Consumer<ConfirmationProvider>(
-                    builder: (context, confirmationProvider, _) {
-                      return CustomButton(
-                        width: double.infinity,
-                        text: "Submit Booking",
-                        onPressed: _submitForm,
-                        isLoading: confirmationProvider.isLoading,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                ],
+                    Consumer<ConfirmationProvider>(
+                      builder: (context, confirmationProvider, _) {
+                        return CustomButton(
+                          width: double.infinity,
+                          text: "Submit Booking",
+                          onPressed: _submitForm,
+                          isLoading: confirmationProvider.isLoading,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
           ),
