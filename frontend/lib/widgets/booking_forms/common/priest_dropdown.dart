@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 class PriestDropdown extends StatelessWidget {
   final int? selectedPriestId;
-  final ValueChanged<int?> onChanged;
+  final ValueChanged<int?>? onChanged;
 
   const PriestDropdown({
     super.key,
