@@ -1,3 +1,5 @@
+import 'package:diocese_frontend/config/app_routes.dart';
+import 'package:diocese_frontend/widgets/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -13,7 +15,7 @@ class PriestScheduleScreen extends StatefulWidget {
 
 class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
   final AdminService _adminService = AdminService();
-  
+
   int _currentMonth = DateTime.now().month;
   int _currentYear = DateTime.now().year;
   List<dynamic> _bookings = [];
@@ -29,7 +31,7 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
   Future<void> _loadSchedule() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
-    
+
     if (token == null) {
       setState(() {
         _isLoading = false;
@@ -103,8 +105,18 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
 
   String _getMonthName(int month) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     return months[month - 1];
   }
@@ -200,9 +212,12 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              _buildDetailRow('Status', booking['status']?.toString().toUpperCase() ?? 'N/A', color: _getStatusColor(booking['status'])),
+              _buildDetailRow('Status',
+                  booking['status']?.toString().toUpperCase() ?? 'N/A',
+                  color: _getStatusColor(booking['status'])),
               _buildDetailRow('Date', _formatDate(booking['preferredDate'])),
-              _buildDetailRow('Time', booking['preferredTimeSlot'] ?? 'Not specified'),
+              _buildDetailRow(
+                  'Time', booking['preferredTimeSlot'] ?? 'Not specified'),
               if (booking['parish'] != null)
                 _buildDetailRow('Parish', booking['parish']['name'] ?? 'N/A'),
               const Divider(height: 32),
@@ -215,7 +230,8 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
               ),
               const SizedBox(height: 12),
               ..._buildBookingDetails(booking),
-              if (booking['notes'] != null && (booking['notes'] as List).isNotEmpty) ...[
+              if (booking['notes'] != null &&
+                  (booking['notes'] as List).isNotEmpty) ...[
                 const Divider(height: 32),
                 const Text(
                   'Notes',
@@ -226,29 +242,29 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
                 ),
                 const SizedBox(height: 8),
                 ...(booking['notes'] as List).map<Widget>((note) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${note['author'] ?? 'Unknown'} - ${_formatDateTime(note['timestamp'])}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        const SizedBox(height: 4),
-                        Text(note['content'] ?? ''),
-                      ],
-                    ),
-                  ),
-                )),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${note['author'] ?? 'Unknown'} - ${_formatDateTime(note['timestamp'])}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(note['content'] ?? ''),
+                          ],
+                        ),
+                      ),
+                    )),
               ],
             ],
           ),
@@ -349,7 +365,8 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
           details.add(_buildDetailRow('Patient Name', booking['fullName']));
         }
         if (booking['contactPhone'] != null) {
-          details.add(_buildDetailRow('Contact Phone', booking['contactPhone']));
+          details
+              .add(_buildDetailRow('Contact Phone', booking['contactPhone']));
         }
         if (booking['hospitalName'] != null) {
           details.add(_buildDetailRow('Hospital', booking['hospitalName']));
@@ -360,7 +377,8 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
           details.add(_buildDetailRow('Deceased', booking['deceasedName']));
         }
         if (booking['contactPerson'] != null) {
-          details.add(_buildDetailRow('Contact Person', booking['contactPerson']));
+          details
+              .add(_buildDetailRow('Contact Person', booking['contactPerson']));
         }
         if (booking['contactPhone'] != null) {
           details.add(_buildDetailRow('Phone', booking['contactPhone']));
@@ -381,11 +399,12 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return AppShell(
+      toolbar: AppBar(
         title: const Text('My Schedule'),
-        centerTitle: true,
+        automaticallyImplyLeading: false,
       ),
+      currentRoute: AppRoutes.priestSchedule,
       body: Column(
         children: [
           Container(
@@ -424,7 +443,8 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                            const Icon(Icons.error_outline,
+                                size: 48, color: Colors.red),
                             const SizedBox(height: 16),
                             Text(_errorMessage!),
                             const SizedBox(height: 16),
@@ -440,7 +460,8 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.event_available, size: 64, color: Colors.grey[400]),
+                                Icon(Icons.event_available,
+                                    size: 64, color: Colors.grey[400]),
                                 const SizedBox(height: 16),
                                 Text(
                                   'No scheduled bookings for this month',
@@ -469,22 +490,29 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
                                         Container(
                                           padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
-                                            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(12),
+                                            color: Theme.of(context)
+                                                .primaryColor
+                                                .withValues(alpha: 0.1),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                           ),
                                           child: Icon(
-                                            _getSacramentIcon(booking['bookingType']),
-                                            color: Theme.of(context).primaryColor,
+                                            _getSacramentIcon(
+                                                booking['bookingType']),
+                                            color:
+                                                Theme.of(context).primaryColor,
                                             size: 28,
                                           ),
                                         ),
                                         const SizedBox(width: 16),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                _getSacramentDisplayName(booking['bookingType']),
+                                                _getSacramentDisplayName(
+                                                    booking['bookingType']),
                                                 style: const TextStyle(
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.bold,
@@ -500,7 +528,8 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
                                               ),
                                               if (booking['parish'] != null)
                                                 Text(
-                                                  booking['parish']['name'] ?? '',
+                                                  booking['parish']['name'] ??
+                                                      '',
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     color: Colors.grey[500],
@@ -515,15 +544,22 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
                                             vertical: 6,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: _getStatusColor(booking['status']).withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(20),
+                                            color: _getStatusColor(
+                                                    booking['status'])
+                                                .withValues(alpha: 0.1),
+                                            borderRadius:
+                                                BorderRadius.circular(20),
                                           ),
                                           child: Text(
-                                            booking['status']?.toString().toUpperCase() ?? 'N/A',
+                                            booking['status']
+                                                    ?.toString()
+                                                    .toUpperCase() ??
+                                                'N/A',
                                             style: TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
-                                              color: _getStatusColor(booking['status']),
+                                              color: _getStatusColor(
+                                                  booking['status']),
                                             ),
                                           ),
                                         ),
