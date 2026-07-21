@@ -237,6 +237,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       },
       child: AppShell(
         currentRoute: AppRoutes.myBookings,
+        toolbar: AppBar(
+          title: const Text('My Bookings'),
+          automaticallyImplyLeading: false,
+        ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _errorMessage != null

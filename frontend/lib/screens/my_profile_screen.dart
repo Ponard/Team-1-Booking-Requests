@@ -103,6 +103,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     final userRole = user?.role ?? Roles.parishioner;
 
     return AppShell(
+      toolbar: AppBar(
+        title: const Text('My Profile'),
+        automaticallyImplyLeading: false,
+      ),
       currentRoute: AppRoutes.myProfile,
       body: _isInitialized
           ? SingleChildScrollView(
