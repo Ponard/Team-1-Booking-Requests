@@ -29,6 +29,29 @@ class AppDrawer extends StatelessWidget {
     return Navigator.pushReplacementNamed(context, route);
   }
 
+  Widget _buildNavTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String route,
+    Future<void> Function(Object? result)? onReturned,
+  }) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      selected: currentRoute == route,
+      selectedTileColor: Theme.of(context).colorScheme.primaryContainer,
+      selectedColor: Theme.of(context).colorScheme.onPrimaryContainer,
+      onTap: () async {
+        final result = await _navigate(context, route);
+
+        if (!context.mounted) return;
+
+        await onReturned?.call(result);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
@@ -102,14 +125,15 @@ class AppDrawer extends StatelessWidget {
               ],
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.home),
-            title: const Text('Home'),
-            onTap: () => _navigate(context, AppRoutes.home),
+          _buildNavTile(
+            context: context,
+            icon: Icons.home,
+            title: 'Home',
+            route: AppRoutes.home,
           ),
           // Parishioner Menu Items
           if (!isAdmin && !isPriest) ...[
-            const Divider(),
+            const Divider(height: 1),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
@@ -121,29 +145,27 @@ class AppDrawer extends StatelessWidget {
                 ),
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.list_alt),
-              title: const Text('My Bookings'),
-              onTap: () async {
-                final shouldRefresh =
-                    await _navigate(context, AppRoutes.myBookings);
-                if (!context.mounted) return;
-                if (shouldRefresh == true) {
+            _buildNavTile(
+              context: context,
+              icon: Icons.list_alt,
+              title: 'My Bookings',
+              route: AppRoutes.myBookings,
+              onReturned: (result) async {
+                if (result == true) {
                   onMyBookingsReturned?.call();
                 }
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('My Profile'),
-              onTap: () {
-                _navigate(context, AppRoutes.myProfile);
-              },
+            _buildNavTile(
+              context: context,
+              icon: Icons.person,
+              title: 'My Profile',
+              route: AppRoutes.myProfile,
             ),
           ],
           // Priest Menu Items
           if (isPriest) ...[
-            const Divider(),
+            const Divider(height: 1),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
@@ -155,24 +177,22 @@ class AppDrawer extends StatelessWidget {
                 ),
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.calendar_month),
-              title: const Text('My Schedule'),
-              onTap: () {
-                _navigate(context, AppRoutes.priestSchedule);
-              },
+            _buildNavTile(
+              context: context,
+              icon: Icons.calendar_month,
+              title: 'My Schedule',
+              route: AppRoutes.priestSchedule,
             ),
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('My Profile'),
-              onTap: () {
-                _navigate(context, AppRoutes.myProfile);
-              },
+            _buildNavTile(
+              context: context,
+              icon: Icons.person,
+              title: 'My Profile',
+              route: AppRoutes.myProfile,
             ),
           ],
           // Admin/Staff Menu Items
           if (isAdmin) ...[
-            const Divider(),
+            const Divider(height: 1),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
@@ -184,38 +204,34 @@ class AppDrawer extends StatelessWidget {
                 ),
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.dashboard),
-              title: const Text('Dashboard'),
-              onTap: () {
-                _navigate(context, AppRoutes.adminDashboard);
-              },
+            _buildNavTile(
+              context: context,
+              icon: Icons.dashboard,
+              title: 'Dashboard',
+              route: AppRoutes.adminDashboard,
             ),
-            ListTile(
-              leading: const Icon(Icons.calendar_today),
-              title: const Text('Manage Bookings'),
-              onTap: () {
-                _navigate(context, AppRoutes.adminBookings);
-              },
+            _buildNavTile(
+              context: context,
+              icon: Icons.calendar_today,
+              title: 'Manage Bookings',
+              route: AppRoutes.adminBookings,
             ),
             if (isDioceseLevel)
-              ListTile(
-                leading: const Icon(Icons.church),
-                title: const Text('Manage Parishes'),
-                onTap: () {
-                  _navigate(context, AppRoutes.adminParishes);
-                },
+              _buildNavTile(
+                context: context,
+                icon: Icons.church,
+                title: 'Manage Parishes',
+                route: AppRoutes.adminParishes,
               ),
             if (isDioceseLevel || isAdmin)
-              ListTile(
-                leading: const Icon(Icons.people),
-                title: const Text('Manage Users'),
-                onTap: () {
-                  _navigate(context, AppRoutes.adminUsers);
-                },
+              _buildNavTile(
+                context: context,
+                icon: Icons.people,
+                title: 'Manage Users',
+                route: AppRoutes.adminUsers,
               ),
           ],
-          const Divider(),
+          const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Logout'),
