@@ -6,11 +6,15 @@ class AppShell extends StatelessWidget {
     super.key,
     required this.currentRoute,
     required this.body,
+    this.toolbar,
+    this.floatingActionButton,
     this.onMyBookingsReturned,
   });
 
   final String currentRoute;
   final Widget body;
+  final PreferredSizeWidget? toolbar;
+  final Widget? floatingActionButton;
   final Future<void> Function()? onMyBookingsReturned;
 
   @override
@@ -69,10 +73,30 @@ class AppShell extends StatelessWidget {
                   child: drawer,
                 ),
                 const VerticalDivider(width: 1),
-                Expanded(child: body),
+                Expanded(
+                  child: Column(
+                    children: [
+                      if (toolbar != null)
+                        SizedBox(
+                          height: toolbar!.preferredSize.height,
+                          child: toolbar!,
+                        ),
+                      Expanded(child: body),
+                    ],
+                  ),
+                ),
               ],
             )
-          : body,
+          : Column(
+              children: [
+                if (toolbar != null)
+                  SizedBox(
+                    height: toolbar!.preferredSize.height,
+                    child: toolbar!,
+                  ),
+                Expanded(child: body),
+              ],
+            ),
     );
   }
 }
