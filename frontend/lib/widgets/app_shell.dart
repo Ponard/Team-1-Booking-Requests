@@ -30,6 +30,8 @@ class AppShell extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.shadow.withAlpha(220),
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         title: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
