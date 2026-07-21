@@ -1,4 +1,6 @@
 import 'dart:math';
+import 'package:diocese_frontend/config/app_routes.dart';
+import 'package:diocese_frontend/widgets/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -196,13 +198,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       ),
     ];
 
-    return Scaffold(
-      appBar: AppBar(
+    return AppShell(
+      currentRoute: AppRoutes.adminDashboard,
+      toolbar: AppBar(
         title: const Text('Dashboard'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -281,7 +281,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               const Text('Review and approve pending bookings'),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () {
-                            Navigator.pushNamed(context, '/admin-bookings');
+                            Navigator.pushReplacementNamed(
+                                context, '/admin-bookings');
                           },
                         ),
                         const Divider(height: 1),
@@ -294,7 +295,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 const Text('Add or edit parish information'),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () {
-                              Navigator.pushNamed(context, '/admin-parishes');
+                              Navigator.pushReplacementNamed(
+                                  context, '/admin-parishes');
                             },
                           ),
                         if (isDioceseLevel) ...[
@@ -307,7 +309,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 const Text('Create and manage user accounts'),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () {
-                              Navigator.pushNamed(context, '/admin-users');
+                              Navigator.pushReplacementNamed(
+                                  context, '/admin-users');
                             },
                           ),
                         ],

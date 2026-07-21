@@ -1,3 +1,5 @@
+import 'package:diocese_frontend/config/app_routes.dart';
+import 'package:diocese_frontend/widgets/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -512,13 +514,11 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return AppShell(
+      currentRoute: AppRoutes.adminBookings,
+      toolbar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Manage Bookings'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
       ),
       body: Column(
         children: [

@@ -1,3 +1,5 @@
+import 'package:diocese_frontend/config/app_routes.dart';
+import 'package:diocese_frontend/widgets/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -255,13 +257,11 @@ class _AdminParishesScreenState extends State<AdminParishesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return AppShell(
+      currentRoute: AppRoutes.adminParishes,
+      toolbar: AppBar(
         title: const Text('Manage Parishes'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        automaticallyImplyLeading: false,
         actions: [
           if (_canAddParish)
             IconButton(
