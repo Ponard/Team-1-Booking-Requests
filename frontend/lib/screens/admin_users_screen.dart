@@ -1,3 +1,5 @@
+import 'package:diocese_frontend/config/app_routes.dart';
+import 'package:diocese_frontend/widgets/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -729,17 +731,19 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return AppShell(
+      currentRoute: AppRoutes.adminUsers,
+      toolbar: AppBar(
         title: _isSelectionMode
             ? Text('${_selectedUserIds.length} selected')
             : const Text('Manage Users'),
-        leading: IconButton(
-          icon: Icon(_isSelectionMode ? Icons.close : Icons.arrow_back),
-          onPressed: _isSelectionMode
-              ? _toggleSelectionMode
-              : () => Navigator.of(context).pop(),
-        ),
+        automaticallyImplyLeading: false,
+        leading: _isSelectionMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: _toggleSelectionMode,
+              )
+            : null,
         actions: [
           if (!_isSelectionMode && _canAddUser)
             IconButton(

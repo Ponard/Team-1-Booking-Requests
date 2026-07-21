@@ -1,8 +1,9 @@
 import 'dart:math';
+import 'package:diocese_frontend/config/app_routes.dart';
+import 'package:diocese_frontend/widgets/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import '../providers/parish_provider.dart';
 import '../utils/role_helpers.dart';
 import '../services/user_booking_service.dart';
 import '../utils/sacrament_icons.dart';
@@ -182,15 +183,441 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildMainContent(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final userRole = authProvider.currentUser?.role ?? Roles.parishioner;
     final isAdmin = Roles.isAdmin(userRole);
     final isDioceseLevel = Roles.isDioceseLevel(userRole);
     final isPriest = Roles.isPriest(userRole);
 
-    // Show password change modal if required and user is not a parishioner
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      children: [
+        // Text(
+        //   isAdmin
+        //       ? 'Manage sacraments, bookings, and parish operations across ${isDioceseLevel ? 'all parishes' : 'your parish'}.\nSelect a service below to begin.'
+        //       : isPriest
+        //           ? 'View your schedule of assigned sacraments and bookings.\nClick below to see your monthly schedule.'
+        //           : 'Book sacraments and mass intentions across all parishes in the diocese.\nSelect a service below to begin your booking request.',
+        //   textAlign: TextAlign.center,
+        //   style: const TextStyle(fontSize: 16),
+        // ),
+        // const SizedBox(height: 20),
+
+        // Admin Quick Actions
+        if (isAdmin) ...[
+          Card(
+            color: Colors.blue.shade50,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Quick Actions',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/admin-dashboard');
+                        },
+                        icon: const Icon(Icons.dashboard, size: 20),
+                        label: const Text('Dashboard'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade700,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/admin-bookings');
+                        },
+                        icon: const Icon(Icons.calendar_today, size: 20),
+                        label: const Text('Bookings'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade700,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      if (isDioceseLevel)
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/admin-parishes');
+                          },
+                          icon: const Icon(Icons.church, size: 20),
+                          label: const Text('Parishes'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue.shade700,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      if (isDioceseLevel || isAdmin)
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/admin-users');
+                          },
+                          icon: const Icon(Icons.people, size: 20),
+                          label: const Text('Users'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue.shade700,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(
+                              context, '/admin-mass-intentions');
+                        },
+                        icon: const Icon(Icons.book, size: 20),
+                        label: const Text('Mass Intentions'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade700,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/admin-mass-schedule');
+                        },
+                        icon: const Icon(Icons.schedule, size: 20),
+                        label: const Text('Mass Schedule'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade700,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+
+        // Parishioner Quick Actions
+        if (!isAdmin && !isPriest) ...[
+          Card(
+            color: Colors.green.shade50,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Quick Actions',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          final shouldRefresh = await Navigator.pushNamed(
+                            context,
+                            '/my-bookings',
+                          );
+                          if (!mounted) return;
+                          if (shouldRefresh == true) {
+                            _loadBookingStats();
+                          }
+                        },
+                        icon: const Icon(Icons.list_alt, size: 20),
+                        label: const Text('My Bookings'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green.shade700,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/my-profile');
+                        },
+                        icon: const Icon(Icons.person, size: 20),
+                        label: const Text('My Profile'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green.shade700,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Booking Statistics Section
+          _isLoadingStats
+              ? const Center(child: CircularProgressIndicator())
+              : _totalBookings > 0
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Your Bookings',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            const statuses = [
+                              'pending',
+                              'approved',
+                              'declined',
+                              'completed',
+                              'cancelled',
+                            ];
+
+                            int crossAxisCount =
+                                (constraints.maxWidth / 200).floor();
+                            crossAxisCount = crossAxisCount.clamp(
+                                1, min(statuses.length, 6));
+                            return GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                mainAxisExtent: 100,
+                                childAspectRatio: 3.0,
+                              ),
+                              itemCount: 5,
+                              itemBuilder: (context, index) {
+                                final status = statuses[index];
+                                final count = _bookingStats[status] ?? 0;
+
+                                Color color;
+                                IconData icon;
+                                switch (status) {
+                                  case 'pending':
+                                    color = Colors.orange;
+                                    icon = Icons.pending_actions;
+                                    break;
+                                  case 'approved':
+                                    color = Colors.green;
+                                    icon = Icons.check_circle;
+                                    break;
+                                  case 'declined':
+                                    color = Colors.red;
+                                    icon = Icons.cancel;
+                                    break;
+                                  case 'completed':
+                                    color = Colors.blue;
+                                    icon = Icons.done_all;
+                                    break;
+                                  case 'cancelled':
+                                    color = Colors.blueGrey;
+                                    icon = Icons.info;
+                                    break;
+                                  default:
+                                    color = Colors.grey;
+                                    icon = Icons.info;
+                                }
+                                return _buildStatCard(
+                                  title: _capitalize(status),
+                                  value: count.toString(),
+                                  icon: icon,
+                                  color: color,
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    )
+                  : const Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('You have no bookings yet.'),
+                      ),
+                    ),
+          const SizedBox(height: 24),
+        ],
+
+        // Priest Schedule Section
+        if (isPriest) ...[
+          Card(
+            color: Colors.purple.shade50,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_month,
+                          color: Colors.purple.shade700, size: 28),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'My Schedule',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'View your monthly schedule of sacraments and bookings.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/priest-schedule');
+                      },
+                      icon: const Icon(Icons.calendar_today, size: 20),
+                      label: const Text('View Schedule'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purple.shade700,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+
+        // Services Grid (hidden for priest)
+        if (!isPriest) ...[
+          const Text(
+            'Services',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          LayoutBuilder(builder: (context, constraints) {
+            int crossAxisCount = (constraints.maxWidth / 250).floor();
+            crossAxisCount = crossAxisCount.clamp(1, 4);
+
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: services.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                mainAxisExtent: 160,
+              ),
+              itemBuilder: (itemContext, index) {
+                final service = services[index];
+
+                return InkWell(
+                  onTap: () async {
+                    final submitted =
+                        await Navigator.pushNamed(context, service["route"]!);
+
+                    if (!context.mounted) return;
+
+                    if (submitted == true) {
+                      await _loadBookingStats();
+
+                      if (!context.mounted) return;
+
+                      final messenger = ScaffoldMessenger.of(context);
+
+                      messenger
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "Your booking request has been submitted successfully.",
+                            ),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          getSacramentIcon(
+                              _getServiceSacramentType(service["title"]!)),
+                          size: 32,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(height: 8),
+                        Flexible(
+                          child: Text(
+                            service["title"]!,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Flexible(
+                          child: Text(
+                            service["desc"]!,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade600,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          })
+        ],
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final userRole = authProvider.currentUser?.role ?? Roles.parishioner;
+
     if (authProvider.mustChangePassword &&
         userRole != Roles.parishioner &&
         context.mounted) {
@@ -199,663 +626,10 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("RCDOK Booking System"),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () async {
-              await authProvider.logout();
-              if (context.mounted) {
-                Navigator.of(context).pushReplacementNamed('/login');
-              }
-            },
-          ),
-        ],
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            Container(
-              height: 180,
-              color: Theme.of(context).primaryColor,
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  const Icon(
-                    Icons.person,
-                    size: 50,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    authProvider.currentUser?.fullName ?? 'User',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                    ),
-                  ),
-                  Text(
-                    '${authProvider.currentUser?.email ?? ''}\n${Roles.getRoleDisplayName(userRole)}',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
-                    maxLines: 2,
-                  ),
-                  // Show parish info for non-diocese users
-                  if (authProvider.currentUser?.effectiveParishId != null &&
-                      !isDioceseLevel)
-                    Consumer<ParishProvider>(
-                      builder: (context, parishProvider, _) {
-                        final parish = parishProvider.parishes
-                            .where((p) =>
-                                p.id ==
-                                authProvider.currentUser?.effectiveParishId)
-                            .firstOrNull;
-                        if (parish != null) {
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              'Parish: ${parish.name}',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 11,
-                                fontStyle: FontStyle.italic,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Home'),
-              onTap: () => Navigator.pop(context),
-            ),
-            // Parishioner Menu Items
-            if (!isAdmin && !isPriest) ...[
-              const Divider(),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text(
-                  'MY ACCOUNT',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.list_alt),
-                title: const Text('My Bookings'),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final shouldRefresh = await Navigator.pushNamed(
-                    context,
-                    '/my-bookings',
-                  );
-                  if (!mounted) return;
-                  if (shouldRefresh == true) {
-                    _loadBookingStats();
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.person),
-                title: const Text('My Profile'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/my-profile');
-                },
-              ),
-            ],
-            // Priest Menu Items
-            if (isPriest) ...[
-              const Divider(),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text(
-                  'MY SCHEDULE',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.calendar_month),
-                title: const Text('My Schedule'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/priest-schedule');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.person),
-                title: const Text('My Profile'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/my-profile');
-                },
-              ),
-            ],
-            // Admin/Staff Menu Items
-            if (isAdmin) ...[
-              const Divider(),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text(
-                  'ADMINISTRATION',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.dashboard),
-                title: const Text('Dashboard'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/admin-dashboard');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.calendar_today),
-                title: const Text('Manage Bookings'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/admin-bookings');
-                },
-              ),
-              if (isDioceseLevel)
-                ListTile(
-                  leading: const Icon(Icons.church),
-                  title: const Text('Manage Parishes'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, '/admin-parishes');
-                  },
-                ),
-              if (isDioceseLevel || isAdmin)
-                ListTile(
-                  leading: const Icon(Icons.people),
-                  title: const Text('Manage Users'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, '/admin-users');
-                  },
-                ),
-            ],
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.lock),
-              title: const Text('Change Password'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/profile');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
-              onTap: () async {
-                await authProvider.logout();
-                if (context.mounted) {
-                  Navigator.of(context).pushReplacementNamed('/login');
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        children: [
-          const Text(
-            "Welcome to the Roman Catholic Diocese of Kalookan Booking System",
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            isAdmin
-                ? 'Manage sacraments, bookings, and parish operations across ${isDioceseLevel ? 'all parishes' : 'your parish'}.\nSelect a service below to begin.'
-                : isPriest
-                    ? 'View your schedule of assigned sacraments and bookings.\nClick below to see your monthly schedule.'
-                    : 'Book sacraments and mass intentions across all parishes in the diocese.\nSelect a service below to begin your booking request.',
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16),
-          ),
-          const SizedBox(height: 20),
-
-          // Admin Quick Actions
-          if (isAdmin) ...[
-            Card(
-              color: Colors.blue.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Quick Actions',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/admin-dashboard');
-                          },
-                          icon: const Icon(Icons.dashboard, size: 20),
-                          label: const Text('Dashboard'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue.shade700,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/admin-bookings');
-                          },
-                          icon: const Icon(Icons.calendar_today, size: 20),
-                          label: const Text('Bookings'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue.shade700,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                        if (isDioceseLevel)
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/admin-parishes');
-                            },
-                            icon: const Icon(Icons.church, size: 20),
-                            label: const Text('Parishes'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade700,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                        if (isDioceseLevel || isAdmin)
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/admin-users');
-                            },
-                            icon: const Icon(Icons.people, size: 20),
-                            label: const Text('Users'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade700,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pushNamed(
-                                context, '/admin-mass-intentions');
-                          },
-                          icon: const Icon(Icons.book, size: 20),
-                          label: const Text('Mass Intentions'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue.shade700,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pushNamed(
-                                context, '/admin-mass-schedule');
-                          },
-                          icon: const Icon(Icons.schedule, size: 20),
-                          label: const Text('Mass Schedule'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue.shade700,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-          ],
-
-          // Parishioner Quick Actions
-          if (!isAdmin && !isPriest) ...[
-            Card(
-              color: Colors.green.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Quick Actions',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () async {
-                            final shouldRefresh = await Navigator.pushNamed(
-                              context,
-                              '/my-bookings',
-                            );
-                            if (!mounted) return;
-                            if (shouldRefresh == true) {
-                              _loadBookingStats();
-                            }
-                          },
-                          icon: const Icon(Icons.list_alt, size: 20),
-                          label: const Text('My Bookings'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green.shade700,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/my-profile');
-                          },
-                          icon: const Icon(Icons.person, size: 20),
-                          label: const Text('My Profile'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green.shade700,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Booking Statistics Section
-            _isLoadingStats
-                ? const Center(child: CircularProgressIndicator())
-                : _totalBookings > 0
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Your Bookings',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              const statuses = [
-                                'pending',
-                                'approved',
-                                'declined',
-                                'completed',
-                                'cancelled',
-                              ];
-
-                              int crossAxisCount =
-                                  (constraints.maxWidth / 200).floor();
-                              crossAxisCount = crossAxisCount.clamp(
-                                  1, min(statuses.length, 6));
-                              return GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: crossAxisCount,
-                                  crossAxisSpacing: 12,
-                                  mainAxisSpacing: 12,
-                                  mainAxisExtent: 100,
-                                  childAspectRatio: 3.0,
-                                ),
-                                itemCount: 5,
-                                itemBuilder: (context, index) {
-                                  final status = statuses[index];
-                                  final count = _bookingStats[status] ?? 0;
-
-                                  Color color;
-                                  IconData icon;
-                                  switch (status) {
-                                    case 'pending':
-                                      color = Colors.orange;
-                                      icon = Icons.pending_actions;
-                                      break;
-                                    case 'approved':
-                                      color = Colors.green;
-                                      icon = Icons.check_circle;
-                                      break;
-                                    case 'declined':
-                                      color = Colors.red;
-                                      icon = Icons.cancel;
-                                      break;
-                                    case 'completed':
-                                      color = Colors.blue;
-                                      icon = Icons.done_all;
-                                      break;
-                                    case 'cancelled':
-                                      color = Colors.blueGrey;
-                                      icon = Icons.info;
-                                      break;
-                                    default:
-                                      color = Colors.grey;
-                                      icon = Icons.info;
-                                  }
-                                  return _buildStatCard(
-                                    title: _capitalize(status),
-                                    value: count.toString(),
-                                    icon: icon,
-                                    color: color,
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ],
-                      )
-                    : const Card(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Text('You have no bookings yet.'),
-                        ),
-                      ),
-            const SizedBox(height: 24),
-          ],
-
-          // Priest Schedule Section
-          if (isPriest) ...[
-            Card(
-              color: Colors.purple.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.calendar_month,
-                            color: Colors.purple.shade700, size: 28),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'My Schedule',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'View your monthly schedule of sacraments and bookings.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/priest-schedule');
-                        },
-                        icon: const Icon(Icons.calendar_today, size: 20),
-                        label: const Text('View Schedule'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.purple.shade700,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-
-          // Services Grid (hidden for priest)
-          if (!isPriest) ...[
-            const Text(
-              'Services',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            LayoutBuilder(builder: (context, constraints) {
-              int crossAxisCount = (constraints.maxWidth / 250).floor();
-              crossAxisCount = crossAxisCount.clamp(1, 4);
-
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: services.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  mainAxisExtent: 160,
-                ),
-                itemBuilder: (itemContext, index) {
-                  final service = services[index];
-
-                  return InkWell(
-                    onTap: () async {
-                      final submitted =
-                          await Navigator.pushNamed(context, service["route"]!);
-
-                      if (!context.mounted) return;
-
-                      if (submitted == true) {
-                        await _loadBookingStats();
-
-                        if (!context.mounted) return;
-
-                        final messenger = ScaffoldMessenger.of(context);
-
-                        messenger
-                          ..hideCurrentSnackBar()
-                          ..showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                "Your booking request has been submitted successfully.",
-                              ),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            getSacramentIcon(
-                                _getServiceSacramentType(service["title"]!)),
-                            size: 32,
-                            color: Colors.blue.shade700,
-                          ),
-                          const SizedBox(height: 8),
-                          Flexible(
-                            child: Text(
-                              service["title"]!,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Flexible(
-                            child: Text(
-                              service["desc"]!,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade600,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            })
-          ],
-        ],
-      ),
+    return AppShell(
+      currentRoute: AppRoutes.home,
+      onMyBookingsReturned: _loadBookingStats,
+      body: _buildMainContent(context),
     );
   }
 

@@ -1,3 +1,5 @@
+import 'package:diocese_frontend/config/app_routes.dart';
+import 'package:diocese_frontend/widgets/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -233,10 +235,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           Navigator.of(context).pop(_hasChanges);
         }
       },
-      child: Scaffold(
-        appBar: AppBar(
+      child: AppShell(
+        currentRoute: AppRoutes.myBookings,
+        toolbar: AppBar(
           title: const Text('My Bookings'),
-          centerTitle: true,
+          automaticallyImplyLeading: false,
         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
