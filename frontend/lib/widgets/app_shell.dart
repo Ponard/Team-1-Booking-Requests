@@ -1,8 +1,5 @@
-import 'package:diocese_frontend/config/app_routes.dart';
-import 'package:diocese_frontend/providers/auth_provider.dart';
 import 'package:diocese_frontend/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({
@@ -20,8 +17,6 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     const desktopBreakpoint = 1024.0;
     final isWideScreen = MediaQuery.of(context).size.width >= desktopBreakpoint;
-
-    final authProvider = context.read<AuthProvider>();
 
     final drawer = AppDrawer(
       currentRoute: currentRoute,
@@ -47,19 +42,20 @@ class AppShell extends StatelessWidget {
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () async {
-              await authProvider.logout();
+        // TODO: replace with notifications?
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.logout),
+        //     tooltip: 'Logout',
+        //     onPressed: () async {
+        //       await authProvider.logout();
 
-              if (context.mounted) {
-                Navigator.of(context).pushReplacementNamed(AppRoutes.login);
-              }
-            },
-          ),
-        ],
+        //       if (context.mounted) {
+        //         Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+        //       }
+        //     },
+        //   ),
+        // ],
       ),
       drawer: isWideScreen ? null : Drawer(child: drawer),
       body: isWideScreen
