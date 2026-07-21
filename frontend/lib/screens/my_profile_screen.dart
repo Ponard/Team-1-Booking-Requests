@@ -1,3 +1,5 @@
+import 'package:diocese_frontend/config/app_routes.dart';
+import 'package:diocese_frontend/widgets/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -76,7 +78,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.pop(context, true);
+          // Navigator.pop(context, true);
         } else {
           setState(() {
             _errorMessage =
@@ -100,14 +102,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     final user = Provider.of<AuthProvider>(context).currentUser;
     final userRole = user?.role ?? Roles.parishioner;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Profile'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
+    return AppShell(
+      currentRoute: AppRoutes.myProfile,
       body: _isInitialized
           ? SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -247,28 +243,20 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                             ),
                           ),
 
-                        Row(
-                          children: [
-                            Expanded(
-                              child: CustomTextField(
-                                controller: _firstNameController,
-                                labelText: 'First Name',
-                                hintText: 'Enter first name',
-                                validator: Validators.requiredField,
-                                prefixIcon: Icons.person_outline,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: CustomTextField(
-                                controller: _lastNameController,
-                                labelText: 'Last Name',
-                                hintText: 'Enter last name',
-                                validator: Validators.requiredField,
-                                prefixIcon: Icons.person_outline,
-                              ),
-                            ),
-                          ],
+                        CustomTextField(
+                          controller: _firstNameController,
+                          labelText: 'First Name',
+                          hintText: 'Enter first name',
+                          validator: Validators.requiredField,
+                          prefixIcon: Icons.person_outline,
+                        ),
+                        const SizedBox(width: 12, height: 16),
+                        CustomTextField(
+                          controller: _lastNameController,
+                          labelText: 'Last Name',
+                          hintText: 'Enter last name',
+                          validator: Validators.requiredField,
+                          prefixIcon: Icons.person_outline,
                         ),
 
                         const SizedBox(height: 16),
