@@ -1,4 +1,5 @@
 import 'package:diocese_frontend/config/app_colors.dart';
+import 'package:diocese_frontend/config/app_constants.dart';
 import 'package:diocese_frontend/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 
@@ -20,8 +21,8 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const desktopBreakpoint = 1024.0;
-    final isWideScreen = MediaQuery.of(context).size.width >= desktopBreakpoint;
+    final isWideScreen =
+        MediaQuery.of(context).size.width >= AppConstants.desktopBreakpoint;
 
     final drawer = AppDrawer(
       currentRoute: currentRoute,
