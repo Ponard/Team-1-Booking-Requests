@@ -5,15 +5,15 @@ class MassIntention {
   final String? type;
   final String? intentionDetails;
   final String? donorName;
-  final String? dateRequested;
+  final String? preferredDate;
   final int? parishId;
   final String? parishName;
   final String? massSchedule;
-  final String? preferredTime;
+  final String? preferredTimeSlot;
   final String? preferredPriest;
   final List<Note>? notes;
   final String? status;
-  final int? submittedBy;
+  final int? userId;
   final String? createdAt;
   final String? updatedAt;
 
@@ -22,15 +22,15 @@ class MassIntention {
     this.type,
     this.intentionDetails,
     this.donorName,
-    this.dateRequested,
+    this.preferredDate,
     this.parishId,
     this.parishName,
     this.massSchedule,
-    this.preferredTime,
+    this.preferredTimeSlot,
     this.preferredPriest,
     this.notes,
     this.status,
-    this.submittedBy,
+    this.userId,
     this.createdAt,
     this.updatedAt,
   });
@@ -53,15 +53,15 @@ class MassIntention {
       type: json['type'],
       intentionDetails: json['intentionDetails'],
       donorName: json['donorName'],
-      dateRequested: json['dateRequested'],
+      preferredDate: json['preferredDate'],
       parishId: json['parishId'],
       parishName: json['parishName'],
       massSchedule: json['massSchedule'],
-      preferredTime: json['preferredTime'],
+      preferredTimeSlot: json['preferredTimeSlot'],
       preferredPriest: json['preferredPriest'],
       notes: notesList,
       status: json['status'] ?? 'pending',
-      submittedBy: json['submittedBy'],
+      userId: json['userId'],
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
     );
@@ -73,14 +73,14 @@ class MassIntention {
       'type': type,
       'intentionDetails': intentionDetails,
       'donorName': donorName,
-      'dateRequested': dateRequested,
+      'preferredDate': preferredDate,
       'parishId': parishId,
       'massSchedule': massSchedule,
-      if (preferredTime != null) 'preferredTime': preferredTime,
+      if (preferredTimeSlot != null) 'preferredTimeSlot': preferredTimeSlot,
       if (preferredPriest != null) 'preferredPriest': preferredPriest,
       if (notes != null) 'notes': notes!.map((n) => n.toJson()).toList(),
       if (status != null) 'status': status,
-      'submittedBy': submittedBy,
+      'userId': userId,
     };
   }
 
@@ -89,14 +89,14 @@ class MassIntention {
     String? type,
     String? intentionDetails,
     String? donorName,
-    String? dateRequested,
+    String? preferredDate,
     int? parishId,
     String? massSchedule,
-    String? preferredTime,
+    String? preferredTimeSlot,
     String? preferredPriest,
     List<Note>? notes,
     String? status,
-    int? submittedBy,
+    int? userId,
     String? createdAt,
     String? updatedAt,
   }) {
@@ -105,14 +105,14 @@ class MassIntention {
       type: type ?? this.type,
       intentionDetails: intentionDetails ?? this.intentionDetails,
       donorName: donorName ?? this.donorName,
-      dateRequested: dateRequested ?? this.dateRequested,
+      preferredDate: preferredDate ?? this.preferredDate,
       parishId: parishId ?? this.parishId,
       massSchedule: massSchedule ?? this.massSchedule,
-      preferredTime: preferredTime ?? this.preferredTime,
+      preferredTimeSlot: preferredTimeSlot ?? this.preferredTimeSlot,
       preferredPriest: preferredPriest ?? this.preferredPriest,
       notes: notes ?? this.notes,
       status: status ?? this.status,
-      submittedBy: submittedBy ?? this.submittedBy,
+      userId: userId ?? this.userId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

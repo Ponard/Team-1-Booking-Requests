@@ -97,12 +97,12 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
           final phDate = utcDate.add(const Duration(hours: 8));
           _dateController.text =
               '${phDate.year}-${phDate.month.toString().padLeft(2, '0')}-${phDate.day.toString().padLeft(2, '0')}';
-          _selectedTime = _normalizeTime(intention.preferredTime);
+          _selectedTime = _normalizeTime(intention.preferredTimeSlot);
           // print(
           //     '[MassIntentionDetail] Parsed date (PH): "${_dateController.text}", time: "$_selectedTime"');
         } else {
-          _dateController.text = intention.dateRequested ?? '';
-          _selectedTime = _normalizeTime(intention.preferredTime);
+          _dateController.text = intention.preferredDate ?? '';
+          _selectedTime = _normalizeTime(intention.preferredTimeSlot);
           // print(
           //     '[MassIntentionDetail] Fallback date: "${_dateController.text}", time: "$_selectedTime"');
         }
@@ -126,7 +126,7 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         setState(() => _isEditMode = true);
       } else {
         final currentUser = authProvider.currentUser;
-        final isOwner = intention.submittedBy == currentUser?.id;
+        final isOwner = intention.userId == currentUser?.id;
         if (!widget.fromStatusButton && isOwner && isEditable) {
           setState(() => _isEditMode = true);
         }
@@ -298,10 +298,10 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         type: mapType(_selectedType!),
         intentionDetails: _intentionForController.text.trim(),
         donorName: _offeredByController.text.trim(),
-        dateRequested: _dateController.text,
+        preferredDate: _dateController.text,
         parishId: _intention?.parishId ?? 0,
         massSchedule: _dateController.text,
-        preferredTime: _preferredTimeController.text.trim().isEmpty
+        preferredTimeSlot: _preferredTimeController.text.trim().isEmpty
             ? null
             : _normalizeTime(_preferredTimeController.text.trim()),
         notes: notesToAdd,
@@ -400,10 +400,10 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         type: mapTypeForResubmit(_selectedType),
         intentionDetails: _intentionForController.text.trim(),
         donorName: _offeredByController.text.trim(),
-        dateRequested: _dateController.text,
+        preferredDate: _dateController.text,
         parishId: _intention?.parishId ?? 0,
         massSchedule: _dateController.text,
-        preferredTime: _preferredTimeController.text.trim().isEmpty
+        preferredTimeSlot: _preferredTimeController.text.trim().isEmpty
             ? null
             : _normalizeTime(_preferredTimeController.text.trim()),
         notes: notes,
@@ -656,7 +656,7 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
       'diocese_admin',
       'diocese_staff'
     ].contains(role);
-    final isOwner = _intention?.submittedBy == currentUser?.id;
+    final isOwner = _intention?.userId == currentUser?.id;
     final status = _intention?.status?.toLowerCase();
     final canEdit =
         isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
@@ -803,7 +803,7 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
             Consumer<AuthProvider>(
               builder: (context, authProvider, child) {
                 final currentUser = authProvider.currentUser;
-                final isOwner = _intention?.submittedBy == currentUser?.id;
+                final isOwner = _intention?.userId == currentUser?.id;
                 final status = _intention?.status?.toLowerCase();
 
                 if (status == 'declined' && isOwner) {

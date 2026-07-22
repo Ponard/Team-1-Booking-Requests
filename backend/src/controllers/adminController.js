@@ -71,6 +71,7 @@ const getDashboardStats = async (req, res) => {
       { model: ReconciliationBooking, type: 'reconciliation' },
       { model: AnointingSickBooking, type: 'anointing_sick' },
       { model: FuneralMassBooking, type: 'funeral_mass' },
+      { model: MassIntention, type: 'mass_intention' },
     ];
 
     let totalBookings = 0;
@@ -110,29 +111,6 @@ const getDashboardStats = async (req, res) => {
       approvedBookings += approved;
       thisMonthBookings += thisMonth;
     }
-
-    // Also count mass intentions
-    const massIntentionTotal = await MassIntention.count({ where: bookingWhereClause });
-    const massIntentionPending = await MassIntention.count({
-      where: { ...bookingWhereClause, status: 'pending' },
-    });
-    const massIntentionApproved = await MassIntention.count({
-      where: { ...bookingWhereClause, status: 'approved' },
-    });
-    const massIntentionThisMonth = await MassIntention.count({
-      where: {
-        ...bookingWhereClause,
-        massSchedule: {
-          [Op.gte]: startOfMonth,
-          [Op.lt]: endOfMonth,
-        },
-      },
-    });
-
-    totalBookings += massIntentionTotal;
-    pendingBookings += massIntentionPending;
-    approvedBookings += massIntentionApproved;
-    thisMonthBookings += massIntentionThisMonth;
 
     // Get parish and user counts
     const totalParishes = await Parish.count({ where: parishWhereClause });
@@ -235,7 +213,7 @@ const getAllUsers = async (req, res) => {
       }
       whereClause.role = role;
     }
-    
+
     // Parish-level users cannot override parish filter
     if (requestingUser.role === 'parish_admin' || requestingUser.role === 'parish_staff') {
       // Ensure they can only see their own parish
@@ -244,7 +222,7 @@ const getAllUsers = async (req, res) => {
       // Diocese-level users can filter by specific parish
       whereClause.assignedParishId = parishId;
     }
-    
+
     if (isActive !== undefined) whereClause.isActive = isActive === 'true';
 
     if (search) {
@@ -378,9 +356,9 @@ const createUser = async (req, res) => {
     // - parish_admin can create all except diocese_admin and diocese_staff
     // - parish_staff can only create priest (same parish) and parishioner (same parish)
     // - priests and parishioners cannot create users
-    
+
     const requestingUser = req.user;
-    
+
     // Check if the requesting user can create the target role
     if (requestingUser.role === 'diocese_admin') {
       // diocese_admin can create any role
@@ -400,7 +378,7 @@ const createUser = async (req, res) => {
           message: 'Parish administrators can only create parish staff, priests, and parishioners.',
         });
       }
-      
+
       // Verify the assignedParishId matches the admin's assigned parish
       if (assignedParishId !== requestingUser.assignedParishId) {
         return res.status(403).json({
@@ -416,7 +394,7 @@ const createUser = async (req, res) => {
           message: 'Parish staff can only create parishioners.',
         });
       }
-      
+
       // Verify the assignedParishId matches the staff's assigned parish
       if (assignedParishId !== requestingUser.assignedParishId) {
         return res.status(403).json({
@@ -436,7 +414,7 @@ const createUser = async (req, res) => {
     // since diocese personnel don't belong to a specific parish
     const isDioceseLevel = ['diocese_staff', 'diocese_admin'].includes(role);
     let finalAssignedParishId = assignedParishId;
-    
+
     if (isDioceseLevel) {
       finalAssignedParishId = null;
     } else if (requestingUser.role === 'parish_staff' && ['priest', 'parishioner'].includes(role)) {
@@ -1208,9 +1186,9 @@ const updateBookingStatus = async (req, res) => {
         const user = await User.findByPk(booking.userId);
         const contactEmail = booking.contactEmail || booking.email || user?.email;
         const isDeclined = status === 'declined';
-        
+
         const sacramentName = _getSacramentName(bookingModel?.name || booking.constructor?.name || 'Booking');
-        
+
         await emailService.sendNotification(
           contactEmail,
           `${sacramentName} Booking ${isDeclined ? 'Requires Attention' : (status === 'approved' ? 'Approved' : 'Update')}`,
@@ -1315,7 +1293,7 @@ const deleteBooking = async (req, res) => {
     // Delete associated documents
     const { BookingDocument } = require('../models');
     await BookingDocument.destroy({ where: { bookingId: parseInt(id), bookingType } });
-    
+
     // Hard delete the booking
     await booking.destroy();
 
@@ -1357,7 +1335,7 @@ const getAllMassIntentions = async (req, res) => {
 
     if (status) whereClause.status = status;
     if (intentionType) whereClause.type = intentionType;
-    if (massTime) whereClause.preferredTime = massTime;
+    if (massTime) whereClause.preferredTimeSlot = massTime;
 
     if (startDate || endDate) {
       if (startDate && endDate && startDate === endDate) {
@@ -1484,7 +1462,7 @@ const getPriestsByParish = async (req, res) => {
 
     // If no parishId provided, use the user's preferred parish
     let targetParishId = parishId ? parseInt(parishId) : null;
-    
+
     // If still no parishId, try to get from user's preferred parish
     if (!targetParishId && requestingUser.preferredParishId) {
       targetParishId = requestingUser.preferredParishId;
@@ -1537,11 +1515,11 @@ const getPriestSchedule = async (req, res) => {
   try {
     const { month, year, status } = req.query;
     const priestId = req.user.userId;
-    
+
     // Calculate date range for the month
     const targetMonth = month ? parseInt(month) : new Date().getMonth() + 1;
     const targetYear = year ? parseInt(year) : new Date().getFullYear();
-    
+
     const startDate = new Date(targetYear, targetMonth - 1, 1);
     const endDate = new Date(targetYear, targetMonth, 0, 23, 59, 59); // Last day of month
 
@@ -1605,10 +1583,10 @@ const getPriestSchedule = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting priest schedule:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       error: 'Failed to get priest schedule',
-      message: error.message 
+      message: error.message
     });
   }
 };

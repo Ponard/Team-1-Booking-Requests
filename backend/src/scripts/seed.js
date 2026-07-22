@@ -181,7 +181,7 @@ async function seedDatabase() {
     // Create Parish Slot Settings
     console.log('⚙️  Creating parish slot settings...');
     const slotSettings = [];
-    
+
     for (const parish of parishes) {
       // Baptism settings
       slotSettings.push(await ParishSlotSetting.create({
@@ -417,32 +417,32 @@ async function seedDatabase() {
     const massIntentions = await MassIntention.bulkCreate([
       {
         parishId: parishes[0].id,
-        submittedBy: users[5].id,
+        userId: users[5].id,
         type: 'For the Dead',
         intentionDetails: 'For the souls of departed grandparents',
         donorName: 'Carlos Mendoza',
-        dateRequested: '2025-02-15',
+        preferredDate: '2025-02-15',
         massSchedule: '2025-02-23T07:00:00.000Z',
         preferredPriest: 'Fr. Juan Dela Cruz',
         status: 'pending',
       },
       {
         parishId: parishes[0].id,
-        submittedBy: users[6].id,
+        userId: users[6].id,
         type: 'Thanksgiving',
         intentionDetails: 'Thanksgiving for new job',
         donorName: 'Rosa Torres',
-        dateRequested: '2025-02-16',
+        preferredDate: '2025-02-16',
         massSchedule: '2025-02-23T09:00:00.000Z',
         status: 'pending',
       },
       {
         parishId: parishes[0].id,
-        submittedBy: users[7].id,
+        userId: users[7].id,
         type: 'Special Intention',
         intentionDetails: 'For good health and guidance',
         donorName: 'Miguel Flores',
-        dateRequested: '2025-02-17',
+        preferredDate: '2025-02-17',
         massSchedule: '2025-02-23T18:00:00.000Z',
         status: 'pending',
       },

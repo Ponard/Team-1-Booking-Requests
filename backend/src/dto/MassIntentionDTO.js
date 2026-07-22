@@ -10,13 +10,12 @@ class MassIntentionDTO {
     donorName,
     parishId,
     parishName,
-    massSchedule,
-    preferredTime,
+    preferredDate,
+    preferredTimeSlot,
     preferredPriest,
     notes = [],
-    dateRequested,
     status,
-    submittedBy,
+    userId,
     createdAt,
     updatedAt,
   }) {
@@ -26,13 +25,12 @@ class MassIntentionDTO {
     this.donorName = donorName;
     this.parishId = parishId;
     this.parishName = parishName;
-    this.massSchedule = massSchedule;
-    this.preferredTime = preferredTime;
+    this.preferredDate = preferredDate;
+    this.preferredTimeSlot = preferredTimeSlot;
     this.preferredPriest = preferredPriest;
     this.notes = Array.isArray(notes) ? notes : [];
-    this.dateRequested = dateRequested;
     this.status = status;
-    this.submittedBy = submittedBy;
+    this.userId = userId;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }
@@ -63,8 +61,8 @@ class MassIntentionDTO {
       intentionDetails: body.intentionDetails,
       donorName: body.donorName,
       parishId: parseInt(body.parishId),
-      massSchedule: body.massSchedule,
-      preferredTime: body.preferredTime,
+      preferredDate: body.preferredDate,
+      preferredTimeSlot: body.preferredTimeSlot,
       preferredPriest: body.preferredPriest,
       notes: notes,
       status: body.status,
@@ -92,13 +90,12 @@ class MassIntentionDTO {
       donorName: entity.donorName,
       parishId: entity.parishId,
       parishName: entity.parish?.name, // from included association
-      massSchedule: entity.massSchedule,
-      preferredTime: entity.preferredTime,
+      preferredDate: entity.preferredDate,
+      preferredTimeSlot: entity.preferredTimeSlot,
       preferredPriest: entity.preferredPriest,
       notes: notes,
-      dateRequested: entity.dateRequested,
       status: entity.status,
-      submittedBy: entity.submittedBy,
+      userId: entity.userId,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     });
@@ -133,8 +130,8 @@ class MassIntentionDTO {
       errors.push('Valid parish ID is required');
     }
 
-    if (!this.massSchedule || !(this.massSchedule instanceof Date) || isNaN(this.massSchedule.getTime())) {
-      errors.push('Valid mass schedule date is required');
+    if (!this.preferredDate || isNaN(new Date(this.preferredDate).getTime())) {
+      errors.push('Valid preferred date is required');
     }
 
     return {
@@ -167,13 +164,12 @@ class MassIntentionDTO {
       donorName: this.donorName,
       parishId: this.parishId,
       parishName: this.parishName,
-      massSchedule: this.massSchedule,
-      preferredTime: this.preferredTime,
+      preferredDate: this.preferredDate,
+      preferredTimeSlot: this.preferredTimeSlot,
       preferredPriest: this.preferredPriest,
       notes: this.notes,
-      dateRequested: this.dateRequested,
       status: this.status,
-      submittedBy: this.submittedBy,
+      userId: this.userId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

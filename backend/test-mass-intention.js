@@ -24,19 +24,19 @@ async function testMassIntentionAPI() {
 
     // Test 2: Check model properties
     console.log('\n✅ Testing MassIntention Model Properties...');
-    const expectedFields = ['type', 'intentionDetails', 'donorName', 'dateRequested', 
-                           'parishId', 'massSchedule', 'preferredPriest', 'notes', 'status', 'submittedBy'];
-    
+    const expectedFields = ['type', 'intentionDetails', 'donorName',
+      'parishId', 'massSchedule', 'preferredPriest', 'notes', 'status', 'userId'];
+
     const modelAttributes = Object.keys(MassIntention.rawAttributes);
     let allFieldsPresent = true;
-    
+
     for (const field of expectedFields) {
       if (!modelAttributes.includes(field)) {
         console.log(`   ✗ Missing field: ${field}`);
         allFieldsPresent = false;
       }
     }
-    
+
     if (allFieldsPresent) {
       console.log('   ✓ All required fields are present');
     }
@@ -44,10 +44,10 @@ async function testMassIntentionAPI() {
     // Test 3: Check enum values for type field
     console.log('\n✅ Testing Type Enum Values...');
     const typeField = MassIntention.rawAttributes.type;
-    if (typeField.type.key === 'ENUM' && 
-        typeField.type.values.includes('For the Dead') &&
-        typeField.type.values.includes('Thanksgiving') &&
-        typeField.type.values.includes('Special Intention')) {
+    if (typeField.type.key === 'ENUM' &&
+      typeField.type.values.includes('For the Dead') &&
+      typeField.type.values.includes('Thanksgiving') &&
+      typeField.type.values.includes('Special Intention')) {
       console.log('   ✓ Type enum values are correctly set');
     } else {
       console.log('   ✗ Type enum values are incorrect');
@@ -56,11 +56,11 @@ async function testMassIntentionAPI() {
     // Test 4: Check status enum values
     console.log('\n✅ Testing Status Enum Values...');
     const statusField = MassIntention.rawAttributes.status;
-    if (statusField.type.key === 'ENUM' && 
-        statusField.type.values.includes('pending') &&
-        statusField.type.values.includes('approved') &&
-        statusField.type.values.includes('declined') &&
-        statusField.type.values.includes('completed')) {
+    if (statusField.type.key === 'ENUM' &&
+      statusField.type.values.includes('pending') &&
+      statusField.type.values.includes('approved') &&
+      statusField.type.values.includes('declined') &&
+      statusField.type.values.includes('completed')) {
       console.log('   ✓ Status enum values are correctly set');
     } else {
       console.log('   ✗ Status enum values are incorrect');
@@ -74,7 +74,7 @@ async function testMassIntentionAPI() {
     } else {
       console.log('   ✗ MassIntention submitter association missing');
     }
-    
+
     if (associations.parish) {
       console.log('   ✓ MassIntention associated with Parish');
     } else {

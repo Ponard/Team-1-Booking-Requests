@@ -51,7 +51,7 @@ class GetAllMassIntentionsUseCase {
     // Role-based access control
     if (user.role === 'parishioner') {
       // Parishioners can only see their own intentions
-      filters.submittedBy = user.userId;
+      filters.userId = user.userId;
     } else if (['parish_staff', 'priest'].includes(user.role)) {
       // Parish staff and priests can only see intentions for their assigned parishes
       // For now, they can see all; in production, link staff to specific parishes

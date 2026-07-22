@@ -34,12 +34,12 @@ Booking.belongsTo(User, {
 });
 
 User.hasMany(MassIntention, {
-  foreignKey: 'submittedBy',
+  foreignKey: 'userId',
   as: 'intentions',
   onDelete: 'CASCADE',
 });
 MassIntention.belongsTo(User, {
-  foreignKey: 'submittedBy',
+  foreignKey: 'userId',
   as: 'submitter',
 });
 
