@@ -127,30 +127,22 @@ exports.createMassSchedule = async (req, res, next) => {
 // Get all mass schedules for a parish
 exports.getAllMassSchedules = async (req, res, next) => {
   try {
-    const { parishId } = req.query;
+    let { parishId } = req.query;
 
     // Check if user has permission to view mass schedules
-    if (req.user.role !== 'diocese_staff' && req.user.role !== 'diocese_admin') {
-      if (req.user.role === 'parish_admin' || req.user.role === 'parish_staff') {
-        // Parish-level users can only view schedules for their assigned parish
-        const userParishId = req.user.assignedParishId;
-        if (userParishId) {
-          req.query.parishId = userParishId;
-        }
-        // If user has no assignedParishId, proceed without parish filter
-        // (will return all active schedules)
-      } else {
-        return res.status(403).json({
-          error: 'Access denied',
-          message: 'Only authorized personnel can view mass schedules'
-        });
+    if (
+      req.user.role === 'parish_admin' ||
+      req.user.role === 'parish_staff'
+    ) {
+      if (req.user.assignedParishId) {
+        parishId = req.user.assignedParishId;
       }
     }
 
     const whereClause = { isActive: true };
 
-    if (req.query.parishId) {
-      whereClause.parishId = req.query.parishId;
+    if (parishId) {
+      whereClause.parishId = parishId;
     }
 
     const massSchedules = await MassSchedule.findAll({

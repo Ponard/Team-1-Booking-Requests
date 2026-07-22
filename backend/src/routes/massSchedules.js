@@ -40,7 +40,7 @@ router.post('/', [
 
 // Get all mass schedules (parish_admin, parish_staff, diocese_staff, diocese_admin only)
 router.get('/', [
-  authorizeRoles('parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin'),
+  authorizeRoles('parishioner', 'parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin'),
   query('parishId')
     .optional()
     .isInt({ min: 1 })

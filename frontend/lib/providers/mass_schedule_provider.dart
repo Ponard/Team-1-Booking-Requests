@@ -23,6 +23,7 @@ class MassScheduleProvider extends ChangeNotifier {
     if (result.success && result.data != null) {
       _schedules = result.data!;
     } else {
+      _schedules.clear();
       _errorMessage = result.message ?? 'Failed to load mass schedules';
     }
 
@@ -138,7 +139,13 @@ class MassScheduleProvider extends ChangeNotifier {
 
   String _getDayName(int weekday) {
     const days = [
-      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
     ];
     return days[weekday - 1];
   }
