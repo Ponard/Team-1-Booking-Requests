@@ -78,7 +78,7 @@ const MassIntention = sequelize.define('MassIntention', {
   underscored: true,
   indexes: [
     { fields: ['type'] },
-    { fields: ['date_requested'] },
+    { fields: ['preferred_date'] },
     { fields: ['parish_id'] },
     { fields: ['status'] },
   ],
