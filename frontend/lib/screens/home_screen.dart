@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:diocese_frontend/config/app_constants.dart';
 import 'package:diocese_frontend/config/app_routes.dart';
 import 'package:diocese_frontend/widgets/app_shell.dart';
 import 'package:flutter/material.dart';
@@ -183,11 +184,244 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildAdminQuickActions(BuildContext context) {
+    final isWideScreen =
+        MediaQuery.of(context).size.width >= AppConstants.desktopBreakpoint;
+    final authProvider = context.watch<AuthProvider>();
+    final userRole = authProvider.currentUser?.role ?? Roles.parishioner;
+    final isAdmin = Roles.isAdmin(userRole);
+    final isDioceseLevel = Roles.isDioceseLevel(userRole);
+
+    return Card(
+      color: Colors.blue.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Quick Actions',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (!isWideScreen) ...[
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(
+                          context, '/admin-dashboard');
+                    },
+                    icon: const Icon(Icons.dashboard, size: 20),
+                    label: const Text('Dashboard'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade700,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(
+                          context, '/admin-bookings');
+                    },
+                    icon: const Icon(Icons.calendar_today, size: 20),
+                    label: const Text('Bookings'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade700,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                  if (isDioceseLevel)
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(
+                            context, '/admin-parishes');
+                      },
+                      icon: const Icon(Icons.church, size: 20),
+                      label: const Text('Parishes'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade700,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  if (isDioceseLevel || isAdmin)
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, '/admin-users');
+                      },
+                      icon: const Icon(Icons.people, size: 20),
+                      label: const Text('Users'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade700,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                ],
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/admin-mass-intentions');
+                  },
+                  icon: const Icon(Icons.book, size: 20),
+                  label: const Text('Mass Intentions'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade700,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/admin-mass-schedule');
+                  },
+                  icon: const Icon(Icons.schedule, size: 20),
+                  label: const Text('Mass Schedule'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade700,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildParishionerQuickActions(BuildContext context) {
+    final isWideScreen =
+        MediaQuery.of(context).size.width >= AppConstants.desktopBreakpoint;
+
+    return Card(
+      color: Colors.green.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Quick Actions',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (!isWideScreen) ...[
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      final shouldRefresh =
+                          await Navigator.pushReplacementNamed(
+                        context,
+                        '/my-bookings',
+                      );
+                      if (!mounted) return;
+                      if (shouldRefresh == true) {
+                        _loadBookingStats();
+                      }
+                    },
+                    icon: const Icon(Icons.list_alt, size: 20),
+                    label: const Text('My Bookings'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green.shade700,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(context, '/my-profile');
+                    },
+                    icon: const Icon(Icons.person, size: 20),
+                    label: const Text('My Profile'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green.shade700,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/profile');
+                  },
+                  icon: const Icon(Icons.lock, size: 20),
+                  label: const Text('Change Password'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade700,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPriestQuickActions(BuildContext context) {
+    return Card(
+      color: Colors.purple.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.calendar_month,
+                    color: Colors.purple.shade700, size: 28),
+                const SizedBox(width: 12),
+                const Text(
+                  'My Schedule',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'View your monthly schedule of sacraments and bookings.',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pushReplacementNamed(context, '/priest-schedule');
+                },
+                icon: const Icon(Icons.calendar_today, size: 20),
+                label: const Text('View Schedule'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple.shade700,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildMainContent(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final userRole = authProvider.currentUser?.role ?? Roles.parishioner;
     final isAdmin = Roles.isAdmin(userRole);
-    final isDioceseLevel = Roles.isDioceseLevel(userRole);
     final isPriest = Roles.isPriest(userRole);
 
     return ListView(
@@ -206,159 +440,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
         // Admin Quick Actions
         if (isAdmin) ...[
-          Card(
-            color: Colors.blue.shade50,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Quick Actions',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/admin-dashboard');
-                        },
-                        icon: const Icon(Icons.dashboard, size: 20),
-                        label: const Text('Dashboard'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade700,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/admin-bookings');
-                        },
-                        icon: const Icon(Icons.calendar_today, size: 20),
-                        label: const Text('Bookings'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade700,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                      if (isDioceseLevel)
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/admin-parishes');
-                          },
-                          icon: const Icon(Icons.church, size: 20),
-                          label: const Text('Parishes'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue.shade700,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      if (isDioceseLevel || isAdmin)
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/admin-users');
-                          },
-                          icon: const Icon(Icons.people, size: 20),
-                          label: const Text('Users'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue.shade700,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pushNamed(
-                              context, '/admin-mass-intentions');
-                        },
-                        icon: const Icon(Icons.book, size: 20),
-                        label: const Text('Mass Intentions'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade700,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/admin-mass-schedule');
-                        },
-                        icon: const Icon(Icons.schedule, size: 20),
-                        label: const Text('Mass Schedule'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade700,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _buildAdminQuickActions(context),
           const SizedBox(height: 24),
         ],
 
         // Parishioner Quick Actions
         if (!isAdmin && !isPriest) ...[
-          Card(
-            color: Colors.green.shade50,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Quick Actions',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          final shouldRefresh = await Navigator.pushNamed(
-                            context,
-                            '/my-bookings',
-                          );
-                          if (!mounted) return;
-                          if (shouldRefresh == true) {
-                            _loadBookingStats();
-                          }
-                        },
-                        icon: const Icon(Icons.list_alt, size: 20),
-                        label: const Text('My Bookings'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green.shade700,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/my-profile');
-                        },
-                        icon: const Icon(Icons.person, size: 20),
-                        label: const Text('My Profile'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green.shade700,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _buildParishionerQuickActions(context),
           const SizedBox(height: 24),
 
           // Booking Statistics Section
@@ -456,55 +544,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         // Priest Schedule Section
         if (isPriest) ...[
-          Card(
-            color: Colors.purple.shade50,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.calendar_month,
-                          color: Colors.purple.shade700, size: 28),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'My Schedule',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'View your monthly schedule of sacraments and bookings.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/priest-schedule');
-                      },
-                      icon: const Icon(Icons.calendar_today, size: 20),
-                      label: const Text('View Schedule'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.purple.shade700,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _buildPriestQuickActions(context),
         ],
 
         // Services Grid (hidden for priest)

@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/config/app_colors.dart';
 import 'package:diocese_frontend/config/app_routes.dart';
 import 'package:diocese_frontend/providers/auth_provider.dart';
 import 'package:diocese_frontend/providers/parish_provider.dart';
@@ -70,8 +71,8 @@ class AppDrawer extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Theme.of(context).colorScheme.primary,
-                  Theme.of(context).colorScheme.primary.withAlpha(220),
+                  AppColors.lightScheme.primary,
+                  AppColors.lightScheme.primary.withRed(128),
                 ],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,

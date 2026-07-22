@@ -56,6 +56,23 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  Route<T> buildRoute<T>({
+    required Widget page,
+    required RouteSettings settings,
+  }) {
+    return PageRouteBuilder<T>(
+      // settings: settings,
+      pageBuilder: (_, __, ___) => page,
+      transitionDuration: const Duration(milliseconds: 200),
+      transitionsBuilder: (_, animation, __, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+    );
+  }
+
   Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
@@ -63,7 +80,7 @@ class MyApp extends StatelessWidget {
       case '/login':
         return MaterialPageRoute(builder: (_) => const LoginScreen());
       case '/home':
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return buildRoute(settings: settings, page: const HomeScreen());
       case '/register':
         return MaterialPageRoute(builder: (_) => const RegisterScreen());
       case '/baptism-booking':
@@ -169,13 +186,16 @@ class MyApp extends StatelessWidget {
       case '/funeral-mass':
         return MaterialPageRoute(builder: (_) => const FuneralMassScreen());
       case '/admin-dashboard':
-        return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
+        return buildRoute(
+            settings: settings, page: const AdminDashboardScreen());
       case '/admin-bookings':
-        return MaterialPageRoute(builder: (_) => const AdminBookingsScreen());
+        return buildRoute(
+            settings: settings, page: const AdminBookingsScreen());
       case '/admin-parishes':
-        return MaterialPageRoute(builder: (_) => const AdminParishesScreen());
+        return buildRoute(
+            settings: settings, page: const AdminParishesScreen());
       case '/admin-users':
-        return MaterialPageRoute(builder: (_) => const AdminUsersScreen());
+        return buildRoute(settings: settings, page: const AdminUsersScreen());
       case '/admin-records':
         return MaterialPageRoute(builder: (_) => const AdminRecordsScreen());
       case '/admin-mass-intentions':
@@ -191,14 +211,27 @@ class MyApp extends StatelessWidget {
       case '/profile':
         return MaterialPageRoute(builder: (_) => const ProfileScreen());
       case '/my-bookings':
-        return MaterialPageRoute(builder: (_) => const MyBookingsScreen());
+        return buildRoute(settings: settings, page: const MyBookingsScreen());
       case '/my-profile':
-        return MaterialPageRoute(builder: (_) => const MyProfileScreen());
+        return buildRoute(settings: settings, page: const MyProfileScreen());
       case '/priest-schedule':
-        return MaterialPageRoute(builder: (_) => const PriestScheduleScreen());
+        return buildRoute(
+            settings: settings, page: const PriestScheduleScreen());
       default:
         return null;
     }
+  }
+
+  ThemeData buildTheme(Brightness brightness) {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFFCF0109),
+        brightness: brightness,
+      ),
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      fontFamily: 'Roboto',
+    );
   }
 
   @override
@@ -223,13 +256,9 @@ class MyApp extends StatelessWidget {
         builder: (context, authProvider, _) {
           return MaterialApp(
             title: AppConstants.appName,
-            theme: ThemeData(
-              useMaterial3: true,
-              colorScheme:
-                  ColorScheme.fromSeed(seedColor: const Color(0xFFCF0109)),
-              visualDensity: VisualDensity.adaptivePlatformDensity,
-              fontFamily: 'Roboto',
-            ),
+            theme: buildTheme(Brightness.light),
+            darkTheme: buildTheme(Brightness.dark),
+            themeMode: ThemeMode.light,
             initialRoute: '/',
             onGenerateRoute: onGenerateRoute,
             debugShowCheckedModeBanner: false,
