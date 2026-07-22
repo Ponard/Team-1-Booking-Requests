@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/config/app_colors.dart';
 import 'package:diocese_frontend/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 
@@ -30,8 +31,8 @@ class AppShell extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.shadow.withAlpha(220),
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        backgroundColor: AppColors.appBar,
+        foregroundColor: Colors.white,
         title: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -63,7 +64,18 @@ class AppShell extends StatelessWidget {
         //   ),
         // ],
       ),
-      drawer: isWideScreen ? null : Drawer(child: drawer),
+      drawer: isWideScreen
+          ? null
+          : Drawer(
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  topRight:
+                      Radius.circular(0.0), // or adjust to your preference
+                  bottomRight: Radius.circular(0.0),
+                ),
+              ),
+              child: drawer,
+            ),
       body: isWideScreen
           ? Row(
               mainAxisSize: MainAxisSize.min,
