@@ -223,7 +223,7 @@ The container now manages **28 services**:
 - ✅ Creates mass intention successfully
 - ✅ Throws error if validation fails
 - ✅ Throws error if parish not found
-- ✅ Sets submittedBy from user
+- ✅ Sets userId from user
 - ✅ Sends confirmation email after creation
 - ✅ Doesn't fail if email service fails
 

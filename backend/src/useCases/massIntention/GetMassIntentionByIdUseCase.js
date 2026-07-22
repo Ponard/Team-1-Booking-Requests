@@ -35,7 +35,7 @@ class GetMassIntentionByIdUseCase {
    * Checks if user has permission to view the intention
    */
   _checkAccessPermission(intention, user) {
-    if (user.role === 'parishioner' && intention.submittedBy !== user.userId) {
+    if (user.role === 'parishioner' && intention.userId !== user.userId) {
       throw new Error('Access denied: You can only view your own mass intentions');
     }
   }

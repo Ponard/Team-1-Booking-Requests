@@ -15,11 +15,11 @@ class MassIntentionRepository {
       donorName: dto.donorName,
       parishId: dto.parishId,
       massSchedule: dto.massSchedule,
-      preferredTime: dto.preferredTime,
+      preferredDate: dto.preferredDate,
+      preferredTimeSlot: dto.preferredTimeSlot,
       preferredPriest: dto.preferredPriest,
       notes: dto.notes,
-      submittedBy: dto.submittedBy,
-      dateRequested: dto.dateRequested,
+      userId: dto.userId,
     });
 
     return MassIntentionDTO.fromEntity(entity);
@@ -127,13 +127,13 @@ class MassIntentionRepository {
     if (filters.type) where.type = filters.type;
     if (filters.status) where.status = filters.status;
     if (filters.parishId) where.parishId = filters.parishId;
-    if (filters.submittedBy) where.submittedBy = filters.submittedBy;
+    if (filters.userId) where.userId = filters.userId;
 
-    // Date range filtering on dateRequested
+    // Date range filtering on preferredDate
     if (filters.startDate || filters.endDate) {
-      where.dateRequested = {};
-      if (filters.startDate) where.dateRequested[Op.gte] = filters.startDate;
-      if (filters.endDate) where.dateRequested[Op.lte] = filters.endDate;
+      where.preferredDate = {};
+      if (filters.startDate) where.preferredDate[Op.gte] = filters.startDate;
+      if (filters.endDate) where.preferredDate[Op.lte] = filters.endDate;
     }
 
     // Date range filtering on massSchedule

@@ -35,14 +35,14 @@ class DeleteMassIntentionUseCase {
    */
   _checkDeletePermission(intention, user) {
     const adminRoles = ['diocese_staff', 'diocese_admin'];
-    
+
     if (adminRoles.includes(user.role)) {
       return; // Admins can delete anything
     }
 
     if (user.role === 'parishioner') {
       // Parishioners can only delete their own pending intentions
-      if (intention.submittedBy !== user.userId) {
+      if (intention.userId !== user.userId) {
         throw new Error('Access denied: You can only delete your own mass intentions');
       }
       if (intention.status !== 'pending') {

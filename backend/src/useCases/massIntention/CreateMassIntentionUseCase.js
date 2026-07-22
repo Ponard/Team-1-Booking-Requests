@@ -29,12 +29,26 @@ class CreateMassIntentionUseCase {
       throw new Error(validation.errors.join(', '));
     }
 
-    const dateValidation = validateBookingDate(dto.massSchedule);
+    const dateValidation = validateBookingDate(dto.preferredDate);
     if (!dateValidation.valid) {
       throw new Error(dateValidation.error);
     }
 
-    dto.massSchedule = new Date(dto.massSchedule);
+    const [year, month, day] = dto.preferredDate.split('-').map(Number);
+
+    const [hours, minutes] = (dto.preferredTimeSlot ?? '00:00')
+      .split(':')
+      .map(Number);
+
+    dto.massSchedule = new Date(
+      year,
+      month - 1,
+      day,
+      hours,
+      minutes,
+      0,
+      0,
+    );
 
     const parish = await this.parishRepository.findById(dto.parishId);
     if (!parish) {
@@ -49,8 +63,7 @@ class CreateMassIntentionUseCase {
       throw new Error('The selected parish does not accept Mass Intentions.');
     }
 
-    dto.submittedBy = user.id;
-    dto.dateRequested = new Date().toISOString().split('T')[0];
+    dto.userId = user.id;
     dto.status = 'pending';
 
     // Wrap notes with author info

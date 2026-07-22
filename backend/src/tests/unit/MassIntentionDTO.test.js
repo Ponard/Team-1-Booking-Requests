@@ -111,9 +111,9 @@ describe('MassIntentionDTO', () => {
         massSchedule: new Date('2024-12-25'),
         preferredPriest: 'Fr. Pedro',
         notes: null,
-        dateRequested: '2024-12-01',
+        preferredDate: '2024-12-01',
         status: 'pending',
-        submittedBy: 5,
+        userId: 5,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -154,9 +154,9 @@ describe('MassIntentionDTO', () => {
         massSchedule: expect.any(Date),
         preferredPriest: undefined,
         notes: undefined,
-        dateRequested: undefined,
+        preferredDate: undefined,
         status: undefined,
-        submittedBy: undefined,
+        userId: undefined,
         createdAt: undefined,
         updatedAt: undefined,
       });

@@ -48,7 +48,7 @@ describe('CreateMassIntentionUseCase', () => {
       expect(mockParishRepository.findById).toHaveBeenCalledWith(1);
       expect(mockMassIntentionRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          submittedBy: 123,
+          userId: 123,
           status: 'pending',
         })
       );
@@ -82,7 +82,7 @@ describe('CreateMassIntentionUseCase', () => {
       await expect(useCase.execute(dto, user)).rejects.toThrow('Parish not found');
     });
 
-    it('should set submittedBy from user', async () => {
+    it('should set userId from user', async () => {
       const dto = new MassIntentionDTO({
         type: 'Thanksgiving',
         intentionDetails: 'For good health',
@@ -99,7 +99,7 @@ describe('CreateMassIntentionUseCase', () => {
 
       expect(mockMassIntentionRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          submittedBy: 456,
+          userId: 456,
         })
       );
     });

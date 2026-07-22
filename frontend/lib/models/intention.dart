@@ -1,6 +1,6 @@
 class Intention {
   final int? id;
-  final int? submittedBy;
+  final int? userId;
   final int? parishId;
   final String? parishName;
   final DateTime massDate;
@@ -14,7 +14,7 @@ class Intention {
 
   Intention({
     this.id,
-    this.submittedBy,
+    this.userId,
     this.parishId,
     this.parishName,
     required this.massDate,
@@ -30,24 +30,27 @@ class Intention {
   factory Intention.fromJson(Map<String, dynamic> json) {
     return Intention(
       id: json['id'],
-      submittedBy: json['submittedBy'],
+      userId: json['userId'],
       parishId: json['parishId'],
-      parishName: json['parishName'] ?? json['parish']?['name'], // Include parish data if available
+      parishName: json['parishName'] ??
+          json['parish']?['name'], // Include parish data if available
       massDate: DateTime.parse(json['massDate']),
       intentionType: json['intentionType'],
       intentionFor: json['intentionFor'],
       specialNotes: json['specialNotes'],
       offeringAmount: json['offeringAmount']?.toDouble(),
       status: json['status'],
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
+      createdAt:
+          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      updatedAt:
+          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'submittedBy': submittedBy,
+      'userId': userId,
       'parishId': parishId,
       'parishName': parishName,
       'massDate': massDate.toIso8601String(),
@@ -63,7 +66,7 @@ class Intention {
 
   Intention copyWith({
     int? id,
-    int? submittedBy,
+    int? userId,
     int? parishId,
     String? parishName,
     DateTime? massDate,
@@ -77,7 +80,7 @@ class Intention {
   }) {
     return Intention(
       id: id ?? this.id,
-      submittedBy: submittedBy ?? this.submittedBy,
+      userId: userId ?? this.userId,
       parishId: parishId ?? this.parishId,
       parishName: parishName ?? this.parishName,
       massDate: massDate ?? this.massDate,
@@ -91,3 +94,4 @@ class Intention {
     );
   }
 }
+

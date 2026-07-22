@@ -155,7 +155,7 @@ class CreateMassIntentionUseCase {
     if (!parish) throw new Error('Parish not found');
 
     // 3. Set additional fields
-    dto.submittedBy = user.userId;
+    dto.userId = user.userId;
     dto.status = 'pending';
 
     // 4. Create intention

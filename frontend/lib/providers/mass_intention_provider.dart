@@ -70,10 +70,9 @@ class MassIntentionProvider extends ChangeNotifier {
     required String type,
     required String intentionDetails,
     required String donorName,
-    required String dateRequested,
+    required String preferredDate,
     required int parishId,
-    required String massSchedule,
-    String? preferredTime,
+    String? preferredTimeSlot,
     String? preferredPriest,
     List<Map<String, dynamic>>? notes,
   }) async {
@@ -84,10 +83,9 @@ class MassIntentionProvider extends ChangeNotifier {
       type: type,
       intentionDetails: intentionDetails,
       donorName: donorName,
-      dateRequested: dateRequested,
+      preferredDate: preferredDate,
       parishId: parishId,
-      massSchedule: massSchedule,
-      preferredTime: preferredTime,
+      preferredTimeSlot: preferredTimeSlot,
       preferredPriest: preferredPriest,
       notes: notes,
     );
@@ -110,10 +108,10 @@ class MassIntentionProvider extends ChangeNotifier {
     required String type,
     required String intentionDetails,
     required String donorName,
-    required String dateRequested,
+    required String preferredDate,
     required int parishId,
     required String massSchedule,
-    String? preferredTime,
+    String? preferredTimeSlot,
     String? preferredPriest,
     List<Map<String, dynamic>>? notes,
   }) async {
@@ -125,10 +123,10 @@ class MassIntentionProvider extends ChangeNotifier {
       type: type,
       intentionDetails: intentionDetails,
       donorName: donorName,
-      dateRequested: dateRequested,
+      preferredDate: preferredDate,
       parishId: parishId,
       massSchedule: massSchedule,
-      preferredTime: preferredTime,
+      preferredTimeSlot: preferredTimeSlot,
       preferredPriest: preferredPriest,
       notes: notes,
     );
@@ -178,7 +176,8 @@ class MassIntentionProvider extends ChangeNotifier {
       return true;
     } else {
       _setLoading(false);
-      _setErrorMessage(result.message ?? 'Failed to update mass intention status');
+      _setErrorMessage(
+          result.message ?? 'Failed to update mass intention status');
       notifyListeners();
       return false;
     }

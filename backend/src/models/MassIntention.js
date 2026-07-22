@@ -19,7 +19,7 @@ const MassIntention = sequelize.define('MassIntention', {
     type: DataTypes.STRING(255),
     allowNull: false,
   },
-  dateRequested: {
+  preferredDate: {
     type: DataTypes.DATEONLY,
     allowNull: false,
   },
@@ -35,7 +35,7 @@ const MassIntention = sequelize.define('MassIntention', {
     type: DataTypes.DATE,
     allowNull: false,
   },
-  preferredTime: {
+  preferredTimeSlot: {
     type: DataTypes.STRING(10),
     allowNull: true,
   },
@@ -64,7 +64,7 @@ const MassIntention = sequelize.define('MassIntention', {
     defaultValue: 'pending',
     allowNull: false,
   },
-  submittedBy: {
+  userId: {
     type: DataTypes.INTEGER,
     references: {
       model: 'users',
