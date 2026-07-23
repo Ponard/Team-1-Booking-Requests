@@ -72,10 +72,13 @@ router.put('/:id', [
     .optional()
     .isInt({ min: 1 })
     .withMessage('Valid parish ID is required'),
-  body('massSchedule')
-    .optional()
+  body('preferredDate')
     .isISO8601()
-    .withMessage('Valid mass schedule date and time is required'),
+    .withMessage('Valid preferred date is required'),
+  body('preferredTimeSlot')
+    .optional()
+    .matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    .withMessage('Valid preferred time slot is required'),
   body('preferredPriest')
     .optional()
     .trim()
