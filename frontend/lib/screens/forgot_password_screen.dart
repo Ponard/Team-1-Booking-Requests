@@ -233,7 +233,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 labelText: 'Email',
                 hintText: 'Enter your email address',
                 keyboardType: TextInputType.emailAddress,
-                validator: Validators.emailValidator,
+                validator: (value) {
+                  return Validators.requiredField(value) ??
+                      Validators.emailValidator(value);
+                },
                 prefixIcon: Icons.email,
               ),
               const SizedBox(height: 20),

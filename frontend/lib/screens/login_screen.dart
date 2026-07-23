@@ -109,7 +109,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _emailController,
                         labelText: 'Email',
                         keyboardType: TextInputType.emailAddress,
-                        validator: Validators.emailValidator,
+                        validator: (value) {
+                          return Validators.requiredField(value) ??
+                              Validators.emailValidator(value);
+                        },
                         prefixIcon: Icons.email,
                         textInputAction: TextInputAction.next,
                         onFieldSubmitted: (_) {

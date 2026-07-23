@@ -2,7 +2,7 @@ class Validators {
   // Email validation
   static String? emailValidator(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Email is required';
+      return null;
     }
 
     // Regular expression for email validation
@@ -69,7 +69,7 @@ class Validators {
   // Phone validation (Philippines format)
   static String? phoneValidator(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Phone number is required';
+      return null;
     }
 
     if (!RegExp(r'^(\+63|0)9\d{9}$').hasMatch(normalizePhoneNumber(value))) {

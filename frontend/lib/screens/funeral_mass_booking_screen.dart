@@ -290,8 +290,14 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                       contactPersonLabel: "Family Representative Name *",
                       emailController: _emailController,
                       phoneController: _phoneController,
-                      emailValidator: Validators.emailValidator,
-                      phoneValidator: Validators.phoneValidator,
+                      emailValidator: (value) {
+                        return Validators.requiredField(value) ??
+                            Validators.emailValidator(value);
+                      },
+                      phoneValidator: (value) {
+                        return Validators.requiredField(value) ??
+                            Validators.phoneValidator(value);
+                      },
                     ),
 
                     // Booking Preferences

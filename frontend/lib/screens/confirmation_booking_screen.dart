@@ -454,8 +454,14 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
                     ContactInformationSection(
                       emailController: _contactEmailController,
                       phoneController: _contactPhoneController,
-                      emailValidator: Validators.emailValidator,
-                      phoneValidator: Validators.phoneValidator,
+                      emailValidator: (value) {
+                        return Validators.requiredField(value) ??
+                            Validators.emailValidator(value);
+                      },
+                      phoneValidator: (value) {
+                        return Validators.requiredField(value) ??
+                            Validators.phoneValidator(value);
+                      },
                     ),
 
                     // Booking Preferences
