@@ -126,7 +126,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         icon: Icons.calendar_today,
         color: Colors.blue,
         onTap: () {
-          Navigator.pushNamed(context, '/admin-bookings');
+          Navigator.pushReplacementNamed(context, '/admin-bookings');
         },
       ),
       _buildStatCard(
@@ -135,7 +135,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         icon: Icons.pending,
         color: Colors.orange,
         onTap: () {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => const AdminBookingsScreen(
@@ -151,7 +151,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         icon: Icons.check_circle,
         color: Colors.green,
         onTap: () {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => const AdminBookingsScreen(
@@ -167,7 +167,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         icon: Icons.church,
         color: Colors.purple,
         onTap: () {
-          Navigator.pushNamed(context, '/admin-parishes');
+          Navigator.pushReplacementNamed(context, '/admin-parishes');
         },
       ),
       if (isDioceseLevel)
@@ -177,7 +177,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           icon: Icons.people,
           color: Colors.teal,
           onTap: () {
-            Navigator.pushNamed(context, '/admin-users');
+            Navigator.pushReplacementNamed(context, '/admin-users');
           },
         ),
       _buildStatCard(
@@ -186,7 +186,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         icon: Icons.today,
         color: Colors.indigo,
         onTap: () {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => const AdminBookingsScreen(
