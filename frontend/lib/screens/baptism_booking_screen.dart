@@ -71,6 +71,8 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
           Provider.of<PriestProvider>(context, listen: false);
 
       parishProvider.clearSelection();
+      _populateContactInfo(authProvider);
+
       await parishProvider.loadParishesByService(
         'baptism',
         token: authProvider.token,
@@ -91,6 +93,17 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
         }
       }
     });
+  }
+
+  void _populateContactInfo(AuthProvider authProvider) {
+    final user = authProvider.currentUser;
+    if (user == null) return;
+
+    _contactEmailController.text = user.email;
+
+    if (user.phone != null) {
+      _contactPhoneController.text = user.phone!;
+    }
   }
 
   Future<void> _pickBirthCertificateFile() async {

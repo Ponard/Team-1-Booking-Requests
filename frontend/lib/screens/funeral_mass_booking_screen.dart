@@ -59,14 +59,7 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
           Provider.of<PriestProvider>(context, listen: false);
 
       parishProvider.clearSelection();
-
-      // Set default contact email and person to current user's info
-      if (authProvider.currentUser?.email != null) {
-        _emailController.text = authProvider.currentUser!.email;
-      }
-      if (authProvider.currentUser?.fullName != null) {
-        _contactPersonController.text = authProvider.currentUser!.fullName;
-      }
+      _populateContactInfo(authProvider);
 
       await parishProvider.loadParishesByService(
         'funeral_mass',
@@ -88,6 +81,18 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
         }
       }
     });
+  }
+
+  void _populateContactInfo(AuthProvider authProvider) {
+    final user = authProvider.currentUser;
+    if (user == null) return;
+
+    _emailController.text = user.email;
+    _contactPersonController.text = user.fullName;
+
+    if (user.phone != null) {
+      _phoneController.text = user.phone!;
+    }
   }
 
   @override

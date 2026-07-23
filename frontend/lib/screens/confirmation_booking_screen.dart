@@ -73,6 +73,8 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
           Provider.of<PriestProvider>(context, listen: false);
 
       parishProvider.clearSelection();
+      _populateContactInfo(authProvider);
+
       await parishProvider.loadParishesByService(
         'confirmation',
         token: authProvider.token,
@@ -93,6 +95,17 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
         }
       }
     });
+  }
+
+  void _populateContactInfo(AuthProvider authProvider) {
+    final user = authProvider.currentUser;
+    if (user == null) return;
+
+    _contactEmailController.text = user.email;
+
+    if (user.phone != null) {
+      _contactPhoneController.text = user.phone!;
+    }
   }
 
   @override

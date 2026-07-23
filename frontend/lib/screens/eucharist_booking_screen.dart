@@ -70,11 +70,7 @@ class _EucharistScreenState extends State<EucharistScreen> {
           Provider.of<PriestProvider>(context, listen: false);
 
       parishProvider.clearSelection();
-
-      // Set default contact email to current user's email
-      if (authProvider.currentUser?.email != null) {
-        _contactEmailController.text = authProvider.currentUser!.email;
-      }
+      _populateContactInfo(authProvider);
 
       await parishProvider.loadParishesByService(
         'eucharist',
@@ -96,6 +92,17 @@ class _EucharistScreenState extends State<EucharistScreen> {
         }
       }
     });
+  }
+
+  void _populateContactInfo(AuthProvider authProvider) {
+    final user = authProvider.currentUser;
+    if (user == null) return;
+
+    _contactEmailController.text = user.email;
+
+    if (user.phone != null) {
+      _contactPhoneController.text = user.phone!;
+    }
   }
 
   @override
