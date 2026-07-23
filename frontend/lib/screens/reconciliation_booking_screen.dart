@@ -50,11 +50,7 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
       parishProvider.clearSelection();
-
-      // Default contact email to current user's email if available
-      if (authProvider.currentUser?.email != null) {
-        _contactEmailController.text = authProvider.currentUser!.email;
-      }
+      _populateContactInfo(authProvider);
 
       await parishProvider.loadParishesByService(
         'reconciliation',
@@ -74,6 +70,17 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
         }
       }
     });
+  }
+
+  void _populateContactInfo(AuthProvider authProvider) {
+    final user = authProvider.currentUser;
+    if (user == null) return;
+
+    _contactEmailController.text = user.email;
+
+    if (user.phone != null) {
+      _contactPhoneController.text = user.phone!;
+    }
   }
 
   @override

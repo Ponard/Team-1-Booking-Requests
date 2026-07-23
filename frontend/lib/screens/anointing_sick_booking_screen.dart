@@ -59,14 +59,7 @@ class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
           Provider.of<PriestProvider>(context, listen: false);
 
       parishProvider.clearSelection();
-
-      // Set default contact email and person to current user's info
-      if (authProvider.currentUser?.email != null) {
-        _contactEmailController.text = authProvider.currentUser!.email;
-      }
-      if (authProvider.currentUser?.fullName != null) {
-        _contactPersonController.text = authProvider.currentUser!.fullName;
-      }
+      _populateContactInfo(authProvider);
 
       await parishProvider.loadParishesByService(
         'anointing_sick',
@@ -88,6 +81,18 @@ class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
         }
       }
     });
+  }
+
+  void _populateContactInfo(AuthProvider authProvider) {
+    final user = authProvider.currentUser;
+    if (user == null) return;
+
+    _contactEmailController.text = user.email;
+    _contactPersonController.text = user.fullName;
+
+    if (user.phone != null) {
+      _contactPhoneController.text = user.phone!;
+    }
   }
 
   @override
