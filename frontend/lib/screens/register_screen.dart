@@ -137,7 +137,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     hintText: 'Enter your email',
                     prefixIcon: Icons.email,
                     keyboardType: TextInputType.emailAddress,
-                    validator: Validators.emailValidator,
+                    validator: (value) {
+                      return Validators.requiredField(value) ??
+                          Validators.emailValidator(value);
+                    },
                   ),
                   //updated this enter your password - s vitug
                   const SizedBox(height: 16),
