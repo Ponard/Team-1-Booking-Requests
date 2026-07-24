@@ -271,7 +271,7 @@ class MassIntentionService {
         return ApiResponse<MassIntention>(
           success: false,
           message: errorData['message'] ??
-              errorData['error'] ??
+              errorData['message'] ??
               'Failed to update mass intention status',
           statusCode: response.statusCode,
         );

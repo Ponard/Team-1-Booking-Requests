@@ -133,7 +133,7 @@ exports.createBaptismBooking = async (req, res) => {
 
     if (!phoneValidation.valid) {
       return res.status(400).json({
-        error: phoneValidation.error,
+        message: phoneValidation.error,
         field: 'contactPhone',
       });
     }
@@ -141,20 +141,20 @@ exports.createBaptismBooking = async (req, res) => {
     // Validate parish exists
     const parish = await Parish.findByPk(parishId);
     if (!parish) {
-      return res.status(404).json({ error: 'Parish not found' });
+      return res.status(404).json({ message: 'Parish not found' });
     }
 
     // Check if parish is active
     if (!parish.isActive) {
       return res.status(400).json({
-        error: 'Selected parish is inactive.',
+        message: 'Selected parish is inactive.',
       });
     }
 
     // Check if parish offers service
     if (!parish.servicesOffered?.includes('baptism')) {
       return res.status(400).json({
-        error: 'The selected parish does not offer baptisms.',
+        message: 'The selected parish does not offer baptisms.',
       });
     }
 
@@ -162,7 +162,7 @@ exports.createBaptismBooking = async (req, res) => {
 
     if (!dateValidation.valid) {
       return res.status(400).json({
-        error: dateValidation.error,
+        message: dateValidation.error,
         field: 'preferredDate',
       });
     }
@@ -170,19 +170,19 @@ exports.createBaptismBooking = async (req, res) => {
     // Check booking window
     const windowCheck = await checkBookingWindow(parishId, 'baptism', preferredDate);
     if (!windowCheck.valid) {
-      return res.status(400).json({ error: windowCheck.error });
+      return res.status(400).json({ message: windowCheck.error });
     }
 
     // Check blackout dates
     const blackoutCheck = await checkBlackoutDates(parishId, 'baptism', preferredDate);
     if (!blackoutCheck.available) {
-      return res.status(400).json({ error: blackoutCheck.reason });
+      return res.status(400).json({ message: blackoutCheck.reason });
     }
 
     // Check daily limit
     const limitCheck = await checkDailyLimit(parishId, 'baptism', preferredDate);
     if (!limitCheck.withinLimit) {
-      return res.status(400).json({ error: limitCheck.error });
+      return res.status(400).json({ message: limitCheck.error });
     }
 
     // Convert notes array to JSONB, or handle legacy additionalNotes
@@ -301,7 +301,7 @@ exports.createBaptismBooking = async (req, res) => {
     console.error('Error creating baptism booking:', error);
     console.error('Request body:', req.body);
     console.error('User:', req.user);
-    res.status(500).json({ error: 'Failed to create baptism booking', details: error.message });
+    res.status(500).json({ message: 'Failed to create baptism booking', details: error.message });
   }
 };
 
@@ -361,7 +361,7 @@ exports.getBaptismBookings = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching baptism bookings:', error);
-    res.status(500).json({ error: 'Failed to fetch baptism bookings' });
+    res.status(500).json({ message: 'Failed to fetch baptism bookings' });
   }
 };
 
@@ -389,7 +389,7 @@ exports.getBaptismBooking = async (req, res) => {
     });
 
     if (!booking) {
-      return res.status(404).json({ error: 'Booking not found' });
+      return res.status(404).json({ message: 'Booking not found' });
     }
 
     console.log('Booking found:', booking.id);
@@ -411,7 +411,7 @@ exports.getBaptismBooking = async (req, res) => {
   } catch (error) {
     console.error('Error fetching baptism booking:', error);
     console.error('Stack trace:', error.stack);
-    res.status(500).json({ error: 'Failed to fetch baptism booking' });
+    res.status(500).json({ message: 'Failed to fetch baptism booking' });
   }
 };
 
@@ -429,7 +429,7 @@ exports.updateBaptismBooking = async (req, res) => {
     const booking = await BaptismBooking.findByPk(id);
     if (!booking) {
       console.log('Booking not found with ID:', id);
-      return res.status(404).json({ error: 'Booking not found' });
+      return res.status(404).json({ message: 'Booking not found' });
     }
 
     // Check permissions
@@ -443,7 +443,7 @@ exports.updateBaptismBooking = async (req, res) => {
 
     if (!isOwner && !isAdmin) {
       console.log('Not authorized - user does not own booking and is not admin');
-      return res.status(403).json({ error: 'Not authorized to update this booking' });
+      return res.status(403).json({ message: 'Not authorized to update this booking' });
     }
 
     // Admins can update status, users can only update notes and resubmit after decline
@@ -484,7 +484,7 @@ exports.updateBaptismBooking = async (req, res) => {
   } catch (error) {
     console.error('Error updating baptism booking:', error);
     console.error('Stack trace:', error.stack);
-    res.status(500).json({ error: 'Failed to update baptism booking', details: error.message });
+    res.status(500).json({ message: 'Failed to update baptism booking', details: error.message });
   }
 };
 
@@ -495,12 +495,12 @@ exports.approveBaptismBooking = async (req, res) => {
     const { status, notes: adminNotes } = req.body;
 
     if (!['approved', 'declined', 'completed'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid status. Must be "approved", "declined", or "completed"' });
+      return res.status(400).json({ message: 'Invalid status. Must be "approved", "declined", or "completed"' });
     }
 
     const booking = await BaptismBooking.findByPk(id);
     if (!booking) {
-      return res.status(404).json({ error: 'Booking not found' });
+      return res.status(404).json({ message: 'Booking not found' });
     }
 
     // Prepare update data
@@ -572,7 +572,7 @@ exports.approveBaptismBooking = async (req, res) => {
     });
   } catch (error) {
     console.error('Error approving baptism booking:', error);
-    res.status(500).json({ error: 'Failed to process approval' });
+    res.status(500).json({ message: 'Failed to process approval' });
   }
 };
 
@@ -583,7 +583,7 @@ exports.deleteBaptismBooking = async (req, res) => {
 
     const booking = await BaptismBooking.findByPk(id);
     if (!booking) {
-      return res.status(404).json({ error: 'Booking not found' });
+      return res.status(404).json({ message: 'Booking not found' });
     }
 
     // Check permissions
@@ -593,7 +593,7 @@ exports.deleteBaptismBooking = async (req, res) => {
     );
 
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ error: 'Not authorized to delete this booking' });
+      return res.status(403).json({ message: 'Not authorized to delete this booking' });
     }
 
     // Soft delete by setting status to cancelled
@@ -602,7 +602,7 @@ exports.deleteBaptismBooking = async (req, res) => {
     res.json({ message: 'Baptism booking cancelled successfully' });
   } catch (error) {
     console.error('Error deleting baptism booking:', error);
-    res.status(500).json({ error: 'Failed to delete baptism booking' });
+    res.status(500).json({ message: 'Failed to delete baptism booking' });
   }
 };
 
@@ -615,7 +615,7 @@ exports.attachDocument = async (req, res) => {
     // Validate booking exists
     const booking = await BaptismBooking.findByPk(id);
     if (!booking) {
-      return res.status(404).json({ error: 'Booking not found' });
+      return res.status(404).json({ message: 'Booking not found' });
     }
 
     // Check permissions - only owner or admin can add documents
@@ -625,7 +625,7 @@ exports.attachDocument = async (req, res) => {
     );
 
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ error: 'Not authorized to add documents to this booking' });
+      return res.status(403).json({ message: 'Not authorized to add documents to this booking' });
     }
 
     // Handle file upload if present
@@ -697,7 +697,7 @@ exports.attachDocument = async (req, res) => {
       });
     }
 
-    return res.status(400).json({ error: 'No file provided' });
+    return res.status(400).json({ message: 'No file provided' });
   } catch (error) {
     console.error('Error attaching document to baptism booking:', error);
     // Clean up uploaded file if there was an error
@@ -708,7 +708,7 @@ exports.attachDocument = async (req, res) => {
         // Ignore cleanup errors
       }
     }
-    res.status(500).json({ error: 'Failed to attach document', details: error.message });
+    res.status(500).json({ message: 'Failed to attach document', details: error.message });
   }
 };
 
@@ -718,7 +718,7 @@ exports.getAvailableTimeSlots = async (req, res) => {
     const { parishId, date } = req.query;
 
     if (!parishId || !date) {
-      return res.status(400).json({ error: 'Parish IDand date are required' });
+      return res.status(400).json({ message: 'Parish IDand date are required' });
     }
 
     // Get slot settings
@@ -773,7 +773,7 @@ exports.getAvailableTimeSlots = async (req, res) => {
     res.json({ timeSlots: availableSlots });
   } catch (error) {
     console.error('Error fetching time slots:', error);
-    res.status(500).json({ error: 'Failed to fetch available time slots' });
+    res.status(500).json({ message: 'Failed to fetch available time slots' });
   }
 };
 
@@ -791,7 +791,7 @@ exports.deleteDocument = async (req, res) => {
     const booking = await BaptismBooking.findByPk(bookingId);
     if (!booking) {
       console.log('Booking not found for ID:', bookingId);
-      return res.status(404).json({ error: 'Booking not found' });
+      return res.status(404).json({ message: 'Booking not found' });
     }
     console.log('Booking found:', booking.id, 'User ID:', booking.userId);
 
@@ -800,7 +800,7 @@ exports.deleteDocument = async (req, res) => {
     const isAdmin = ['parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin'].includes(req.user.role);
     console.log('Permission check - Is Owner:', isOwner, 'Is Admin:', isAdmin);
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ error: 'Not authorized to delete documents' });
+      return res.status(403).json({ message: 'Not authorized to delete documents' });
     }
 
     // Find the document
@@ -814,7 +814,7 @@ exports.deleteDocument = async (req, res) => {
       // Try to find any documents for this booking to help debug
       const allDocs = await BookingDocument.findAll({ where: { bookingId: parseInt(bookingId), bookingType: 'baptism' } });
       console.log('All documents for this booking:', allDocs.length);
-      return res.status(404).json({ error: 'Document not found' });
+      return res.status(404).json({ message: 'Document not found' });
     }
     console.log('Document found:', document.id, 'fileName:', document.fileName, 'filePath:', document.filePath);
 
@@ -838,6 +838,6 @@ exports.deleteDocument = async (req, res) => {
   } catch (error) {
     console.error('Error deleting document:', error);
     console.error('Stack trace:', error.stack);
-    res.status(500).json({ error: 'Failed to delete document', details: error.message });
+    res.status(500).json({ message: 'Failed to delete document', details: error.message });
   }
 };

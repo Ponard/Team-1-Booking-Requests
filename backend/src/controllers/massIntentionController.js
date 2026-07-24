@@ -14,7 +14,7 @@ exports.attachDocument = async (req, res, next) => {
     const booking = await useCase.execute(id, req.user);
 
     if (!booking) {
-      return res.status(404).json({ error: 'Mass intention not found' });
+      return res.status(404).json({ message: 'Mass intention not found' });
     }
 
     // Check permissions - only owner or admin can add documents
@@ -24,13 +24,13 @@ exports.attachDocument = async (req, res, next) => {
     );
 
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ error: 'Not authorized to add documents to this mass intention' });
+      return res.status(403).json({ message: 'Not authorized to add documents to this mass intention' });
     }
 
     // Handle file upload if present
     if (req.file) {
       const fileService = require('../services/fileService');
-      
+
       // Save file to permanent location
       const fileData = await fileService.saveFile(
         req.file,
@@ -93,7 +93,7 @@ exports.attachDocument = async (req, res, next) => {
       });
     }
 
-    return res.status(400).json({ error: 'No file provided' });
+    return res.status(400).json({ message: 'No file provided' });
   } catch (error) {
     console.error('Error attaching document to mass intention:', error);
     // Clean up uploaded file if there was an error
@@ -104,7 +104,7 @@ exports.attachDocument = async (req, res, next) => {
         // Ignore cleanup errors
       }
     }
-    res.status(500).json({ error: 'Failed to attach document', details: error.message });
+    res.status(500).json({ message: 'Failed to attach document', details: error.message });
   }
 };
 
@@ -116,7 +116,7 @@ exports.createMassIntention = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'Validation failed',
+        message: 'Validation failed',
         details: errors.array()
       });
     }
@@ -124,7 +124,7 @@ exports.createMassIntention = async (req, res, next) => {
     // Fetch full user object for email
     const user = await User.findByPk(req.user.userId);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
 
     // Create DTO from request
@@ -185,7 +185,7 @@ exports.updateMassIntention = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'Validation failed',
+        message: 'Validation failed',
         details: errors.array()
       });
     }
@@ -225,7 +225,7 @@ exports.updateMassIntentionStatus = async (req, res, next) => {
     const { status } = req.body;
 
     if (!status || !['pending', 'approved', 'declined', 'completed'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid status value' });
+      return res.status(400).json({ message: 'Invalid status value' });
     }
 
     console.log(`[updateMassIntentionStatus] ID: ${id}, Status: ${status}, User: ${req.user.userId}`);

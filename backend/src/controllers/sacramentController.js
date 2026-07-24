@@ -163,7 +163,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
   try {
     const config = SACRAMENT_CONFIG[sacramentType];
     if (!config) {
-      return res.status(400).json({ error: 'Invalid sacrament type' });
+      return res.status(400).json({ message: 'Invalid sacrament type' });
     }
 
     const {
@@ -187,7 +187,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
 
     if (!phoneValidation.valid) {
       return res.status(400).json({
-        error: phoneValidation.error,
+        message: phoneValidation.error,
         field: 'contactPhone',
       });
     }
@@ -195,20 +195,20 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
     // Validate parish exists
     const parish = await Parish.findByPk(parishId);
     if (!parish) {
-      return res.status(404).json({ error: 'Parish not found' });
+      return res.status(404).json({ message: 'Parish not found' });
     }
 
     // Check if parish is active
     if (!parish.isActive) {
       return res.status(400).json({
-        error: 'Selected parish is inactive.',
+        message: 'Selected parish is inactive.',
       });
     }
 
     // Check if parish offers service
     if (!parish.servicesOffered?.includes(sacramentType)) {
       return res.status(400).json({
-        error: `The selected parish does not offer ${config.serviceName.toLowerCase()}.`,
+        message: `The selected parish does not offer ${config.serviceName.toLowerCase()}.`,
       });
     }
 
@@ -216,7 +216,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
 
     if (!dateValidation.valid) {
       return res.status(400).json({
-        error: dateValidation.error,
+        message: dateValidation.error,
         field: 'preferredDate',
       });
     }
@@ -225,7 +225,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
     const windowCheck = await checkBookingWindow(parishId, sacramentType, preferredDate);
     if (!windowCheck.valid) {
       return res.status(400).json({
-        error: windowCheck.error,
+        message: windowCheck.error,
         code: 'BOOKING_WINDOW_ERROR',
         suggestion: `Please select a date between ${windowCheck.minDateStr} and ${windowCheck.maxDateStr}`
       });
@@ -235,7 +235,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
     const blackoutCheck = await checkBlackoutDates(parishId, sacramentType, preferredDate);
     if (!blackoutCheck.available) {
       return res.status(400).json({
-        error: blackoutCheck.reason,
+        message: blackoutCheck.reason,
         code: 'BLACKOUT_DATE',
         suggestion: 'Please select a different date or contact the parish directly'
       });
@@ -245,7 +245,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
     const limitCheck = await checkDailyLimit(parishId, sacramentType, preferredDate, config.model);
     if (!limitCheck.withinLimit) {
       return res.status(400).json({
-        error: limitCheck.error,
+        message: limitCheck.error,
         code: 'DAILY_LIMIT_REACHED',
         suggestion: `Only ${limitCheck.remaining} slot(s) available on this date. Please try a different date.`
       });
@@ -257,7 +257,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
     // Validate contact fields if provided (now accepts phone OR email)
     if (bookingData.contactPhone && bookingData.contactPhone.length > 255) {
       return res.status(400).json({
-        error: 'Contact must not exceed 255 characters',
+        message: 'Contact must not exceed 255 characters',
         field: 'contactPhone'
       });
     }
@@ -405,7 +405,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
     res.status(201).json(responseBody);
   } catch (error) {
     console.error(`Error creating ${sacramentType} booking:`, error);
-    res.status(500).json({ error: `Failed to create ${sacramentType} booking` });
+    res.status(500).json({ message: `Failed to create ${sacramentType} booking` });
   }
 };
 
@@ -414,7 +414,7 @@ exports.getSacramentBookings = (sacramentType) => async (req, res) => {
   try {
     const config = SACRAMENT_CONFIG[sacramentType];
     if (!config) {
-      return res.status(400).json({ error: 'Invalid sacrament type' });
+      return res.status(400).json({ message: 'Invalid sacrament type' });
     }
 
     const { page = 1, limit = 10, status, parishId, startDate, endDate } = req.query;
@@ -476,7 +476,7 @@ exports.getSacramentBookings = (sacramentType) => async (req, res) => {
     });
   } catch (error) {
     console.error(`Error fetching ${sacramentType} bookings:`, error);
-    res.status(500).json({ error: `Failed to fetch ${sacramentType} bookings` });
+    res.status(500).json({ message: `Failed to fetch ${sacramentType} bookings` });
   }
 };
 
@@ -485,7 +485,7 @@ exports.getSacramentBooking = (sacramentType) => async (req, res) => {
   try {
     const config = SACRAMENT_CONFIG[sacramentType];
     if (!config) {
-      return res.status(400).json({ error: 'Invalid sacrament type' });
+      return res.status(400).json({ message: 'Invalid sacrament type' });
     }
 
     const { id } = req.params;
@@ -505,13 +505,13 @@ exports.getSacramentBooking = (sacramentType) => async (req, res) => {
     });
 
     if (!booking) {
-      return res.status(404).json({ error: 'Booking not found' });
+      return res.status(404).json({ message: 'Booking not found' });
     }
 
     res.json({ booking });
   } catch (error) {
     console.error(`Error fetching ${sacramentType} booking:`, error);
-    res.status(500).json({ error: `Failed to fetch ${sacramentType} booking` });
+    res.status(500).json({ message: `Failed to fetch ${sacramentType} booking` });
   }
 };
 
@@ -520,7 +520,7 @@ exports.updateSacramentBooking = (sacramentType) => async (req, res) => {
   try {
     const config = SACRAMENT_CONFIG[sacramentType];
     if (!config) {
-      return res.status(400).json({ error: 'Invalid sacrament type' });
+      return res.status(400).json({ message: 'Invalid sacrament type' });
     }
 
     const { id } = req.params;
@@ -528,7 +528,7 @@ exports.updateSacramentBooking = (sacramentType) => async (req, res) => {
 
     const booking = await config.model.findByPk(id);
     if (!booking) {
-      return res.status(404).json({ error: 'Booking not found' });
+      return res.status(404).json({ message: 'Booking not found' });
     }
 
     // Check permissions
@@ -538,7 +538,7 @@ exports.updateSacramentBooking = (sacramentType) => async (req, res) => {
     );
 
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ error: 'Not authorized to update this booking' });
+      return res.status(403).json({ message: 'Not authorized to update this booking' });
     }
 
     // Admins can update status, users can only update notes and resubmit after decline
@@ -572,7 +572,7 @@ exports.updateSacramentBooking = (sacramentType) => async (req, res) => {
     });
   } catch (error) {
     console.error(`Error updating ${sacramentType} booking:`, error);
-    res.status(500).json({ error: `Failed to update ${sacramentType} booking` });
+    res.status(500).json({ message: `Failed to update ${sacramentType} booking` });
   }
 };
 
@@ -581,19 +581,19 @@ exports.approveSacramentBooking = (sacramentType) => async (req, res) => {
   try {
     const config = SACRAMENT_CONFIG[sacramentType];
     if (!config) {
-      return res.status(400).json({ error: 'Invalid sacrament type' });
+      return res.status(400).json({ message: 'Invalid sacrament type' });
     }
 
     const { id } = req.params;
     const { status, notes: adminNotes } = req.body;
 
     if (!['approved', 'declined', 'completed'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid status. Must be "approved", "declined", or "completed"' });
+      return res.status(400).json({ message: 'Invalid status. Must be "approved", "declined", or "completed"' });
     }
 
     const booking = await config.model.findByPk(id);
     if (!booking) {
-      return res.status(404).json({ error: 'Booking not found' });
+      return res.status(404).json({ message: 'Booking not found' });
     }
 
     // Prepare update data
@@ -679,7 +679,7 @@ exports.approveSacramentBooking = (sacramentType) => async (req, res) => {
     });
   } catch (error) {
     console.error(`Error approving ${sacramentType} booking:`, error);
-    res.status(500).json({ error: 'Failed to process approval' });
+    res.status(500).json({ message: 'Failed to process approval' });
   }
 };
 
@@ -688,14 +688,14 @@ exports.deleteSacramentBooking = (sacramentType) => async (req, res) => {
   try {
     const config = SACRAMENT_CONFIG[sacramentType];
     if (!config) {
-      return res.status(400).json({ error: 'Invalid sacrament type' });
+      return res.status(400).json({ message: 'Invalid sacrament type' });
     }
 
     const { id } = req.params;
 
     const booking = await config.model.findByPk(id);
     if (!booking) {
-      return res.status(404).json({ error: 'Booking not found' });
+      return res.status(404).json({ message: 'Booking not found' });
     }
 
     // Check permissions
@@ -705,7 +705,7 @@ exports.deleteSacramentBooking = (sacramentType) => async (req, res) => {
     );
 
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ error: 'Not authorized to delete this booking' });
+      return res.status(403).json({ message: 'Not authorized to delete this booking' });
     }
 
     // Soft delete by setting status to cancelled
@@ -714,7 +714,7 @@ exports.deleteSacramentBooking = (sacramentType) => async (req, res) => {
     res.json({ message: `${config.serviceName} booking cancelled successfully` });
   } catch (error) {
     console.error(`Error deleting ${sacramentType} booking:`, error);
-    res.status(500).json({ error: `Failed to delete ${sacramentType} booking` });
+    res.status(500).json({ message: `Failed to delete ${sacramentType} booking` });
   }
 };
 
@@ -723,7 +723,7 @@ exports.attachDocument = (sacramentType) => async (req, res) => {
   try {
     const config = SACRAMENT_CONFIG[sacramentType];
     if (!config) {
-      return res.status(400).json({ error: 'Invalid sacrament type' });
+      return res.status(400).json({ message: 'Invalid sacrament type' });
     }
 
     const { id } = req.params;
@@ -732,7 +732,7 @@ exports.attachDocument = (sacramentType) => async (req, res) => {
     // Validate booking exists
     const booking = await config.model.findByPk(id);
     if (!booking) {
-      return res.status(404).json({ error: 'Booking not found' });
+      return res.status(404).json({ message: 'Booking not found' });
     }
 
     // Check permissions - only owner or admin can add documents
@@ -742,7 +742,7 @@ exports.attachDocument = (sacramentType) => async (req, res) => {
     );
 
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ error: 'Not authorized to add documents to this booking' });
+      return res.status(403).json({ message: 'Not authorized to add documents to this booking' });
     }
 
     // Handle file upload if present
@@ -811,7 +811,7 @@ exports.attachDocument = (sacramentType) => async (req, res) => {
       });
     }
 
-    return res.status(400).json({ error: 'No file provided' });
+    return res.status(400).json({ message: 'No file provided' });
   } catch (error) {
     console.error(`Error attaching document to ${sacramentType} booking:`, error);
     // Clean up uploaded file if there was an error
@@ -822,7 +822,7 @@ exports.attachDocument = (sacramentType) => async (req, res) => {
         // Ignore cleanup errors
       }
     }
-    res.status(500).json({ error: 'Failed to attach document', details: error.message });
+    res.status(500).json({ message: 'Failed to attach document', details: error.message });
   }
 };
 
@@ -831,7 +831,7 @@ exports.deleteDocument = (sacramentType) => async (req, res) => {
   try {
     const config = SACRAMENT_CONFIG[sacramentType];
     if (!config) {
-      return res.status(400).json({ error: 'Invalid sacrament type' });
+      return res.status(400).json({ message: 'Invalid sacrament type' });
     }
 
     const { bookingId, documentId } = req.params;
@@ -845,7 +845,7 @@ exports.deleteDocument = (sacramentType) => async (req, res) => {
     const booking = await config.model.findByPk(bookingId);
     if (!booking) {
       console.log('Booking not found for ID:', bookingId);
-      return res.status(404).json({ error: 'Booking not found' });
+      return res.status(404).json({ message: 'Booking not found' });
     }
     console.log('Booking found:', booking.id, 'User ID:', booking.userId);
 
@@ -854,7 +854,7 @@ exports.deleteDocument = (sacramentType) => async (req, res) => {
     const isAdmin = ['parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin'].includes(req.user.role);
     console.log('Permission check - Is Owner:', isOwner, 'Is Admin:', isAdmin);
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ error: 'Not authorized to delete documents' });
+      return res.status(403).json({ message: 'Not authorized to delete documents' });
     }
 
     // Find the document
@@ -868,7 +868,7 @@ exports.deleteDocument = (sacramentType) => async (req, res) => {
       // Try to find any documents for this booking to help debug
       const allDocs = await BookingDocument.findAll({ where: { bookingId: parseInt(bookingId), bookingType: sacramentType } });
       console.log('All documents for this booking:', allDocs.length);
-      return res.status(404).json({ error: 'Document not found' });
+      return res.status(404).json({ message: 'Document not found' });
     }
     console.log('Document found:', document.id, 'fileName:', document.fileName, 'filePath:', document.filePath);
 
@@ -892,7 +892,7 @@ exports.deleteDocument = (sacramentType) => async (req, res) => {
   } catch (error) {
     console.error(`Error deleting document from ${sacramentType} booking:`, error);
     console.error('Stack trace:', error.stack);
-    res.status(500).json({ error: 'Failed to delete document', details: error.message });
+    res.status(500).json({ message: 'Failed to delete document', details: error.message });
   }
 };
 
@@ -901,13 +901,13 @@ exports.getAvailableTimeSlots = (sacramentType) => async (req, res) => {
   try {
     const config = SACRAMENT_CONFIG[sacramentType];
     if (!config) {
-      return res.status(400).json({ error: 'Invalid sacrament type' });
+      return res.status(400).json({ message: 'Invalid sacrament type' });
     }
 
     const { parishId, date } = req.query;
 
     if (!parishId || !date) {
-      return res.status(400).json({ error: 'Parish ID and date are required' });
+      return res.status(400).json({ message: 'Parish ID and date are required' });
     }
 
     // Get slot settings
@@ -962,6 +962,6 @@ exports.getAvailableTimeSlots = (sacramentType) => async (req, res) => {
     res.json({ timeSlots: availableSlots });
   } catch (error) {
     console.error(`Error fetching time slots for ${sacramentType}:`, error);
-    res.status(500).json({ error: 'Failed to fetch available time slots' });
+    res.status(500).json({ message: 'Failed to fetch available time slots' });
   }
 };
