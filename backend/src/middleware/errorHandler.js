@@ -6,7 +6,7 @@ const errorHandler = (err, req, res, next) => {
     path: req.path,
     method: req.method,
   });
-  
+
   // Sequelize validation errors
   if (err.name === 'SequelizeValidationError') {
     return res.status(400).json({
@@ -18,7 +18,7 @@ const errorHandler = (err, req, res, next) => {
       })),
     });
   }
-  
+
   // Sequelize unique constraint errors
   if (err.name === 'SequelizeUniqueConstraintError') {
     const field = err.errors[0]?.path || 'field';
@@ -28,7 +28,7 @@ const errorHandler = (err, req, res, next) => {
       field: field,
     });
   }
-  
+
   // Sequelize foreign key constraint errors
   if (err.name === 'SequelizeForeignKeyConstraintError') {
     return res.status(400).json({
@@ -36,7 +36,7 @@ const errorHandler = (err, req, res, next) => {
       message: 'Referenced record does not exist',
     });
   }
-  
+
   // Multer file upload errors
   if (err.name === 'MulterError') {
     if (err.code === 'LIMIT_FILE_SIZE') {
@@ -50,10 +50,11 @@ const errorHandler = (err, req, res, next) => {
       message: err.message,
     });
   }
-  
+
   // Default error response
   res.status(err.status || 500).json({
-    error: err.message || 'Internal server error',
+    error: err.name,
+    message: err.message || 'Internal server error',
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 };
