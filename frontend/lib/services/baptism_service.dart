@@ -1,6 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:file_picker/file_picker.dart';
 import '../config/api_config.dart';
 import '../models/baptism_booking.dart';
@@ -314,56 +314,50 @@ class BaptismService {
     String? documentType,
   }) async {
     try {
-      final uri = Uri.parse(
-          '${ApiConfig.baseUrl}${ApiConfig.baptismsEndpoint}/$bookingId/document');
-      final request = http.MultipartRequest('POST', uri);
+      final response = await ApiConfig.sendMultipartWithAuth(
+        endpoint: '${ApiConfig.baptismsEndpoint}/$bookingId/document',
+        fileField: 'document',
+        file: file,
+        additionalFields: {
+          if (documentType != null) 'documentType': documentType,
+        },
+      );
 
-      if (kIsWeb) {
-        if (file.bytes == null) {
-          throw Exception('File bytes are null on web platform');
-        }
-        request.files.add(http.MultipartFile.fromBytes(
-          'document',
-          file.bytes!,
-          filename: file.name,
-        ));
-      } else {
-        if (file.path == null) {
-          throw Exception('File path is null on mobile platform');
-        }
-        request.files
-            .add(await http.MultipartFile.fromPath('document', file.path!));
-      }
-
-      if (documentType != null) {
-        request.fields['documentType'] = documentType;
-      }
-
-      request.headers.addAll(ApiConfig.getAuthHeaders(token));
-
-      final streamedResponse =
-          await request.send().timeout(const Duration(seconds: 60));
-      final response = await http.Response.fromStream(streamedResponse);
-
-      // print('Attach doc response: ${response.statusCode} - ${response.body}');
+      final Map<String, dynamic> data =
+          response.body.isNotEmpty ? json.decode(response.body) : {};
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = json.decode(response.body);
         return ApiResponse<Map<String, dynamic>>(
           success: true,
           data: data['document'] ?? data,
           message: data['message'],
         );
-      } else {
-        final errorData = json.decode(response.body);
-        return ApiResponse<Map<String, dynamic>>(
-          success: false,
-          message: errorData['message'] ?? 'Failed to attach document',
-          statusCode: response.statusCode,
-        );
       }
+
+      return ApiResponse<Map<String, dynamic>>(
+        success: false,
+        message: data['message'] ?? 'Failed to attach document',
+        statusCode: response.statusCode,
+      );
+    } on http.ClientException catch (e) {
+      return ApiResponse<Map<String, dynamic>>(
+        success: false,
+        message: 'Connection error. Please check your internet connection.',
+        errors: [e.toString()],
+      );
+    } on HttpException catch (e) {
+      return ApiResponse<Map<String, dynamic>>(
+        success: false,
+        message: e.message,
+        errors: [e.toString()],
+      );
+    } on FormatException catch (e) {
+      return ApiResponse<Map<String, dynamic>>(
+        success: false,
+        message: 'Server response error. Please try again.',
+        errors: [e.toString()],
+      );
     } catch (e) {
-      // print('Error attaching document: $e');
       return ApiResponse<Map<String, dynamic>>(
         success: false,
         message: 'Network error attaching document: $e',

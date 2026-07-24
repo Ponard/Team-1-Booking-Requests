@@ -280,8 +280,9 @@ class ApiConfig {
   }
 
   static Future<http.Response> sendMultipartWithAuth({
+    required String endpoint,
+    required String fileField,
     required PlatformFile file,
-    String? category,
     Map<String, String>? additionalFields,
     bool retried = false,
   }) async {
@@ -293,7 +294,7 @@ class ApiConfig {
 
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse('$baseUrl${ApiConfig.filesEndpoint}/upload'),
+      Uri.parse('$baseUrl$endpoint'),
     );
 
     if (kIsWeb) {
@@ -303,7 +304,7 @@ class ApiConfig {
 
       request.files.add(
         http.MultipartFile.fromBytes(
-          'file',
+          fileField,
           file.bytes!,
           filename: file.name,
         ),
@@ -314,14 +315,13 @@ class ApiConfig {
       }
 
       request.files.add(
-        await http.MultipartFile.fromPath('file', file.path!),
+        await http.MultipartFile.fromPath(fileField, file.path!),
       );
     }
 
-    request.fields.addAll({
-      'category': category ?? 'general',
-      ...?additionalFields,
-    });
+    request.fields.addAll(
+      additionalFields ?? {},
+    );
 
     request.headers['Authorization'] = 'Bearer $token';
 
@@ -341,8 +341,9 @@ class ApiConfig {
 
       if (newToken != null) {
         return sendMultipartWithAuth(
+          endpoint: endpoint,
           file: file,
-          category: category,
+          fileField: fileField,
           additionalFields: additionalFields,
           retried: true,
         );

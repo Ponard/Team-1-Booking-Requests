@@ -32,11 +32,14 @@ class FileService {
   }) async {
     try {
       final response = await ApiConfig.sendMultipartWithAuth(
+        endpoint: '${ApiConfig.filesEndpoint}/upload',
+        fileField: 'file',
         file: file,
-        category: category,
-        additionalFields: additionalFields,
+        additionalFields: {
+          'category': category ?? 'general',
+          ...?additionalFields,
+        },
       );
-
       final Map<String, dynamic> data =
           response.body.isNotEmpty ? json.decode(response.body) : {};
 
