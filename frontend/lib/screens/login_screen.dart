@@ -8,8 +8,12 @@ import '../utils/validators.dart';
 
 class LoginScreen extends StatefulWidget {
   static const routeName = '/login';
+  final bool sessionExpired;
 
-  const LoginScreen({super.key});
+  const LoginScreen({
+    super.key,
+    this.sessionExpired = false,
+  });
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -21,6 +25,36 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.sessionExpired) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            title: const Text('Session Expired'),
+            content: const Text(
+              'Your session has expired. Please sign in again.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      });
+    }
+  }
 
   @override
   void dispose() {

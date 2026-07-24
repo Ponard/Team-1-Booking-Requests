@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/config/api_config.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -50,11 +51,13 @@ import 'screens/priest_schedule_screen.dart';
 import 'config/app_constants.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
+
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   Route<T> buildRoute<T>({
     required Widget page,
@@ -78,7 +81,13 @@ class MyApp extends StatelessWidget {
       case '/':
         return MaterialPageRoute(builder: (_) => const SplashScreen());
       case '/login':
-        return MaterialPageRoute(builder: (_) => const LoginScreen());
+        final args = settings.arguments as Map<String, dynamic>?;
+
+        return MaterialPageRoute(
+          builder: (_) => LoginScreen(
+            sessionExpired: args?['sessionExpired'] == true,
+          ),
+        );
       case '/home':
         return buildRoute(settings: settings, page: const HomeScreen());
       case '/register':
@@ -239,7 +248,25 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AppProvider()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(
+          create: (_) {
+            final authProvider = AuthProvider();
+
+            ApiConfig.onUnauthorized = () async {
+              await authProvider.logout();
+
+              navigatorKey.currentState?.pushNamedAndRemoveUntil(
+                '/login',
+                (route) => false,
+                arguments: {
+                  'sessionExpired': true,
+                },
+              );
+            };
+
+            return authProvider;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => ParishProvider()),
         ChangeNotifierProvider(create: (_) => PriestProvider()),
         ChangeNotifierProvider(create: (_) => BaptismProvider()),
@@ -255,6 +282,7 @@ class MyApp extends StatelessWidget {
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
           return MaterialApp(
+            navigatorKey: navigatorKey,
             title: AppConstants.appName,
             theme: buildTheme(Brightness.light),
             darkTheme: buildTheme(Brightness.dark),

@@ -9,6 +9,8 @@ import 'app_constants.dart';
 
 class ApiConfig {
   static const String baseUrl = AppConstants.apiBaseUrl;
+  static Future<void> Function()? onUnauthorized;
+  static bool _handlingUnauthorized = false;
 
   // Headers
   static Map<String, String> get baseHeaders {
@@ -56,6 +58,10 @@ class ApiConfig {
   static const String healthEndpoint = '/health';
   static const String apiInfoEndpoint = '/api';
 
+  static void resetUnauthorizedHandler() {
+    _handlingUnauthorized = false;
+  }
+
   static Future<String?> _getAccessToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(AppConstants.tokenKey);
@@ -89,6 +95,11 @@ class ApiConfig {
         await prefs.remove(AppConstants.refreshTokenKey);
         await prefs.remove(AppConstants.userKey);
         await prefs.setBool(AppConstants.isLoggedInKey, false);
+
+        if (!_handlingUnauthorized) {
+          _handlingUnauthorized = true;
+          await onUnauthorized?.call();
+        }
         return null;
       }
     } catch (e) {

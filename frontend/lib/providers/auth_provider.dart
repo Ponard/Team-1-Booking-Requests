@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/config/api_config.dart';
 import 'package:flutter/foundation.dart';
 
 import '../models/user.dart';
@@ -47,6 +48,7 @@ class AuthProvider extends ChangeNotifier {
     );
 
     if (result.success && result.data != null) {
+      ApiConfig.resetUnauthorizedHandler();
       _setLoading(false);
       notifyListeners();
       return true;
@@ -98,6 +100,7 @@ class AuthProvider extends ChangeNotifier {
     final result = await _authService.signInWithGoogle();
 
     if (result.success && result.data != null) {
+      ApiConfig.resetUnauthorizedHandler();
       _setLoading(false);
       notifyListeners();
       return true;
@@ -114,6 +117,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> logout() async {
     //1. Tell the server we are logging out
     await _authService.logout();
+    ApiConfig.resetUnauthorizedHandler();
 
     //2. Erase local data
     //added this to kill the zombie state
