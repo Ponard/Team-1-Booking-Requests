@@ -11,7 +11,9 @@ class AuthProvider extends ChangeNotifier {
   String? _registerErrorMessage;
   String? _profileErrorMessage;
   String? _passwordErrorMessage;
+  bool _isInitialized = false;
 
+  bool get isInitialized => _isInitialized;
   bool get isLoading => _isLoading;
   String? get loginErrorMessage => _loginErrorMessage;
   String? get registerErrorMessage => _registerErrorMessage;
@@ -23,24 +25,27 @@ class AuthProvider extends ChangeNotifier {
   String? get accessToken => _authService.accessToken;
   bool get mustChangePassword => _authService.mustChangePassword;
 
+  late final Future<void> initialization;
+
   AuthProvider() {
-    _initializeAuth();
+    initialization = _initializeAuth();
   }
 
   Future<void> _initializeAuth() async {
     await _authService.init();
+    _isInitialized = true;
     notifyListeners();
   }
 
   Future<bool> login(String email, String password) async {
     _setLoading(true);
     _setLoginErrorMessage(null);
-    
+
     final result = await _authService.login(
       email: email,
       password: password,
     );
-    
+
     if (result.success && result.data != null) {
       _setLoading(false);
       notifyListeners();
@@ -89,9 +94,9 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> signInWithGoogle() async {
     _setLoading(true);
     _setLoginErrorMessage(null);
-    
+
     final result = await _authService.signInWithGoogle();
-    
+
     if (result.success && result.data != null) {
       _setLoading(false);
       notifyListeners();
@@ -130,14 +135,14 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     _setLoading(true);
     _setProfileErrorMessage(null);
-    
+
     final result = await _authService.updateProfile(
       firstName: firstName,
       lastName: lastName,
       phone: phone,
       address: address,
     );
-    
+
     if (result.success) {
       _setLoading(false);
       notifyListeners();
@@ -156,12 +161,12 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     _setLoading(true);
     _setPasswordErrorMessage(null);
-    
+
     final result = await _authService.changePassword(
       oldPassword: oldPassword,
       newPassword: newPassword,
     );
-    
+
     if (result.success) {
       _setLoading(false);
       notifyListeners();
@@ -180,11 +185,11 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     _setLoading(true);
     _setPasswordErrorMessage(null);
-    
+
     final result = await _authService.forcePasswordChange(
       newPassword: newPassword,
     );
-    
+
     if (result.success) {
       _setLoading(false);
       notifyListeners();
@@ -211,7 +216,6 @@ class AuthProvider extends ChangeNotifier {
     _registerErrorMessage = message;
     notifyListeners();
   }
-
 
   void _setProfileErrorMessage(String? message) {
     _profileErrorMessage = message;
@@ -243,3 +247,4 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+
