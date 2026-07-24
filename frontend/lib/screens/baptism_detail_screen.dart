@@ -1,3 +1,16 @@
+import 'package:diocese_frontend/utils/validators.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/child_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/parent_information_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -8,19 +21,6 @@ import '../providers/priest_provider.dart';
 import '../services/baptism_service.dart';
 import 'document_preview_screen.dart';
 import '../widgets/notes_display.dart';
-
-Icon _getDocumentIcon(Document doc) {
-  final filename = (doc.fileName ?? '').toLowerCase();
-  if (filename.endsWith('.pdf')) {
-    return const Icon(Icons.picture_as_pdf, color: Colors.red);
-  } else if (filename.endsWith('.jpg') ||
-      filename.endsWith('.jpeg') ||
-      filename.endsWith('.png')) {
-    return const Icon(Icons.image, color: Colors.blue);
-  } else {
-    return const Icon(Icons.insert_drive_file, color: Colors.grey);
-  }
-}
 
 class BaptismDetailScreen extends StatefulWidget {
   final int? baptismId;
@@ -37,6 +37,10 @@ class BaptismDetailScreen extends StatefulWidget {
 }
 
 class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  final _bookingFormController = BookingFormController();
+
   final BaptismService _baptismService = BaptismService();
   PlatformFile? _birthCertificateFile;
   bool _isUploading = false;
@@ -51,8 +55,11 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _fatherNameController = TextEditingController();
   final TextEditingController _motherNameController = TextEditingController();
+  final TextEditingController _godparentsController = TextEditingController();
   final TextEditingController _contactEmailController = TextEditingController();
   final TextEditingController _contactPhoneController = TextEditingController();
+  final TextEditingController _preferredParishController =
+      TextEditingController();
   final TextEditingController _preferredDateController =
       TextEditingController();
   final TextEditingController _preferredTimeController =
@@ -91,6 +98,7 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         _motherNameController.text = booking.motherName ?? '';
         _contactEmailController.text = booking.contactEmail ?? '';
         _contactPhoneController.text = booking.contactPhone ?? '';
+        _preferredParishController.text = booking.parishName ?? '';
         _preferredDateController.text =
             booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
@@ -314,39 +322,8 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
   }
 
   bool _validateForm() {
-    if (_childNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Child\'s name is required')));
-      return false;
-    }
-    if (_dobController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Date of birth is required')));
-      return false;
-    }
-    if (_fatherNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Father\'s name is required')));
-      return false;
-    }
-    if (_motherNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Mother\'s name is required')));
-      return false;
-    }
-    if (_contactPhoneController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Contact phone is required')));
-      return false;
-    }
-    if (_preferredDateController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preferred date is required')));
-      return false;
-    }
-    if (_preferredTimeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preferred time slot is required')));
+    if (!_formKey.currentState!.validate()) {
+      _bookingFormController.focusFirstInvalid();
       return false;
     }
     return true;
@@ -515,281 +492,186 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
 
     return Scaffold(
-        appBar: AppBar(
-          title: const Text("Baptism Details"),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          actions: [
-            if (_isEditMode)
-              IconButton(
-                icon: Icon(_isSaving ? Icons.edit : Icons.save),
-                tooltip: _isSaving ? 'Saving...' : 'Save changes',
-                color: _isSaving ? Colors.orange : null,
-                onPressed: _saveChanges,
-              )
-            else if (!_showStatusButtons && canEdit)
-              IconButton(
-                icon: const Icon(Icons.edit),
-                tooltip: 'Edit',
-                onPressed: _toggleEditMode,
-              )
-            else
-              const SizedBox.shrink(),
-          ],
+      appBar: AppBar(
+        title: const Text("Baptism Details"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(false),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: SingleChildScrollView(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              _buildSectionTitle('Child Information'),
-              _textField('Child\'s Full Name *', _childNameController,
-                  enabled: _isEditMode),
-              _textField('Date of Birth *', _dobController,
-                  enabled: _isEditMode,
-                  readOnly: _isEditMode,
-                  onTap: _selectDob),
+        actions: [
+          if (_isEditMode)
+            IconButton(
+              icon: Icon(_isSaving ? Icons.edit : Icons.save),
+              tooltip: _isSaving ? 'Saving...' : 'Save changes',
+              color: _isSaving ? Colors.orange : null,
+              onPressed: _saveChanges,
+            )
+          else if (!_showStatusButtons && canEdit)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Edit',
+              onPressed: _toggleEditMode,
+            )
+          else
+            const SizedBox.shrink(),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 450),
+            child: BookingFormScope(
+              controller: _bookingFormController,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ChildInformationSection(
+                      childNameController: _childNameController,
+                      dobController: _dobController,
+                      enabled: _isEditMode,
+                    ),
 
-              _buildSectionTitle('Parents'),
-              Row(children: [
-                Expanded(
-                    child: _textField("Father's Name *", _fatherNameController,
-                        enabled: _isEditMode)),
-                const SizedBox(width: 12),
-                Expanded(
-                    child: _textField("Mother's Name *", _motherNameController,
-                        enabled: _isEditMode)),
-              ]),
-              _textField("Contact Email", _contactEmailController,
-                  enabled: _isEditMode),
-              _textField("Contact Phone *", _contactPhoneController,
-                  enabled: _isEditMode),
+                    ParentInformationSection(
+                      fatherController: _fatherNameController,
+                      motherController: _motherNameController,
+                      enabled: _isEditMode,
+                    ),
 
-              _buildSectionTitle('Booking Details'),
-              _textField("Parish",
-                  TextEditingController(text: _booking?.parishName ?? ''),
-                  enabled: false),
-              _textField("Preferred Date *", _preferredDateController,
-                  enabled: _isEditMode,
-                  readOnly: _isEditMode,
-                  onTap: _selectDate),
-              _textField("Time Slot *", _preferredTimeController,
-                  enabled: _isEditMode,
-                  readOnly: _isEditMode,
-                  onTap: _selectTime),
-              if (_isEditMode)
-                _buildPriestDropdown()
-              else
-                _textField("Preferred Priest",
-                    TextEditingController(text: _booking?.priestName ?? ''),
-                    enabled: false),
+                    // TODO: godparents field
+                    // SponsorsInformationSection(
+                    //   sponsorsController: _godparentsController,
+                    // ),
 
-              const SizedBox(height: 20),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "PSA Birth Certificate *",
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        "Please upload a copy of the PSA birth certificate. Accepted formats: PDF, JPG, PNG",
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 12),
-                      ElevatedButton.icon(
-                        onPressed: _pickBirthCertificateFile,
-                        icon: const Icon(Icons.attach_file),
-                        label: Text(
-                          _birthCertificateFile != null
-                              ? 'File Selected: ${_birthCertificateFile!.name}'
-                              : 'Select Birth Certificate File',
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _birthCertificateFile != null
-                              ? Colors.green[100]
-                              : Colors.grey[200],
-                          foregroundColor: Colors.black87,
-                        ),
-                      ),
-                      if (_birthCertificateFile != null) ...[
-                        const SizedBox(height: 12),
-                        _isUploading
-                            ? const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  ),
-                                  SizedBox(width: 12),
-                                  Text('Uploading...'),
-                                ],
-                              )
-                            : ElevatedButton.icon(
-                                onPressed: _isUploading
-                                    ? null
-                                    : _uploadBirthCertificate,
-                                icon: const Icon(Icons.cloud_upload),
-                                label: const Text('Upload Birth Certificate'),
-                              ),
-                      ],
-                      const SizedBox(height: 16),
-                      if (_documents.isNotEmpty) ...[
-                        const Text(
-                          'Uploaded Documents',
-                          style: TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 8),
-                        ..._documents.map((doc) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: ListTile(
-                                leading: _getDocumentIcon(doc),
-                                title: Text(doc.documentType
-                                        ?.toUpperCase()
-                                        .replaceAll('_', ' ') ??
-                                    'DOCUMENT'),
-                                subtitle: Text(doc.fileName ?? 'File'),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    // Verification status
-                                    if (doc.isVerified == true)
-                                      const Icon(Icons.check_circle,
-                                          color: Colors.green, size: 20)
-                                    else if (doc.isVerified == false)
-                                      const Icon(Icons.pending,
-                                          color: Colors.orange, size: 20),
-                                    const SizedBox(width: 8),
-                                    // Actions menu
-                                    PopupMenuButton<String>(
-                                      onSelected: (value) {
-                                        if (value == 'view') _openDocument(doc);
-                                        if (value == 'delete') {
-                                          _deleteDocument(doc);
-                                        }
-                                        if (value == 'replace') {
-                                          _replaceDocument(doc);
-                                        }
-                                      },
-                                      itemBuilder: (context) => [
-                                        const PopupMenuItem(
-                                            value: 'view', child: Text('View')),
-                                        if (isAdmin || isOwner)
-                                          const PopupMenuItem(
-                                              value: 'delete',
-                                              child: Text('Delete')),
-                                        if (isAdmin || isOwner)
-                                          const PopupMenuItem(
-                                              value: 'replace',
-                                              child: Text('Replace')),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                onTap: () => _openDocument(doc),
-                              ),
-                            )),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
+                    ContactInformationSection(
+                      emailController: _contactEmailController,
+                      phoneController: _contactPhoneController,
+                      emailValidator: (value) {
+                        return Validators.requiredField(value) ??
+                            Validators.emailValidator(value);
+                      },
+                      phoneValidator: (value) {
+                        return Validators.requiredField(value) ??
+                            Validators.phoneValidator(value);
+                      },
+                      enabled: _isEditMode,
+                    ),
 
-              // Display existing notes in conversation format
-              if (_booking?.notes != null && _booking!.notes!.isNotEmpty)
-                NotesDisplay(notes: _booking!.notes!),
-
-              // Add new note field (only in edit mode)
-              if (_isEditMode) ...[
-                const SizedBox(height: 16),
-                _buildSectionTitle('Add Note (Optional)'),
-                _textField('Add a note', _newNoteController,
-                    maxLines: 3, enabled: true),
-              ],
-
-              const SizedBox(height: 20),
-              if (status == 'declined' && isOwner) ...[
-                Card(
-                  color: Colors.orange.shade50,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    BookingSection(
+                      title: 'Booking Preferences',
                       children: [
-                        const Text(
-                          'Your booking was declined. Please make the necessary changes and resubmit.',
-                          style: TextStyle(
-                              color: Colors.orange,
-                              fontWeight: FontWeight.w500),
+                        BookingTextField(
+                          enabled: false,
+                          controller: _preferredParishController,
+                          label: "Preferred Parish *",
                         ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            icon: _isSaving
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2, color: Colors.white))
-                                : const Icon(Icons.refresh),
-                            label: Text(_isSaving
-                                ? 'Resubmitting...'
-                                : 'Resubmit Booking'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-                              foregroundColor: Colors.white,
-                            ),
-                            onPressed: _isSaving ? null : _resubmitBooking,
-                          ),
+                        BookingDateField(
+                          controller: _preferredDateController,
+                          label: 'Preferred Baptism Date *',
+                          firstDate: DateTime.now(),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
+                          validator: Validators.requiredField,
+                        ),
+                        BookingTimeField(
+                          controller: _preferredTimeController,
+                          label: 'Preferred Time Slot *',
+                          validator: Validators.requiredField,
+                        ),
+                        PriestDropdown(
+                          selectedPriestId: _selectedPriestId,
+                          onChanged: (value) {
+                            setState(() => _selectedPriestId = value);
+                          },
                         ),
                       ],
                     ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
 
-              _buildStatusSection(isAdmin, widget.baptismId ?? 0),
-            ]),
+                    BookingSection(
+                      title: 'Required Documents',
+                      children: [
+                        DocumentUploadSection(
+                          title: 'PSA Birth Certificate *',
+                          description:
+                              "Please upload a copy of the PSA birth certificate. Accepted formats: PDF, JPG, PNG",
+                          file: _birthCertificateFile,
+                          isUploading: _isUploading,
+                          isUploaded: false,
+                          documents: _documents,
+                          canEdit: _isEditMode,
+                          onPick: _pickBirthCertificateFile,
+                          onUpload: _uploadBirthCertificate,
+                          onOpenDocument: _openDocument,
+                          onDeleteDocument: _deleteDocument,
+                          onReplaceDocument: _replaceDocument,
+                        ),
+                      ],
+                    ),
+
+                    // Display existing notes in conversation format
+                    if (_booking?.notes != null && _booking!.notes!.isNotEmpty)
+                      NotesDisplay(notes: _booking!.notes!),
+
+                    // Add new note field (only in edit mode)
+                    if (_isEditMode) ...[
+                      AdditionalInformationSection(
+                        notesController: _newNoteController,
+                      ),
+                    ],
+
+                    const SizedBox(height: 20),
+                    if (status == 'declined' && isOwner) ...[
+                      Card(
+                        color: Colors.orange.shade50,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Your booking was declined. Please make the necessary changes and resubmit.',
+                                style: TextStyle(
+                                    color: Colors.orange,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  icon: _isSaving
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white))
+                                      : const Icon(Icons.refresh),
+                                  label: Text(_isSaving
+                                      ? 'Resubmitting...'
+                                      : 'Resubmit Booking'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  onPressed:
+                                      _isSaving ? null : _resubmitBooking,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    _buildStatusSection(isAdmin, widget.baptismId ?? 0),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ));
-  }
-
-  Widget _textField(String label, TextEditingController controller,
-      {bool enabled = true,
-      bool readOnly = false,
-      VoidCallback? onTap,
-      int maxLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: controller,
-        enabled: enabled,
-        readOnly: readOnly,
-        maxLines: maxLines,
-        onTap: onTap,
-        decoration: InputDecoration(
-          labelText: label,
-          border: enabled
-              ? const OutlineInputBorder()
-              : OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-          filled: enabled,
-          fillColor: enabled ? null : Colors.grey[100],
         ),
       ),
     );
@@ -840,81 +722,6 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
-    }
-  }
-
-  Widget _buildSectionTitle(String title) => Padding(
-      padding: const EdgeInsets.only(top: 16, bottom: 8),
-      child: Text(title,
-          style: const TextStyle(
-              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)));
-
-  Widget _buildPriestDropdown() {
-    return Consumer<PriestProvider>(
-      builder: (context, priestProvider, _) {
-        final validPriestId = _selectedPriestId != null &&
-                priestProvider.priests.any((p) => p.id == _selectedPriestId)
-            ? _selectedPriestId
-            : null;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: DropdownButtonFormField<int>(
-            initialValue: validPriestId,
-            decoration: const InputDecoration(
-              labelText: "Preferred Priest (Optional)",
-              border: OutlineInputBorder(),
-            ),
-            items: [
-              const DropdownMenuItem<int>(
-                value: null,
-                child: Text("No preference"),
-              ),
-              ...priestProvider.priests.map((priest) => DropdownMenuItem<int>(
-                    value: priest.id,
-                    child: Text(priest.fullName),
-                  )),
-            ],
-            onChanged: (value) {
-              setState(() {
-                _selectedPriestId = value;
-              });
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  void _selectDob() async {
-    DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(1950),
-        lastDate: DateTime.now());
-    if (picked != null) {
-      setState(() => _dobController.text =
-          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
-    }
-  }
-
-  void _selectDate() async {
-    DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime.now().add(const Duration(days: -7)),
-        lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
-    if (picked != null) {
-      setState(() => _preferredDateController.text =
-          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
-    }
-  }
-
-  void _selectTime() async {
-    TimeOfDay? picked =
-        await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (picked != null) {
-      setState(() => _preferredTimeController.text =
-          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}');
     }
   }
 
@@ -1035,8 +842,10 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
     _dobController.dispose();
     _fatherNameController.dispose();
     _motherNameController.dispose();
+    _godparentsController.dispose();
     _contactEmailController.dispose();
     _contactPhoneController.dispose();
+    _preferredParishController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
     _newNoteController.dispose();
