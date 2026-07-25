@@ -587,9 +587,7 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
       contactPhone: _contactPhoneController.text.trim(),
       preferredDate: formatDate(_preferredDateController.text.trim()),
       preferredTimeSlot: formatTime(_preferredTimeController.text.trim()),
-      seminarSchedule: _seminarScheduleController.text.trim().isEmpty
-          ? null
-          : _seminarScheduleController.text.trim(),
+      seminarSchedule: formatDate(_seminarScheduleController.text.trim()),
       priestId: _selectedPriestId,
       notes: notesToAdd,
       documents: documents,
