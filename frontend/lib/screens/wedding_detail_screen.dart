@@ -1,13 +1,24 @@
+import 'package:diocese_frontend/utils/required_document.dart';
+import 'package:diocese_frontend/services/booking_document_manager.dart';
 import 'package:diocese_frontend/utils/validators.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/couple_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/priest_provider.dart';
 import '../services/wedding_service.dart';
-import '../utils/sacrament_icons.dart';
 import '../services/file_service.dart';
 import '../models/document.dart';
 import '../models/wedding_booking.dart';
@@ -33,10 +44,12 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   final WeddingService _weddingService = WeddingService();
   final _formKey = GlobalKey<FormState>();
 
+  final _bookingFormController = BookingFormController();
+  final _documentManager = BookingDocumentManager();
+
   bool _isEditMode = false;
   bool _isSaving = false;
   bool _showStatusButtons = true;
-  bool _isLoading = true;
 
   WeddingBooking? _booking;
 
@@ -45,6 +58,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   final TextEditingController _brideNameController = TextEditingController();
   final TextEditingController _contactEmailController = TextEditingController();
   final TextEditingController _contactPhoneController = TextEditingController();
+  final TextEditingController _preferredParishController =
+      TextEditingController();
   final TextEditingController _preferredDateController =
       TextEditingController();
   final TextEditingController _preferredTimeController =
@@ -55,44 +70,34 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   final TextEditingController _newNoteController = TextEditingController();
 
   // Document files and upload data
-  PlatformFile? _cenomarFile;
-  bool _isUploadingCenomar = false;
-  Map<String, dynamic>? _uploadedCenomarData;
-
-  PlatformFile? _birthCertificateFile;
-  bool _isUploadingBirth = false;
-  Map<String, dynamic>? _uploadedBirthData;
-
-  PlatformFile? _baptismalCertificateFile;
-  bool _isUploadingBaptismal = false;
-  Map<String, dynamic>? _uploadedBaptismalData;
-
-  PlatformFile? _confirmationCertificateFile;
-  bool _isUploadingConfirmation = false;
-  Map<String, dynamic>? _uploadedConfirmationData;
+  late final List<RequiredDocument> _requiredDocuments = [
+    RequiredDocument(
+      title: 'CENOMAR *',
+      description:
+          'Please upload a copy of your CENOMAR. Accepted formats: PDF, JPG, PNG.',
+      documentType: 'cenomar',
+    ),
+    RequiredDocument(
+      title: 'Birth Certificate *',
+      description:
+          'Please upload a copy of your birth certificate. Accepted formats: PDF, JPG, PNG.',
+      documentType: 'birth_certificate',
+    ),
+    RequiredDocument(
+      title: 'Baptismal Certificate *',
+      description:
+          'Please upload a copy of your baptismal certificate. Accepted formats: PDF, JPG, PNG.',
+      documentType: 'baptismal_certificate',
+    ),
+    RequiredDocument(
+      title: 'Confirmation Certificate *',
+      description:
+          'Please upload a copy of your confirmation certificate. Accepted formats: PDF, JPG, PNG.',
+      documentType: 'confirmation_certificate',
+    ),
+  ];
 
   List<Document> _documents = [];
-
-  Future<void> _updateBookingStatus(String status) async {
-    if (widget.weddingId == null) return;
-
-    final result = await _weddingService.updateWeddingStatus(
-      token: Provider.of<AuthProvider>(context, listen: false).token!,
-      id: widget.weddingId!,
-      status: status,
-    );
-
-    if (mounted) {
-      if (result.success) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Booking marked as $status')));
-        Navigator.pop(context, true);
-      } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
-      }
-    }
-  }
 
   String get _displayBookingStatus {
     if (_booking == null) return 'PENDING';
@@ -219,10 +224,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showStatusButtons = !widget.fromStatusButton;
-      _loadBooking();
-    });
+    _showStatusButtons = !widget.fromStatusButton;
+    _loadBooking();
   }
 
   @override
@@ -231,6 +234,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
     _brideNameController.dispose();
     _contactEmailController.dispose();
     _contactPhoneController.dispose();
+    _preferredParishController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
     _seminarScheduleController.dispose();
@@ -248,8 +252,6 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
       }
       return;
     }
-
-    setState(() => _isLoading = true);
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
@@ -276,13 +278,15 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
         _brideNameController.text = booking.brideFullName ?? '';
         _contactEmailController.text = booking.contactEmail ?? '';
         _contactPhoneController.text = booking.contactPhone ?? '';
+        _preferredParishController.text = booking.parishName ?? '';
         _preferredDateController.text =
             booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
         _seminarScheduleController.text = booking.seminarSchedule ?? '';
-        _selectedPriestId = booking.priestId;
+        if (booking.priestId != null) {
+          _selectedPriestId = booking.priestId;
+        }
         _documents = booking.documents ?? [];
-        _isLoading = false;
       });
 
       await context.read<PriestProvider>().loadPriestsByParish(
@@ -310,288 +314,86 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
     }
   }
 
-  Future<void> _pickCenomar() async {
+  Future<void> _pickDocument(RequiredDocument document) async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'jpg', 'png'],
         allowMultiple: false,
       );
-      if (result != null && mounted) {
-        setState(() {
-          _cenomarFile = result.files.first;
-          _uploadedCenomarData = null;
-        });
-      }
+
+      if (!mounted || result == null) return;
+
+      setState(() {
+        document.file = result.files.first;
+      });
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error selecting file: $e')),
-        );
-      }
-    }
-  }
+      if (!mounted) return;
 
-  Future<void> _uploadCenomar() async {
-    if (_cenomarFile == null || widget.weddingId == null) return;
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final token = authProvider.token;
-    if (token == null) return;
-
-    setState(() => _isUploadingCenomar = true);
-
-    try {
-      final fileService = FileService();
-      final response = await fileService.uploadFile(
-        file: _cenomarFile!,
-        token: token,
-        category: 'wedding',
-        additionalFields: {
-          'documentType': 'cenomar',
-        },
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error selecting file: $e')),
       );
-
-      if (mounted) {
-        if (response.success && response.data != null) {
-          setState(() {
-            _uploadedCenomarData = response.data!['file'];
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('CENOMAR uploaded successfully')),
-          );
-          await _loadBooking(); // Reload to show updated documents
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(response.message ?? 'Upload failed')),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error uploading file: $e')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isUploadingCenomar = false);
-      }
     }
   }
 
-  Future<void> _pickBirthCertificate() async {
-    try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'jpg', 'png'],
-        allowMultiple: false,
-      );
-      if (result != null && mounted) {
-        setState(() {
-          _birthCertificateFile = result.files.first;
-          _uploadedBirthData = null;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error selecting file: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _uploadBirthCertificate() async {
-    if (_birthCertificateFile == null || widget.weddingId == null) return;
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final token = authProvider.token;
-    if (token == null) return;
-
-    setState(() => _isUploadingBirth = true);
-
-    try {
-      final fileService = FileService();
-      final response = await fileService.uploadFile(
-        file: _birthCertificateFile!,
-        token: token,
-        category: 'wedding',
-        additionalFields: {
-          'documentType': 'birth_certificate',
-        },
-      );
-
-      if (mounted) {
-        if (response.success && response.data != null) {
-          setState(() {
-            _uploadedBirthData = response.data!['file'];
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Birth certificate uploaded successfully')),
-          );
-          await _loadBooking();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(response.message ?? 'Upload failed')),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error uploading file: $e')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isUploadingBirth = false);
-      }
-    }
-  }
-
-  Future<void> _pickBaptismalCertificate() async {
-    try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'jpg', 'png'],
-        allowMultiple: false,
-      );
-      if (result != null && mounted) {
-        setState(() {
-          _baptismalCertificateFile = result.files.first;
-          _uploadedBaptismalData = null;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error selecting file: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _uploadBaptismalCertificate() async {
-    if (_baptismalCertificateFile == null || widget.weddingId == null) return;
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final token = authProvider.token;
-    if (token == null) return;
-
-    setState(() => _isUploadingBaptismal = true);
-
-    try {
-      final fileService = FileService();
-      final response = await fileService.uploadFile(
-        file: _baptismalCertificateFile!,
-        token: token,
-        category: 'wedding',
-        additionalFields: {
-          'documentType': 'baptismal_certificate',
-        },
-      );
-
-      if (mounted) {
-        if (response.success && response.data != null) {
-          setState(() {
-            _uploadedBaptismalData = response.data!['file'];
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Baptismal certificate uploaded successfully')),
-          );
-          await _loadBooking();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(response.message ?? 'Upload failed')),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error uploading file: $e')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isUploadingBaptismal = false);
-      }
-    }
-  }
-
-  Future<void> _pickConfirmationCertificate() async {
-    try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'jpg', 'png'],
-        allowMultiple: false,
-      );
-      if (result != null && mounted) {
-        setState(() {
-          _confirmationCertificateFile = result.files.first;
-          _uploadedConfirmationData = null;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error selecting file: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _uploadConfirmationCertificate() async {
-    if (_confirmationCertificateFile == null || widget.weddingId == null) {
+  Future<void> _uploadDocument(
+    RequiredDocument document,
+  ) async {
+    if (document.file == null || widget.weddingId == null) {
       return;
     }
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authProvider = context.read<AuthProvider>();
     final token = authProvider.token;
-    if (token == null) return;
 
-    setState(() => _isUploadingConfirmation = true);
+    if (token == null) {
+      return;
+    }
+
+    setState(() {
+      document.isUploading = true;
+    });
 
     try {
-      final fileService = FileService();
-      final response = await fileService.uploadFile(
-        file: _confirmationCertificateFile!,
+      final response = await FileService().uploadFile(
+        file: document.file!,
         token: token,
         category: 'wedding',
         additionalFields: {
-          'documentType': 'confirmation_certificate',
+          'documentType': document.documentType,
         },
       );
 
-      if (mounted) {
-        if (response.success && response.data != null) {
-          setState(() {
-            _uploadedConfirmationData = response.data!['file'];
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content:
-                    Text('Confirmation certificate uploaded successfully')),
-          );
-          await _loadBooking();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(response.message ?? 'Upload failed')),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
+      if (!mounted) return;
+
+      if (response.success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error uploading file: $e')),
+          SnackBar(
+            content: Text('${document.title} uploaded successfully'),
+          ),
+        );
+
+        await _loadBooking();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.message ?? 'Upload failed'),
+          ),
         );
       }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error uploading file: $e'),
+        ),
+      );
     } finally {
-      if (mounted) {
-        setState(() => _isUploadingConfirmation = false);
+      if (!mounted) {
+        setState(() {
+          document.isUploading = false;
+        });
       }
     }
   }
@@ -637,9 +439,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
       contactPhone: _contactPhoneController.text.trim(),
       preferredDate: _preferredDateController.text.trim(),
       preferredTimeSlot: _preferredTimeController.text.trim(),
-      seminarSchedule: _seminarScheduleController.text.trim().isEmpty
-          ? null
-          : _seminarScheduleController.text.trim(),
+      seminarSchedule: _seminarScheduleController.text.trim(),
       priestId: _selectedPriestId,
       notes: notesToAdd,
     );
@@ -760,44 +560,26 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
     }
   }
 
-  void _openDocument(Document document) {
-    if (document.fileUrl == null || document.fileUrl!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Document URL is not available')),
+  Future<void> _openDocument(Document doc) => _documentManager.openDocument(
+        context: context,
+        document: doc,
       );
-      return;
-    }
 
-    try {
-      final baseUri = Uri.parse(ApiConfig.baseUrl);
-      final fileUri = baseUri.resolve(document.fileUrl!);
+  Future<void> _deleteDocument(Document doc) => _documentManager.deleteDocument(
+        context: context,
+        endpoint: ApiConfig.weddingsEndpoint,
+        bookingId: widget.weddingId!,
+        document: doc,
+        reload: _loadBooking,
+      );
 
-      launchUrl(
-        fileUri,
-        mode: LaunchMode.externalApplication,
-      ).then((success) {
-        if (!success && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text(
-                    'Failed to open document. Please check if the file exists.')),
-          );
-        }
-      });
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error opening document: $e')),
-        );
-      }
-    }
-  }
-
-  Widget _buildSectionTitle(String title) => Padding(
-        padding: const EdgeInsets.only(top: 16, bottom: 8),
-        child: Text(title,
-            style: const TextStyle(
-                fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
+  Future<void> _replaceDocument(Document doc) =>
+      _documentManager.replaceDocument(
+        context: context,
+        endpoint: ApiConfig.weddingsEndpoint,
+        bookingId: widget.weddingId!,
+        document: doc,
+        reload: _loadBooking,
       );
 
   @override
@@ -820,8 +602,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-            _booking != null ? 'Wedding #${_booking!.id}' : 'Wedding Details'),
+        title: const Text('Wedding Details'),
         actions: [
           if (_booking != null && !_isEditMode && _showStatusButtons && canEdit)
             IconButton(
@@ -831,628 +612,233 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
             ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _booking == null
-              ? const Center(child: Text('Booking not found'))
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 450),
+            child: BookingFormScope(
+              controller: _bookingFormController,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Status Card
+
+                    CoupleInformationSection(
+                      groomController: _groomNameController,
+                      brideController: _brideNameController,
+                      enabled: _isEditMode,
+                    ),
+
+                    // TODO: godparents field
+                    // SponsorsInformationSection(
+                    //   sponsorsController: _godparentsController,
+                    // ),
+
+                    ContactInformationSection(
+                      emailController: _contactEmailController,
+                      phoneController: _contactPhoneController,
+                      emailValidator: (value) {
+                        return Validators.requiredField(value) ??
+                            Validators.emailValidator(value);
+                      },
+                      phoneValidator: (value) {
+                        return Validators.requiredField(value) ??
+                            Validators.phoneValidator(value);
+                      },
+                      enabled: _isEditMode,
+                    ),
+
+                    BookingSection(
+                      title: 'Booking Preferences',
                       children: [
-                        // Status Card
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Status',
-                                      style: TextStyle(
-                                          fontSize: 12, color: Colors.grey),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: _getStatusColor(
-                                                _booking!.status.toLowerCase())
-                                            .withValues(alpha: 0.2),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        _displayBookingStatus,
-                                        style: TextStyle(
-                                          color: _getStatusColor(
-                                              _displayBookingStatus
-                                                  .toLowerCase()),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                if (!_showStatusButtons && isAdmin)
-                                  Row(
-                                    children: [
-                                      if (_booking!.status.toLowerCase() ==
-                                          'pending')
-                                        ElevatedButton(
-                                          onPressed: () =>
-                                              _updateBookingStatus('declined'),
-                                          style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.red),
-                                          child: const Text('Decline'),
-                                        ),
-                                      if (_booking!.status.toLowerCase() ==
-                                          'pending')
-                                        const SizedBox(width: 8),
-                                      if (_booking!.status.toLowerCase() ==
-                                          'pending')
-                                        ElevatedButton(
-                                          onPressed: () =>
-                                              _updateBookingStatus('approved'),
-                                          style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.green),
-                                          child: const Text('Approve'),
-                                        ),
-                                    ],
-                                  ),
-                              ],
-                            ),
-                          ),
+                        BookingTextField(
+                          enabled: false,
+                          controller: _preferredParishController,
+                          label: "Preferred Parish *",
                         ),
-                        if (status == 'declined' && isOwner) ...[
-                          Card(
-                            color: Colors.orange.shade50,
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Your booking was declined. Please make the necessary changes and resubmit.',
-                                    style: TextStyle(
-                                        color: Colors.orange,
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton.icon(
-                                      icon: const Icon(Icons.refresh),
-                                      label: const Text('Resubmit Booking'),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.orange,
-                                        foregroundColor: Colors.white,
-                                      ),
-                                      onPressed: _resubmitBooking,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 16),
-
-                        // Groom Name
-                        if (_isEditMode)
-                          TextFormField(
-                            controller: _groomNameController,
-                            decoration: const InputDecoration(
-                              labelText: 'Groom Full Name *',
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Groom name is required';
-                              }
-                              return null;
-                            },
-                          )
-                        else
-                          _buildInfoRow('Groom Name',
-                              _booking!.groomFullName ?? 'Not provided'),
-                        const SizedBox(height: 16),
-
-                        // Bride Name
-                        if (_isEditMode)
-                          TextFormField(
-                            controller: _brideNameController,
-                            decoration: const InputDecoration(
-                              labelText: 'Bride Full Name *',
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Bride name is required';
-                              }
-                              return null;
-                            },
-                          )
-                        else
-                          _buildInfoRow('Bride Name',
-                              _booking!.brideFullName ?? 'Not provided'),
-                        const SizedBox(height: 16),
-
-                        // Contact Email
-                        if (_isEditMode)
-                          TextFormField(
-                            controller: _contactEmailController,
-                            decoration: const InputDecoration(
-                              labelText: 'Contact Email *',
-                              border: OutlineInputBorder(),
-                            ),
-                            keyboardType: TextInputType.emailAddress,
-                            validator: Validators.emailValidator,
-                          )
-                        else
-                          _buildInfoRow('Contact Email',
-                              _booking!.contactEmail ?? 'Not provided'),
-                        const SizedBox(height: 16),
-
-                        // Contact Phone
-                        if (_isEditMode)
-                          TextFormField(
-                            controller: _contactPhoneController,
-                            decoration: const InputDecoration(
-                              labelText: 'Contact Phone *',
-                              border: OutlineInputBorder(),
-                            ),
-                            keyboardType: TextInputType.phone,
-                            validator: Validators.phoneValidator,
-                          )
-                        else
-                          _buildInfoRow('Contact Phone',
-                              _booking!.contactPhone ?? 'Not provided'),
-                        const SizedBox(height: 16),
-
-                        // Preferred Date
-                        if (_isEditMode)
-                          TextFormField(
-                            controller: _preferredDateController,
-                            decoration: const InputDecoration(
-                              labelText: 'Preferred Date *',
-                              border: OutlineInputBorder(),
-                              suffixIcon: Icon(Icons.calendar_today),
-                            ),
-                            readOnly: true,
-                            onTap: () async {
-                              final date = await showDatePicker(
-                                context: context,
-                                initialDate:
-                                    DateTime.now().add(const Duration(days: 7)),
-                                firstDate: DateTime.now(),
-                                lastDate: DateTime.now()
-                                    .add(const Duration(days: 365)),
-                              );
-                              if (date != null) {
-                                _preferredDateController.text =
-                                    '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-                              }
-                            },
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Preferred date is required';
-                              }
-                              return null;
-                            },
-                          )
-                        else
-                          _buildInfoRow('Preferred Date',
-                              formatDateMMDDYYYY(_booking!.preferredDate)),
-                        const SizedBox(height: 16),
-
-                        // Preferred Time
-                        if (_isEditMode)
-                          TextFormField(
-                            controller: _preferredTimeController,
-                            decoration: const InputDecoration(
-                              labelText: 'Preferred Time *',
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Preferred time is required';
-                              }
-                              return null;
-                            },
-                          )
-                        else
-                          _buildInfoRow('Preferred Time',
-                              _booking!.preferredTimeSlot ?? 'Not provided'),
-                        const SizedBox(height: 16),
-
-                        // Seminar Schedule
-                        if (_isEditMode)
-                          TextFormField(
-                            controller: _seminarScheduleController,
-                            decoration: const InputDecoration(
-                              labelText: 'Seminar Schedule',
-                              border: OutlineInputBorder(),
-                            ),
-                          )
-                        else
-                          _buildInfoRow('Seminar Schedule',
-                              _booking!.seminarSchedule ?? 'Not provided'),
-                        const SizedBox(height: 16),
-
-                        // Preferred Priest dropdown
-                        Consumer<PriestProvider>(
-                          builder: (context, priestProvider, child) {
-                            final validPriestId = _selectedPriestId != null &&
-                                    priestProvider.priests
-                                        .any((p) => p.id == _selectedPriestId)
-                                ? _selectedPriestId
-                                : null;
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: DropdownButtonFormField<int>(
-                                initialValue: validPriestId,
-                                decoration: const InputDecoration(
-                                  labelText: "Preferred Priest (Optional)",
-                                  border: OutlineInputBorder(),
-                                ),
-                                items: [
-                                  const DropdownMenuItem<int>(
-                                    value: null,
-                                    child: Text("No preference"),
-                                  ),
-                                  ...priestProvider.priests
-                                      .map((priest) => DropdownMenuItem<int>(
-                                            value: priest.id,
-                                            child: Text(priest.fullName),
-                                          )),
-                                ],
-                                onChanged: _isEditMode
-                                    ? (value) {
-                                        setState(() {
-                                          _selectedPriestId = value;
-                                        });
-                                      }
-                                    : null,
-                              ),
-                            );
+                        BookingDateField(
+                          controller: _preferredDateController,
+                          label: 'Preferred Wedding Date *',
+                          firstDate: DateTime.now(),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
+                          validator: Validators.requiredField,
+                        ),
+                        BookingTimeField(
+                          controller: _preferredTimeController,
+                          label: 'Preferred Time Slot *',
+                          validator: Validators.requiredField,
+                        ),
+                        BookingDateField(
+                          controller: _seminarScheduleController,
+                          label: 'Seminar Schedule *',
+                          firstDate: DateTime.now(),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 730)),
+                          validator: Validators.requiredField,
+                        ),
+                        PriestDropdown(
+                          selectedPriestId: _selectedPriestId,
+                          onChanged: (value) {
+                            setState(() => _selectedPriestId = value);
                           },
                         ),
+                      ],
+                    ),
 
-                        // Notes display
-                        _buildSectionTitle('Notes'),
-                        if (_booking?.notes != null &&
-                            _booking!.notes!.isNotEmpty)
-                          NotesDisplay(
-                            notes: _booking!.notes!.map((note) {
-                              if (note is Map) {
-                                return Note.fromJson(
-                                    Map<String, dynamic>.from(note));
-                              }
-                              return note as Note;
-                            }).toList(),
-                          ),
-                        if (_isEditMode) ...[
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _newNoteController,
-                            decoration: const InputDecoration(
-                              labelText: "Add a note",
-                              border: OutlineInputBorder(),
-                              hintText: "Enter your note here...",
+                    // Documents Section
+                    BookingSection(
+                      title: 'Required Documents',
+                      children:
+                          List.generate(_requiredDocuments.length, (index) {
+                        final document = _requiredDocuments[index];
+
+                        return Column(
+                          children: [
+                            DocumentUploadSection(
+                              title: document.title,
+                              description: document.description,
+                              file: document.file,
+                              isUploading: document.isUploading,
+                              isUploaded: false,
+                              canEdit: _isEditMode,
+                              documents: _documents
+                                  .where((d) =>
+                                      d.documentType == document.documentType)
+                                  .toList(),
+                              onPick: () => _pickDocument(document),
+                              onUpload: () => _uploadDocument(document),
+                              onOpenDocument: _openDocument,
+                              onDeleteDocument: _deleteDocument,
+                              onReplaceDocument: _replaceDocument,
                             ),
-                            maxLines: 2,
-                          ),
-                        ],
-                        const SizedBox(height: 24),
+                            if (index < _requiredDocuments.length - 1)
+                              const SizedBox(height: 24),
+                          ],
+                        );
+                      }),
+                    ),
 
-                        // Documents Section
-                        const Text(
-                          'Required Documents',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
+                    // Notes display
+                    if (_booking?.notes != null && _booking!.notes!.isNotEmpty)
+                      NotesDisplay(
+                        notes: _booking!.notes!.map((note) {
+                          if (note is Map) {
+                            return Note.fromJson(
+                                Map<String, dynamic>.from(note));
+                          }
+                          return note as Note;
+                        }).toList(),
+                      ),
 
-                        // CENOMAR
-                        _buildDocumentSection(
-                          label: 'CENOMAR',
-                          file: _cenomarFile,
-                          uploadedData: _uploadedCenomarData,
-                          documents: _documents
-                              .where((d) => d.documentType == 'cenomar')
-                              .toList(),
-                          isUploading: _isUploadingCenomar,
-                          onPick: _pickCenomar,
-                          onUpload: _uploadCenomar,
-                          canEdit: _isEditMode,
-                        ),
-                        const SizedBox(height: 12),
+                    if (_isEditMode) ...[
+                      AdditionalInformationSection(
+                        notesController: _newNoteController,
+                      ),
+                    ],
 
-                        // Birth Certificate
-                        _buildDocumentSection(
-                          label: 'Birth Certificate',
-                          file: _birthCertificateFile,
-                          uploadedData: _uploadedBirthData,
-                          documents: _documents
-                              .where(
-                                  (d) => d.documentType == 'birth_certificate')
-                              .toList(),
-                          isUploading: _isUploadingBirth,
-                          onPick: _pickBirthCertificate,
-                          onUpload: _uploadBirthCertificate,
-                          canEdit: _isEditMode,
-                        ),
-                        const SizedBox(height: 12),
+                    const SizedBox(height: 20),
 
-                        // Baptismal Certificate
-                        _buildDocumentSection(
-                          label: 'Baptismal Certificate',
-                          file: _baptismalCertificateFile,
-                          uploadedData: _uploadedBaptismalData,
-                          documents: _documents
-                              .where((d) =>
-                                  d.documentType == 'baptismal_certificate')
-                              .toList(),
-                          isUploading: _isUploadingBaptismal,
-                          onPick: _pickBaptismalCertificate,
-                          onUpload: _uploadBaptismalCertificate,
-                          canEdit: _isEditMode,
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Confirmation Certificate
-                        _buildDocumentSection(
-                          label: 'Confirmation Certificate',
-                          file: _confirmationCertificateFile,
-                          uploadedData: _uploadedConfirmationData,
-                          documents: _documents
-                              .where((d) =>
-                                  d.documentType == 'confirmation_certificate')
-                              .toList(),
-                          isUploading: _isUploadingConfirmation,
-                          onPick: _pickConfirmationCertificate,
-                          onUpload: _uploadConfirmationCertificate,
-                          canEdit: _isEditMode,
-                        ),
-                        const SizedBox(height: 32),
-
-                        // Save/Cancel Buttons
-                        if (_isEditMode)
-                          Row(
+                    if (status == 'declined' && isOwner) ...[
+                      Card(
+                        color: Colors.orange.shade50,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: _isSaving ? null : _saveBooking,
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                  ),
-                                  child: _isSaving
-                                      ? const SizedBox(
-                                          height: 20,
-                                          width: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : const Text('Save Changes'),
-                                ),
+                              const Text(
+                                'Your booking was declined. Please make the necessary changes and resubmit.',
+                                style: TextStyle(
+                                    color: Colors.orange,
+                                    fontWeight: FontWeight.w500),
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: _isSaving
-                                      ? null
-                                      : () =>
-                                          setState(() => _isEditMode = false),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('Resubmit Booking'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
                                   ),
-                                  child: const Text('Cancel'),
+                                  onPressed: _resubmitBooking,
                                 ),
                               ),
                             ],
                           ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
 
-                        // Delete Button (owners can delete any non-approved booking)
-                        if (_isEditMode && _booking != null && canDelete)
-                          const SizedBox(height: 16),
-                        if (_isEditMode && _booking != null && canDelete)
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton(
-                              onPressed: _isSaving ? null : _deleteBooking,
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.red,
-                                side: const BorderSide(color: Colors.red),
+                    // Save/Cancel Buttons
+                    if (_isEditMode)
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: _isSaving ? null : _saveBooking,
+                              style: ElevatedButton.styleFrom(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 16),
                               ),
-                              child: const Text('Cancel Booking'),
+                              child: _isSaving
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text('Save Changes'),
                             ),
                           ),
-
-                        const SizedBox(height: 32),
-                      ],
-                    ),
-                  ),
-                ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.grey,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 16,
-          ),
-        ),
-        const Divider(),
-      ],
-    );
-  }
-
-  Widget _buildDocumentSection({
-    required String label,
-    required PlatformFile? file,
-    required Map<String, dynamic>? uploadedData,
-    required List<Document> documents,
-    required bool isUploading,
-    required VoidCallback onPick,
-    required VoidCallback onUpload,
-    required bool canEdit,
-  }) {
-    final hasUploaded = uploadedData != null;
-    final hasExisting = documents.isNotEmpty;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                if (hasExisting)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Uploaded',
-                      style: TextStyle(
-                        color: Colors.green,
-                        fontSize: 12,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: _isSaving
+                                  ? null
+                                  : () => setState(() => _isEditMode = false),
+                              style: OutlinedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                              ),
+                              child: const Text('Cancel'),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ),
-              ],
+
+                    // Delete Button (owners can delete any non-approved booking)
+                    if (_isEditMode && _booking != null && canDelete)
+                      const SizedBox(height: 16),
+                    if (_isEditMode && _booking != null && canDelete)
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: _isSaving ? null : _deleteBooking,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            side: const BorderSide(color: Colors.red),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: const Text('Cancel Booking'),
+                        ),
+                      ),
+
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 8),
-
-            // Show existing document
-            if (hasExisting)
-              ...documents.map((doc) => ListTile(
-                    dense: true,
-                    leading: const Icon(Icons.description,
-                        color: Colors.green, size: 20),
-                    title: Text(
-                      doc.originalFilename ?? 'Document',
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.open_in_new, size: 20),
-                      onPressed: () => _openDocument(doc),
-                      tooltip: 'Open',
-                    ),
-                  )),
-
-            // Show newly picked file
-            if (file != null && !hasUploaded)
-              ListTile(
-                dense: true,
-                leading: const Icon(Icons.attach_file, size: 20),
-                title: Text(
-                  file.name,
-                  style: const TextStyle(fontSize: 14),
-                ),
-                subtitle: Text(
-                  '${(file.size / 1024).toStringAsFixed(1)} KB',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ),
-
-            // Show newly uploaded
-            if (hasUploaded)
-              ListTile(
-                dense: true,
-                leading: const Icon(Icons.check_circle,
-                    color: Colors.green, size: 20),
-                title: Text(
-                  uploadedData['originalFilename'] ?? 'Uploaded',
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ),
-
-            if (canEdit) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: isUploading ? null : onPick,
-                      icon: const Icon(Icons.attach_file, size: 18),
-                      label: const Text('Select File'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: (file != null && !isUploading)
-                          ? onUpload
-                          : (hasExisting || hasUploaded)
-                              ? null
-                              : onPick,
-                      icon: isUploading
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.upload, size: 18),
-                      label: Text(isUploading ? 'Uploading...' : 'Upload'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     );
-  }
-
-  Color _getStatusColor(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'approved':
-        return Colors.green;
-      case 'declined':
-      case 'rejected':
-        return Colors.red;
-      case 'completed':
-        return Colors.blue;
-      default:
-        return Colors.orange;
-    }
   }
 }
