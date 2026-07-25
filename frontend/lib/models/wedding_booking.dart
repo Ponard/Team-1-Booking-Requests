@@ -3,6 +3,7 @@ import '../models/document.dart';
 class WeddingBooking {
   final int? id;
   final int parishId;
+  final String? parishName;
   final int userId;
   final String? groomFullName;
   final String? brideFullName;
@@ -24,6 +25,7 @@ class WeddingBooking {
   WeddingBooking({
     this.id,
     required this.parishId,
+    this.parishName,
     required this.userId,
     this.groomFullName,
     this.brideFullName,
@@ -47,6 +49,7 @@ class WeddingBooking {
     return WeddingBooking(
       id: json['id'],
       parishId: json['parishId'],
+      parishName: json['parish']?['name'],
       userId: json['userId'],
       groomFullName: json['groomFullName'],
       brideFullName: json['brideFullName'],
@@ -64,7 +67,9 @@ class WeddingBooking {
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
       documents: json['documents'] != null
-          ? (json['documents'] as List).map((doc) => Document.fromJson(doc)).toList()
+          ? (json['documents'] as List)
+              .map((doc) => Document.fromJson(doc))
+              .toList()
           : null,
     );
   }
@@ -85,7 +90,8 @@ class WeddingBooking {
       if (notes != null) 'notes': notes,
       'status': status,
       if (adminNotes != null) 'adminNotes': adminNotes,
-      if (documents != null) 'documents': documents!.map((d) => d.toJson()).toList(),
+      if (documents != null)
+        'documents': documents!.map((d) => d.toJson()).toList(),
     };
   }
 
