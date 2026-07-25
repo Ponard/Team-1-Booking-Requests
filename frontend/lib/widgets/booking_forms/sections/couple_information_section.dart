@@ -7,10 +7,13 @@ class CoupleInformationSection extends StatelessWidget {
   final TextEditingController groomController;
   final TextEditingController brideController;
 
+  final bool enabled;
+
   const CoupleInformationSection({
     super.key,
     required this.groomController,
     required this.brideController,
+    this.enabled = true,
   });
 
   @override
@@ -21,11 +24,13 @@ class CoupleInformationSection extends StatelessWidget {
         BookingTextField(
           controller: groomController,
           label: "Groom's Full Name *",
+          enabled: enabled,
           validator: Validators.requiredField,
         ),
         BookingTextField(
           controller: brideController,
           label: "Bride's Full Name *",
+          enabled: enabled,
           validator: Validators.requiredField,
         ),
       ],
