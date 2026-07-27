@@ -1,6 +1,20 @@
+import 'package:diocese_frontend/services/booking_document_manager.dart';
+import 'package:diocese_frontend/services/file_service.dart';
+import 'package:diocese_frontend/utils/required_document.dart';
+import 'package:diocese_frontend/utils/validators.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/parent_information_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/document.dart';
 import '../models/confirmation_booking.dart';
@@ -28,9 +42,11 @@ class ConfirmationDetailScreen extends StatefulWidget {
 
 class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
   final ConfirmationService _confirmationService = ConfirmationService();
-  PlatformFile? _baptismalCertificateFile;
-  PlatformFile? _birthCertificateFile;
-  bool _isUploading = false;
+
+  final _formKey = GlobalKey<FormState>();
+
+  final _bookingFormController = BookingFormController();
+  final _documentManager = BookingDocumentManager();
 
   bool _isEditMode = false;
   bool _isSaving = false;
@@ -44,12 +60,29 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
   final TextEditingController _motherNameController = TextEditingController();
   final TextEditingController _contactEmailController = TextEditingController();
   final TextEditingController _contactPhoneController = TextEditingController();
+  final TextEditingController _preferredParishController =
+      TextEditingController();
   final TextEditingController _preferredDateController =
       TextEditingController();
   final TextEditingController _preferredTimeController =
       TextEditingController();
   int? _selectedPriestId;
   final TextEditingController _newNoteController = TextEditingController();
+
+  late final List<RequiredDocument> _requiredDocuments = [
+    RequiredDocument(
+      title: 'Baptismal Certificate *',
+      description:
+          'Please upload a copy of your baptismal certificate. Accepted formats: PDF, JPG, PNG.',
+      documentType: 'baptismal_certificate',
+    ),
+    RequiredDocument(
+      title: 'Birth Certificate *',
+      description:
+          'Please upload a copy of your birth certificate. Accepted formats: PDF, JPG, PNG.',
+      documentType: 'birth_certificate',
+    ),
+  ];
 
   List<Document> _documents = [];
 
@@ -91,6 +124,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         _motherNameController.text = booking.motherName ?? '';
         _contactEmailController.text = booking.contactEmail ?? '';
         _contactPhoneController.text = booking.contactPhone ?? '';
+        _preferredParishController.text = booking.parishName ?? '';
         _preferredDateController.text =
             booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
@@ -121,163 +155,116 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     }
   }
 
-  Future<void> _pickBaptismalCertificateFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'png'],
-      allowMultiple: false,
-    );
-    if (result != null && result.files.isNotEmpty && mounted) {
-      setState(() {
-        _baptismalCertificateFile = result.files.first;
-      });
-    }
-  }
-
-  Future<void> _pickBirthCertificateFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'png'],
-      allowMultiple: false,
-    );
-    if (result != null && result.files.isNotEmpty && mounted) {
-      setState(() {
-        _birthCertificateFile = result.files.first;
-      });
-    }
-  }
-
-  Future<void> _uploadBaptismalCertificate() async {
-    if (_baptismalCertificateFile == null || widget.confirmationId == null) {
-      return;
-    }
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final token = authProvider.token;
-    if (token == null) return;
-
-    setState(() => _isUploading = true);
-
-    final result = await _confirmationService.attachDocumentToBooking(
-      bookingId: widget.confirmationId!,
-      token: token,
-      file: _baptismalCertificateFile!,
-      documentType: 'baptismal_certificate',
-    );
-
-    if (!mounted) return;
-    setState(() => _isUploading = false);
-
-    if (result.success) {
-      await _loadBooking();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Baptismal certificate uploaded successfully')));
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result.message ?? 'Upload failed')));
-      }
-    }
-  }
-
-  Future<void> _uploadBirthCertificate() async {
-    if (_birthCertificateFile == null || widget.confirmationId == null) return;
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final token = authProvider.token;
-    if (token == null) return;
-
-    setState(() => _isUploading = true);
-
-    final result = await _confirmationService.attachDocumentToBooking(
-      bookingId: widget.confirmationId!,
-      token: token,
-      file: _birthCertificateFile!,
-      documentType: 'birth_certificate',
-    );
-
-    if (!mounted) return;
-    setState(() => _isUploading = false);
-
-    if (result.success) {
-      await _loadBooking();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Birth certificate uploaded successfully')));
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result.message ?? 'Upload failed')));
-      }
-    }
-  }
-
   /// Opens a document by launching its URL
-  Future<void> _openDocument(Document document) async {
-    if (document.fileUrl == null || document.fileUrl!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Document URL is not available')),
+  Future<void> _openDocument(Document doc) => _documentManager.openDocument(
+        context: context,
+        document: doc,
       );
+
+  Future<void> _deleteDocument(Document doc) => _documentManager.deleteDocument(
+        context: context,
+        endpoint: ApiConfig.confirmationsEndpoint,
+        bookingId: widget.confirmationId!,
+        document: doc,
+        reload: _loadBooking,
+      );
+
+  Future<void> _replaceDocument(Document doc) =>
+      _documentManager.replaceDocument(
+        context: context,
+        endpoint: ApiConfig.confirmationsEndpoint,
+        bookingId: widget.confirmationId!,
+        document: doc,
+        reload: _loadBooking,
+      );
+
+  Future<void> _pickDocument(RequiredDocument document) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'png'],
+        allowMultiple: false,
+      );
+
+      if (!mounted || result == null) return;
+
+      setState(() {
+        document.file = result.files.first;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error selecting file: $e')),
+      );
+    }
+  }
+
+  Future<void> _uploadDocument(
+    RequiredDocument document,
+  ) async {
+    if (document.file == null || widget.confirmationId == null) {
       return;
     }
+
+    final authProvider = context.read<AuthProvider>();
+    final token = authProvider.token;
+
+    if (token == null) {
+      return;
+    }
+
+    setState(() {
+      document.isUploading = true;
+    });
 
     try {
-      final baseUri = Uri.parse(ApiConfig.baseUrl);
-      final fileUri = baseUri.resolve(document.fileUrl!);
-
-      final success = await launchUrl(
-        fileUri,
-        mode: LaunchMode.externalApplication,
+      final response = await FileService().uploadFile(
+        file: document.file!,
+        token: token,
+        category: 'confirmation',
+        additionalFields: {
+          'documentType': document.documentType,
+        },
       );
 
-      if (!success && mounted) {
+      if (!mounted) return;
+
+      if (response.success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-                  'Failed to open document. Please check if the file exists.')),
+          SnackBar(
+            content: Text('${document.title} uploaded successfully'),
+          ),
+        );
+
+        await _loadBooking();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.message ?? 'Upload failed'),
+          ),
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error opening document: $e')),
-        );
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error uploading file: $e'),
+        ),
+      );
+    } finally {
+      if (!mounted) {
+        setState(() {
+          document.isUploading = false;
+        });
       }
     }
   }
 
   bool _validateForm() {
-    if (_confirmandNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Confirmand\'s name is required')));
-      return false;
-    }
-    if (_fatherNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Father\'s name is required')));
-      return false;
-    }
-    if (_motherNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Mother\'s name is required')));
-      return false;
-    }
-    if (_contactPhoneController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Contact phone is required')));
-      return false;
-    }
-    if (_preferredDateController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preferred date is required')));
-      return false;
-    }
-    if (_preferredTimeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preferred time slot is required')));
+    if (!_formKey.currentState!.validate()) {
+      _bookingFormController.focusFirstInvalid();
       return false;
     }
     return true;
@@ -515,292 +502,169 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
             const SizedBox.shrink(),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _buildSectionTitle('Confirmand Information'),
-            _textField('Confirmand\'s Full Name *', _confirmandNameController,
-                enabled: _isEditMode),
-            _buildSectionTitle('Parents'),
-            Row(children: [
-              Expanded(
-                  child: _textField("Father's Name *", _fatherNameController,
-                      enabled: _isEditMode)),
-              const SizedBox(width: 12),
-              Expanded(
-                  child: _textField("Mother's Name *", _motherNameController,
-                      enabled: _isEditMode)),
-            ]),
-            _textField("Contact Email", _contactEmailController,
-                enabled: _isEditMode),
-            _textField("Contact Phone *", _contactPhoneController,
-                enabled: _isEditMode),
-
-            _buildSectionTitle('Booking Details'),
-            _textField("Parish",
-                TextEditingController(text: _booking?.parishName ?? ''),
-                enabled: false),
-            _textField("Preferred Date *", _preferredDateController,
-                enabled: _isEditMode,
-                readOnly: _isEditMode,
-                onTap: _selectDate),
-            _textField("Time Slot *", _preferredTimeController,
-                enabled: _isEditMode,
-                readOnly: _isEditMode,
-                onTap: _selectTime),
-            // Preferred Priest dropdown
-            Consumer<PriestProvider>(
-              builder: (context, priestProvider, child) {
-                final validPriestId = _selectedPriestId != null &&
-                        priestProvider.priests
-                            .any((p) => p.id == _selectedPriestId)
-                    ? _selectedPriestId
-                    : null;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: DropdownButtonFormField<int>(
-                    initialValue: validPriestId,
-                    decoration: const InputDecoration(
-                      labelText: "Preferred Priest (Optional)",
-                      border: OutlineInputBorder(),
-                    ),
-                    items: [
-                      const DropdownMenuItem<int>(
-                        value: null,
-                        child: Text("No preference"),
-                      ),
-                      ...priestProvider.priests
-                          .map((priest) => DropdownMenuItem<int>(
-                                value: priest.id,
-                                child: Text(priest.fullName),
-                              )),
-                    ],
-                    onChanged: _isEditMode
-                        ? (value) {
-                            setState(() {
-                              _selectedPriestId = value;
-                            });
-                          }
-                        : null,
-                  ),
-                );
-              },
-            ),
-            // Notes display
-            _buildSectionTitle('Notes'),
-            if (_booking?.notes != null && _booking!.notes!.isNotEmpty)
-              NotesDisplay(
-                notes: _booking!.notes!.map((note) {
-                  if (note is Map) {
-                    return Note.fromJson(Map<String, dynamic>.from(note));
-                  }
-                  return note as Note;
-                }).toList(),
-              ),
-            if (_isEditMode) ...[
-              const SizedBox(height: 8),
-              _textField("Add a note", _newNoteController,
-                  enabled: _isEditMode, maxLines: 2),
-            ],
-
-            const SizedBox(height: 16),
-            const Text('Documents',
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue)),
-            Card(
-                child: Padding(
-              padding: const EdgeInsets.all(16),
+        child: Center(
+            child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 450),
+          child: BookingFormScope(
+            controller: _bookingFormController,
+            child: Form(
+              key: _formKey,
               child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Display all documents
-                    if (_documents.isNotEmpty) ...[
-                      for (final doc in _documents)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: ListTile(
-                            leading: const Icon(Icons.picture_as_pdf,
-                                color: Colors.red),
-                            title: Text(doc.documentType
-                                    ?.toUpperCase()
-                                    .replaceAll('_', ' ') ??
-                                'DOCUMENT'),
-                            subtitle: Text(doc.fileName ?? 'File'),
-                            trailing: doc.isVerified == true
-                                ? Icon(Icons.check_circle,
-                                    color: Colors.green[600])
-                                : const Icon(Icons.pending,
-                                    color: Colors.orange),
-                            onTap: () => _openDocument(doc),
-                          ),
-                        )
-                    ] else ...[
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 8),
-                        child: Text('No documents uploaded',
-                            style: TextStyle(color: Colors.grey)),
-                      )
-                    ],
-
-                    // Edit mode actions
-                    if (_isEditMode) ...[
-                      const SizedBox(height: 12),
-                      // Baptismal Certificate upload
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.attach_file),
-                        label: const Text('Select Baptismal Certificate'),
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[200]),
-                        onPressed: _pickBaptismalCertificateFile,
-                      ),
-                      if (_baptismalCertificateFile != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Text(_baptismalCertificateFile!.name),
-                                const SizedBox(width: 8),
-                                if (_isUploading)
-                                  const CircularProgressIndicator(
-                                      strokeWidth: 2)
-                                else
-                                  ElevatedButton.icon(
-                                    icon: const Icon(Icons.cloud_upload),
-                                    label: const Text('Upload Baptismal'),
-                                    onPressed: _uploadBaptismalCertificate,
-                                  ),
-                              ]),
-                        ),
-                      const SizedBox(height: 12),
-                      // Birth Certificate upload
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.attach_file),
-                        label: const Text('Select Birth Certificate'),
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[200]),
-                        onPressed: _pickBirthCertificateFile,
-                      ),
-                      if (_birthCertificateFile != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Text(_birthCertificateFile!.name),
-                                const SizedBox(width: 8),
-                                if (_isUploading)
-                                  const CircularProgressIndicator(
-                                      strokeWidth: 2)
-                                else
-                                  ElevatedButton.icon(
-                                    icon: const Icon(Icons.cloud_upload),
-                                    label: const Text('Upload Birth'),
-                                    onPressed: _uploadBirthCertificate,
-                                  ),
-                              ]),
-                        ),
-                    ],
-                  ]),
-            )),
-
-            if (status == 'declined' && isOwner) ...[
-              Card(
-                color: Colors.orange.shade50,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  BookingSection(
+                    title: "Confirmand Information",
                     children: [
-                      const Text(
-                        'Your booking was declined. Please make the necessary changes and resubmit.',
-                        style: TextStyle(
-                            color: Colors.orange, fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Resubmit Booking'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            foregroundColor: Colors.white,
-                          ),
-                          onPressed: _resubmitBooking,
-                        ),
+                      BookingTextField(
+                        controller: _confirmandNameController,
+                        label: "Confirmand Name *",
+                        validator: Validators.requiredField,
+                        enabled: _isEditMode,
                       ),
                     ],
                   ),
-                ),
+
+                  ParentInformationSection(
+                    fatherController: _fatherNameController,
+                    motherController: _motherNameController,
+                    enabled: _isEditMode,
+                  ),
+
+                  ContactInformationSection(
+                    emailController: _contactEmailController,
+                    phoneController: _contactPhoneController,
+                    emailValidator: (value) {
+                      return Validators.requiredField(value) ??
+                          Validators.emailValidator(value);
+                    },
+                    phoneValidator: (value) {
+                      return Validators.requiredField(value) ??
+                          Validators.phoneValidator(value);
+                    },
+                    enabled: _isEditMode,
+                  ),
+                  BookingSection(
+                    title: 'Booking Preferences',
+                    children: [
+                      BookingTextField(
+                        enabled: false,
+                        controller: _preferredParishController,
+                        label: "Preferred Parish *",
+                      ),
+                      BookingDateField(
+                        controller: _preferredDateController,
+                        label: 'Preferred Confirmation Date *',
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                        validator: Validators.requiredField,
+                      ),
+                      BookingTimeField(
+                        controller: _preferredTimeController,
+                        label: 'Preferred Time Slot *',
+                        validator: Validators.requiredField,
+                      ),
+                      PriestDropdown(
+                        selectedPriestId: _selectedPriestId,
+                        onChanged: (value) {
+                          setState(() => _selectedPriestId = value);
+                        },
+                      ),
+                    ],
+                  ),
+
+                  BookingSection(
+                    title: 'Required Documents',
+                    children: List.generate(_requiredDocuments.length, (index) {
+                      final document = _requiredDocuments[index];
+
+                      return Column(
+                        children: [
+                          DocumentUploadSection(
+                            title: document.title,
+                            description: document.description,
+                            file: document.file,
+                            isUploading: document.isUploading,
+                            isUploaded: false,
+                            canEdit: _isEditMode,
+                            documents: _documents
+                                .where((d) =>
+                                    d.documentType == document.documentType)
+                                .toList(),
+                            onPick: () => _pickDocument(document),
+                            onUpload: () => _uploadDocument(document),
+                            onOpenDocument: _openDocument,
+                            onDeleteDocument: _deleteDocument,
+                            onReplaceDocument: _replaceDocument,
+                          ),
+                          if (index < _requiredDocuments.length - 1)
+                            const SizedBox(height: 24),
+                        ],
+                      );
+                    }),
+                  ),
+                  // Notes display
+                  if (_booking?.notes != null && _booking!.notes!.isNotEmpty)
+                    NotesDisplay(
+                      notes: _booking!.notes!.map((note) {
+                        if (note is Map) {
+                          return Note.fromJson(Map<String, dynamic>.from(note));
+                        }
+                        return note as Note;
+                      }).toList(),
+                    ),
+
+                  if (_isEditMode) ...[
+                    AdditionalInformationSection(
+                      notesController: _newNoteController,
+                    ),
+                  ],
+
+                  const SizedBox(height: 16),
+
+                  if (status == 'declined' && isOwner) ...[
+                    Card(
+                      color: Colors.orange.shade50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Your booking was declined. Please make the necessary changes and resubmit.',
+                              style: TextStyle(
+                                  color: Colors.orange,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                icon: const Icon(Icons.refresh),
+                                label: const Text('Resubmit Booking'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange,
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: _resubmitBooking,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  _buildStatusSection(isAdmin, widget.confirmationId ?? 0),
+                ],
               ),
-              const SizedBox(height: 16),
-            ],
-
-            _buildStatusSection(isAdmin, widget.confirmationId ?? 0),
-          ]),
-        ),
+            ),
+          ),
+        )),
       ),
     );
-  }
-
-  Widget _textField(String label, TextEditingController controller,
-      {bool enabled = true,
-      bool readOnly = false,
-      VoidCallback? onTap,
-      int maxLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: controller,
-        enabled: enabled,
-        readOnly: readOnly,
-        maxLines: maxLines,
-        onTap: onTap,
-        decoration: InputDecoration(
-          labelText: label,
-          border: enabled
-              ? const OutlineInputBorder()
-              : OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-          filled: enabled,
-          fillColor: enabled ? null : Colors.grey[100],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) => Padding(
-      padding: const EdgeInsets.only(top: 16, bottom: 8),
-      child: Text(title,
-          style: const TextStyle(
-              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)));
-
-  void _selectDate() async {
-    DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime.now().add(const Duration(days: -7)),
-        lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
-    if (picked != null) {
-      setState(() => _preferredDateController.text =
-          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
-    }
-  }
-
-  void _selectTime() async {
-    TimeOfDay? picked =
-        await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (picked != null) {
-      setState(() => _preferredTimeController.text =
-          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}');
-    }
   }
 
   Widget _buildStatusSection(bool isAdmin, int bookingId) {
@@ -893,6 +757,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     _motherNameController.dispose();
     _contactEmailController.dispose();
     _contactPhoneController.dispose();
+    _preferredParishController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
     _newNoteController.dispose();
