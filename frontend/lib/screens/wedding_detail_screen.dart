@@ -399,7 +399,10 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   }
 
   Future<void> _saveBooking() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      _bookingFormController.focusFirstInvalid();
+      return;
+    }
 
     setState(() => _isSaving = true);
 
