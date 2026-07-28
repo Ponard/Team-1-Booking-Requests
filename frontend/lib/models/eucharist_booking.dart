@@ -3,6 +3,7 @@ import '../models/document.dart';
 class EucharistBooking {
   final int? id;
   final int parishId;
+  final String? parishName;
   final int userId;
   final String? communicantName;
   final String? fatherName;
@@ -24,6 +25,7 @@ class EucharistBooking {
   EucharistBooking({
     this.id,
     required this.parishId,
+    this.parishName,
     required this.userId,
     this.communicantName,
     this.fatherName,
@@ -47,6 +49,7 @@ class EucharistBooking {
     return EucharistBooking(
       id: json['id'],
       parishId: json['parishId'],
+      parishName: json['parish']?['name'],
       userId: json['userId'],
       communicantName: json['communicantName'],
       fatherName: json['fatherName'],
@@ -64,7 +67,9 @@ class EucharistBooking {
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
       documents: json['documents'] != null
-          ? (json['documents'] as List).map((doc) => Document.fromJson(doc)).toList()
+          ? (json['documents'] as List)
+              .map((doc) => Document.fromJson(doc))
+              .toList()
           : null,
     );
   }
