@@ -1,3 +1,13 @@
+import 'package:diocese_frontend/utils/validators.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/funeral_mass_booking.dart';
@@ -23,6 +33,9 @@ class FuneralMassDetailScreen extends StatefulWidget {
 
 class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
   final FuneralMassService _funeralMassService = FuneralMassService();
+  final _formKey = GlobalKey<FormState>();
+
+  final _bookingFormController = BookingFormController();
 
   bool _isEditMode = false;
   bool _isSaving = false;
@@ -40,6 +53,8 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
       TextEditingController();
   final TextEditingController _wakeEndDateController = TextEditingController();
   final TextEditingController _wakeLocationController = TextEditingController();
+  final TextEditingController _preferredParishController =
+      TextEditingController();
   final TextEditingController _preferredDateController =
       TextEditingController();
   final TextEditingController _preferredTimeController =
@@ -90,6 +105,7 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
             booking.wakeStartDate?.split('T')[0] ?? '';
         _wakeEndDateController.text = booking.wakeEndDate?.split('T')[0] ?? '';
         _wakeLocationController.text = booking.wakeLocation ?? '';
+        _preferredParishController.text = booking.parishName ?? '';
         _preferredDateController.text =
             booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
@@ -119,71 +135,11 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
   }
 
   bool _validateForm() {
-    if (_deceasedNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Deceased name is required')));
-      return false;
-    }
-    if (_representativeNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Representative name is required')));
-      return false;
-    }
-    if (_contactPhoneController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Contact phone is required')));
-      return false;
-    }
-    if (_preferredDateController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preferred date is required')));
-      return false;
-    }
-    if (_preferredTimeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preferred time slot is required')));
+    if (!_formKey.currentState!.validate()) {
+      _bookingFormController.focusFirstInvalid();
       return false;
     }
     return true;
-  }
-
-  Widget _buildPriestDropdown() {
-    return Consumer<PriestProvider>(
-      builder: (context, priestProvider, _) {
-        final validPriestId = _selectedPriestId != null &&
-                priestProvider.priests.any((p) => p.id == _selectedPriestId)
-            ? _selectedPriestId
-            : null;
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: DropdownButtonFormField<int>(
-            initialValue: validPriestId,
-            decoration: const InputDecoration(
-              labelText: "Preferred Priest (Optional)",
-              border: OutlineInputBorder(),
-            ),
-            items: [
-              const DropdownMenuItem<int>(
-                value: null,
-                child: Text("No preference"),
-              ),
-              ...priestProvider.priests.map((priest) => DropdownMenuItem<int>(
-                    value: priest.id,
-                    child: Text(priest.fullName),
-                  )),
-            ],
-            onChanged: _isEditMode
-                ? (value) {
-                    setState(() {
-                      _selectedPriestId = value;
-                    });
-                  }
-                : null,
-          ),
-        );
-      },
-    );
   }
 
   Future<void> _saveChanges() async {
@@ -432,180 +388,167 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
             const SizedBox.shrink(),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            if (status == 'declined' && isOwner) ...[
-              Card(
-                color: Colors.orange.shade50,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Your booking was declined. Please make the necessary changes and resubmit.',
-                        style: TextStyle(
-                            color: Colors.orange, fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Resubmit Booking'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            foregroundColor: Colors.white,
-                          ),
-                          onPressed: _resubmitBooking,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 450),
+            child: BookingFormScope(
+              controller: _bookingFormController,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    BookingSection(
+                      title: "Deceased Information",
+                      children: [
+                        BookingTextField(
+                          controller: _deceasedNameController,
+                          label: "Full Name of the Deceased *",
+                          validator: Validators.requiredField,
+                          enabled: _isEditMode,
                         ),
+                        BookingDateField(
+                          controller: _dateOfDeathController,
+                          label: "Date of Death (Optional)",
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime.now(),
+                          enabled: _isEditMode,
+                        ),
+                      ],
+                    ),
+
+                    BookingSection(
+                      title: "Wake Information",
+                      children: [
+                        BookingDateField(
+                          controller: _wakeStartDateController,
+                          label: "Wake Start Date (Optional)",
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(
+                            const Duration(days: 365),
+                          ),
+                          enabled: _isEditMode,
+                        ),
+                        BookingDateField(
+                          controller: _wakeEndDateController,
+                          label: "Wake End Date (Optional)",
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(
+                            const Duration(days: 365),
+                          ),
+                          enabled: _isEditMode,
+                        ),
+                        BookingTextField(
+                          controller: _wakeLocationController,
+                          label: "Wake Location/Chapel (Optional)",
+                          maxLines: 2,
+                          enabled: _isEditMode,
+                        ),
+                      ],
+                    ),
+
+                    ContactInformationSection(
+                      contactPersonController: _representativeNameController,
+                      emailController: _contactEmailController,
+                      phoneController: _contactPhoneController,
+                      emailValidator: (value) {
+                        return Validators.requiredField(value) ??
+                            Validators.emailValidator(value);
+                      },
+                      phoneValidator: (value) {
+                        return Validators.requiredField(value) ??
+                            Validators.phoneValidator(value);
+                      },
+                      enabled: _isEditMode,
+                    ),
+
+                    BookingSection(
+                      title: 'Booking Preferences',
+                      children: [
+                        BookingTextField(
+                          enabled: false,
+                          controller: _preferredParishController,
+                          label: "Preferred Parish *",
+                        ),
+                        BookingDateField(
+                          controller: _preferredDateController,
+                          label: 'Preferred Funeral Mass Date *',
+                          firstDate: DateTime.now(),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
+                          validator: Validators.requiredField,
+                        ),
+                        BookingTimeField(
+                          controller: _preferredTimeController,
+                          label: 'Preferred Time Slot *',
+                          validator: Validators.requiredField,
+                        ),
+                        PriestDropdown(
+                          selectedPriestId: _selectedPriestId,
+                          onChanged: (value) {
+                            setState(() => _selectedPriestId = value);
+                          },
+                        ),
+                      ],
+                    ),
+
+                    // Display existing notes in conversation format
+                    if (_booking?.notes != null && _booking!.notes!.isNotEmpty)
+                      NotesDisplay(notes: _booking!.notes!),
+
+                    // Add new note field (only in edit mode)
+                    if (_isEditMode) ...[
+                      AdditionalInformationSection(
+                        notesController: _newNoteController,
                       ),
                     ],
-                  ),
+
+                    const SizedBox(height: 16),
+
+                    if (status == 'declined' && isOwner) ...[
+                      Card(
+                        color: Colors.orange.shade50,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Your booking was declined. Please make the necessary changes and resubmit.',
+                                style: TextStyle(
+                                    color: Colors.orange,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('Resubmit Booking'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  onPressed: _resubmitBooking,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    _buildStatusSection(isAdmin, widget.funeralMassId ?? 0),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-            ],
-            _buildSectionTitle('Deceased Information'),
-            _textField('Deceased Full Name *', _deceasedNameController,
-                enabled: _isEditMode),
-            _textField('Date of Death', _dateOfDeathController,
-                enabled: _isEditMode),
-
-            _buildSectionTitle('Representative'),
-            _textField('Representative Name *', _representativeNameController,
-                enabled: _isEditMode),
-            _textField('Contact Email', _contactEmailController,
-                enabled: _isEditMode),
-            _textField('Contact Phone *', _contactPhoneController,
-                enabled: _isEditMode),
-
-            _buildSectionTitle('Wake Details'),
-            _textField('Wake Start Date', _wakeStartDateController,
-                enabled: _isEditMode,
-                readOnly: _isEditMode,
-                onTap: _selectWakeStartDate),
-            _textField('Wake End Date', _wakeEndDateController,
-                enabled: _isEditMode,
-                readOnly: _isEditMode,
-                onTap: _selectWakeEndDate),
-            _textField('Wake Location', _wakeLocationController,
-                enabled: _isEditMode, maxLines: 2),
-
-            _buildSectionTitle('Booking Details'),
-            _textField("Parish",
-                TextEditingController(text: _booking?.parishName ?? ''),
-                enabled: false),
-            _textField("Preferred Date *", _preferredDateController,
-                enabled: _isEditMode,
-                readOnly: _isEditMode,
-                onTap: _selectDate),
-            _textField("Time Slot *", _preferredTimeController,
-                enabled: _isEditMode,
-                readOnly: _isEditMode,
-                onTap: _selectTime),
-            _buildPriestDropdown(),
-
-            // Display existing notes in conversation format
-            if (_booking?.notes != null && _booking!.notes!.isNotEmpty)
-              NotesDisplay(notes: _booking!.notes!),
-
-            // Add new note field (only in edit mode)
-            if (_isEditMode) ...[
-              const SizedBox(height: 16),
-              _buildSectionTitle('Add Note (Optional)'),
-              _textField('Add a note', _newNoteController,
-                  maxLines: 3, enabled: true),
-            ],
-
-            const SizedBox(height: 16),
-            _buildStatusSection(isAdmin, widget.funeralMassId ?? 0),
-          ]),
+            ),
+          ),
         ),
       ),
     );
-  }
-
-  Widget _textField(String label, TextEditingController controller,
-      {bool enabled = true,
-      bool readOnly = false,
-      VoidCallback? onTap,
-      int maxLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: controller,
-        enabled: enabled,
-        readOnly: readOnly,
-        maxLines: maxLines,
-        onTap: onTap,
-        decoration: InputDecoration(
-          labelText: label,
-          border: enabled
-              ? const OutlineInputBorder()
-              : OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-          filled: enabled,
-          fillColor: enabled ? null : Colors.grey[100],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) => Padding(
-      padding: const EdgeInsets.only(top: 16, bottom: 8),
-      child: Text(title,
-          style: const TextStyle(
-              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)));
-
-  void _selectDate() async {
-    DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime.now().add(const Duration(days: -7)),
-        lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
-    if (picked != null) {
-      setState(() => _preferredDateController.text =
-          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
-    }
-  }
-
-  void _selectTime() async {
-    TimeOfDay? picked =
-        await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (picked != null) {
-      setState(() => _preferredTimeController.text =
-          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}');
-    }
-  }
-
-  void _selectWakeStartDate() async {
-    DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime.now().add(const Duration(days: -30)),
-        lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
-    if (picked != null) {
-      setState(() => _wakeStartDateController.text =
-          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
-    }
-  }
-
-  void _selectWakeEndDate() async {
-    DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime.now().add(const Duration(days: -30)),
-        lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
-    if (picked != null) {
-      setState(() => _wakeEndDateController.text =
-          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
-    }
   }
 
   Widget _buildStatusSection(bool isAdmin, int bookingId) {
@@ -701,6 +644,7 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
     _wakeStartDateController.dispose();
     _wakeEndDateController.dispose();
     _wakeLocationController.dispose();
+    _preferredParishController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
     _newNoteController.dispose();
