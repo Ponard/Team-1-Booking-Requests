@@ -319,15 +319,17 @@ class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
                         ),
                         BookingDateField(
                           controller: _preferredDateController,
-                          label: "Preferred Anointing Date (Optional)",
+                          label: "Preferred Anointing Date *",
                           firstDate: DateTime.now(),
                           lastDate: DateTime.now().add(
                             const Duration(days: 365),
                           ),
+                          validator: Validators.requiredField,
                         ),
                         BookingTimeField(
                           controller: _preferredTimeController,
-                          label: "Preferred Time Slot (Optional)",
+                          label: "Preferred Time Slot *",
+                          validator: Validators.requiredField,
                         ),
                         PriestDropdown(
                           selectedPriestId: _selectedPriestId,
