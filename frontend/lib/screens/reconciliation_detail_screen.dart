@@ -1,3 +1,13 @@
+import 'package:diocese_frontend/utils/validators.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -23,6 +33,10 @@ class ReconciliationDetailScreen extends StatefulWidget {
 class _ReconciliationDetailScreenState
     extends State<ReconciliationDetailScreen> {
   final ReconciliationService _reconciliationService = ReconciliationService();
+  final _formKey = GlobalKey<FormState>();
+
+  final _bookingFormController = BookingFormController();
+
   bool _isEditMode = false;
   bool _isSaving = false;
   bool _showStatusButtons = true;
@@ -32,11 +46,15 @@ class _ReconciliationDetailScreenState
   final TextEditingController _penitentNameController = TextEditingController();
   final TextEditingController _contactEmailController = TextEditingController();
   final TextEditingController _contactPhoneController = TextEditingController();
+  final TextEditingController _preferredParishController =
+      TextEditingController();
   final TextEditingController _preferredDateController =
       TextEditingController();
   final TextEditingController _preferredTimeController =
       TextEditingController();
   final TextEditingController _notesController = TextEditingController();
+
+  String _confessionType = 'Regular';
 
   @override
   void initState() {
@@ -74,6 +92,7 @@ class _ReconciliationDetailScreenState
         _penitentNameController.text = booking.penitentName ?? '';
         _contactEmailController.text = booking.contactEmail ?? '';
         _contactPhoneController.text = booking.contactPhone ?? '';
+        _preferredParishController.text = booking.parishName ?? '';
         _preferredDateController.text =
             booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
@@ -336,129 +355,144 @@ class _ReconciliationDetailScreenState
             const SizedBox.shrink(),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            if (status == 'declined' && isOwner) ...[
-              Card(
-                color: Colors.orange.shade50,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Your booking was declined. Please make the necessary changes and resubmit.',
-                        style: TextStyle(
-                            color: Colors.orange, fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Resubmit Booking'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            foregroundColor: Colors.white,
-                          ),
-                          onPressed: _resubmitBooking,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 450),
+            child: BookingFormScope(
+              controller: _bookingFormController,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    BookingSection(
+                      title: "Penitent Information",
+                      children: [
+                        BookingTextField(
+                          controller: _penitentNameController,
+                          label: "Penitent Name *",
+                          validator: Validators.requiredField,
+                          enabled: _isEditMode,
                         ),
+                      ],
+                    ),
+                    ContactInformationSection(
+                      emailController: _contactEmailController,
+                      phoneController: _contactPhoneController,
+                      emailValidator: (value) {
+                        return Validators.requiredField(value) ??
+                            Validators.emailValidator(value);
+                      },
+                      phoneValidator: (value) {
+                        return Validators.requiredField(value) ??
+                            Validators.phoneValidator(value);
+                      },
+                      enabled: _isEditMode,
+                    ),
+                    BookingSection(
+                      title: "Confession Request",
+                      children: [
+                        const Text(
+                          "The Sacrament of Penance is the method by which individual men and women may confess sins committed after baptism and have them absolved by a priest.",
+                        ),
+                        const SizedBox(height: 16),
+                        BookingDropdown<String>(
+                          initialValue: _confessionType,
+                          label: "Type of Confession",
+                          items: const [
+                            DropdownMenuItem(
+                              value: "Regular",
+                              child: Text("Regular"),
+                            ),
+                            DropdownMenuItem(
+                              value: "First Confession",
+                              child: Text("First Confession"),
+                            ),
+                            DropdownMenuItem(
+                              value: "Spiritual Direction",
+                              child: Text("Spiritual Direction"),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            setState(() => _confessionType = value!);
+                          },
+                        ),
+                      ],
+                    ),
+                    BookingSection(
+                      title: 'Booking Preferences',
+                      children: [
+                        BookingTextField(
+                          enabled: false,
+                          controller: _preferredParishController,
+                          label: "Preferred Parish *",
+                        ),
+                        BookingDateField(
+                          controller: _preferredDateController,
+                          label: 'Preferred Reconciliation Date *',
+                          firstDate: DateTime.now(),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
+                          validator: Validators.requiredField,
+                        ),
+                        BookingTimeField(
+                          controller: _preferredTimeController,
+                          label: 'Preferred Time Slot *',
+                          validator: Validators.requiredField,
+                        ),
+                      ],
+                    ),
+                    NotesDisplay(notes: _booking?.notes),
+                    if (_isEditMode) ...[
+                      AdditionalInformationSection(
+                        notesController: _notesController,
                       ),
                     ],
-                  ),
+                    const SizedBox(height: 16),
+                    if (status == 'declined' && isOwner) ...[
+                      Card(
+                        color: Colors.orange.shade50,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Your booking was declined. Please make the necessary changes and resubmit.',
+                                style: TextStyle(
+                                    color: Colors.orange,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('Resubmit Booking'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  onPressed: _resubmitBooking,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    _buildStatusSection(isAdmin, widget.reconciliationId ?? 0),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-            ],
-            _buildSectionTitle('Penitent Information'),
-            _textField('Penitent Name *', _penitentNameController,
-                enabled: _isEditMode),
-            _textField('Contact Email', _contactEmailController,
-                enabled: _isEditMode),
-            _textField('Contact Phone *', _contactPhoneController,
-                enabled: _isEditMode),
-            _buildSectionTitle('Booking Details'),
-            _textField("Parish",
-                TextEditingController(text: _booking?.parishName ?? ''),
-                enabled: false),
-            _textField("Preferred Date *", _preferredDateController,
-                enabled: _isEditMode,
-                readOnly: _isEditMode,
-                onTap: _selectDate),
-            _textField("Time Slot *", _preferredTimeController,
-                enabled: _isEditMode,
-                readOnly: _isEditMode,
-                onTap: _selectTime),
-            NotesDisplay(notes: _booking?.notes),
-            if (_isEditMode)
-              _textField("Add Note", _notesController,
-                  maxLines: 3, enabled: _isEditMode),
-            const SizedBox(height: 16),
-            _buildStatusSection(isAdmin, widget.reconciliationId ?? 0),
-          ]),
+            ),
+          ),
         ),
       ),
     );
-  }
-
-  Widget _textField(String label, TextEditingController controller,
-      {bool enabled = true,
-      bool readOnly = false,
-      VoidCallback? onTap,
-      int maxLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: controller,
-        enabled: enabled,
-        readOnly: readOnly,
-        maxLines: maxLines,
-        onTap: onTap,
-        decoration: InputDecoration(
-          labelText: label,
-          border: enabled
-              ? const OutlineInputBorder()
-              : OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-          filled: enabled,
-          fillColor: enabled ? null : Colors.grey[100],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) => Padding(
-        padding: const EdgeInsets.only(top: 16, bottom: 8),
-        child: Text(title,
-            style: const TextStyle(
-                fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
-      );
-
-  void _selectDate() async {
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
-    );
-    if (picked != null) {
-      setState(() => _preferredDateController.text =
-          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
-    }
-  }
-
-  void _selectTime() async {
-    TimeOfDay? picked =
-        await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (picked != null) {
-      setState(() => _preferredTimeController.text =
-          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}');
-    }
   }
 
   Widget _buildStatusSection(bool isAdmin, int bookingId) {
@@ -550,6 +584,7 @@ class _ReconciliationDetailScreenState
     _penitentNameController.dispose();
     _contactEmailController.dispose();
     _contactPhoneController.dispose();
+    _preferredParishController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
     _notesController.dispose();
