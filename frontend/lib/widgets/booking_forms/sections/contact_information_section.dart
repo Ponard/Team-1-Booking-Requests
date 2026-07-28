@@ -36,6 +36,7 @@ class ContactInformationSection extends StatelessWidget {
           BookingTextField(
             controller: contactPersonController!,
             label: contactPersonLabel,
+            enabled: enabled,
             validator: Validators.requiredField,
           ),
         BookingTextField(
