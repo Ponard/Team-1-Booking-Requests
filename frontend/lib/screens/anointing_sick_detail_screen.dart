@@ -1,3 +1,13 @@
+import 'package:diocese_frontend/utils/validators.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
+import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/anointing_sick_booking.dart';
@@ -23,6 +33,10 @@ class AnointingSickDetailScreen extends StatefulWidget {
 
 class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
   final AnointingSickService _anointingSickService = AnointingSickService();
+  final _formKey = GlobalKey<FormState>();
+
+  final _bookingFormController = BookingFormController();
+
   bool _isEditMode = false;
   bool _isSaving = false;
   bool _showStatusButtons = true;
@@ -38,6 +52,8 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
   final TextEditingController _contactPhoneController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _locationAddressController =
+      TextEditingController();
+  final TextEditingController _preferredParishController =
       TextEditingController();
   final TextEditingController _preferredDateController =
       TextEditingController();
@@ -84,6 +100,7 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
         _contactPhoneController.text = booking.contactPhone ?? '';
         _locationController.text = booking.location ?? '';
         _locationAddressController.text = booking.locationAddress ?? '';
+        _preferredParishController.text = booking.parishName ?? '';
         _preferredDateController.text =
             booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
@@ -116,34 +133,8 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
   }
 
   bool _validateForm() {
-    if (_sickPersonNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sick person\'s name is required')));
-      return false;
-    }
-    if (_contactPersonNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Contact person name is required')));
-      return false;
-    }
-    if (_contactPhoneController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Contact phone is required')));
-      return false;
-    }
-    if (_locationController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Location is required')));
-      return false;
-    }
-    if (_preferredDateController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preferred date is required')));
-      return false;
-    }
-    if (_preferredTimeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preferred time slot is required')));
+    if (!_formKey.currentState!.validate()) {
+      _bookingFormController.focusFirstInvalid();
       return false;
     }
     return true;
@@ -380,175 +371,133 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
             const SizedBox.shrink(),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            if (status == 'declined' && isOwner) ...[
-              Card(
-                color: Colors.orange.shade50,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Your booking was declined. Please make the necessary changes and resubmit.',
-                        style: TextStyle(
-                            color: Colors.orange, fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Resubmit Booking'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            foregroundColor: Colors.white,
-                          ),
-                          onPressed: _resubmitBooking,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 450),
+            child: BookingFormScope(
+              controller: _bookingFormController,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    BookingSection(
+                      title: "Patient Information",
+                      children: [
+                        BookingTextField(
+                          controller: _sickPersonNameController,
+                          label: "Patient Full Name *",
+                          validator: Validators.requiredField,
+                          enabled: _isEditMode,
                         ),
+                        BookingTextField(
+                          controller: _locationController,
+                          label: "Location (Hospital Name / Home Address) *",
+                          maxLines: 2,
+                          validator: Validators.requiredField,
+                          enabled: _isEditMode,
+                        ),
+                        BookingTextField(
+                          controller: _locationAddressController,
+                          label: "Detailed Address (Optional)",
+                          maxLines: 2,
+                          enabled: _isEditMode,
+                        ),
+                      ],
+                    ),
+                    ContactInformationSection(
+                      contactPersonController: _contactPersonNameController,
+                      emailController: _contactEmailController,
+                      phoneController: _contactPhoneController,
+                      emailValidator: (value) {
+                        return Validators.requiredField(value) ??
+                            Validators.emailValidator(value);
+                      },
+                      phoneValidator: (value) {
+                        return Validators.requiredField(value) ??
+                            Validators.phoneValidator(value);
+                      },
+                      enabled: _isEditMode,
+                    ),
+                    BookingSection(
+                      title: 'Booking Preferences',
+                      children: [
+                        BookingTextField(
+                          enabled: false,
+                          controller: _preferredParishController,
+                          label: "Preferred Parish *",
+                        ),
+                        BookingDateField(
+                          controller: _preferredDateController,
+                          label: 'Preferred Anointing Date *',
+                          firstDate: DateTime.now(),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
+                          validator: Validators.requiredField,
+                        ),
+                        BookingTimeField(
+                          controller: _preferredTimeController,
+                          label: 'Preferred Time Slot *',
+                          validator: Validators.requiredField,
+                        ),
+                        PriestDropdown(
+                          selectedPriestId: _selectedPriestId,
+                          onChanged: (value) {
+                            setState(() => _selectedPriestId = value);
+                          },
+                        ),
+                      ],
+                    ),
+                    NotesDisplay(notes: _booking?.notes),
+                    if (_isEditMode) ...[
+                      AdditionalInformationSection(
+                        notesController: _notesController,
                       ),
                     ],
-                  ),
+                    if (status == 'declined' && isOwner) ...[
+                      Card(
+                        color: Colors.orange.shade50,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Your booking was declined. Please make the necessary changes and resubmit.',
+                                style: TextStyle(
+                                    color: Colors.orange,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('Resubmit Booking'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  onPressed: _resubmitBooking,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    _buildStatusSection(isAdmin, widget.anointingSickId ?? 0),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-            ],
-            _buildSectionTitle('Sick Person Information'),
-            _textField('Sick Person\'s Name *', _sickPersonNameController,
-                enabled: _isEditMode),
-            _buildSectionTitle('Contact Person'),
-            _textField('Contact Person Name *', _contactPersonNameController,
-                enabled: _isEditMode),
-            _textField('Contact Email', _contactEmailController,
-                enabled: _isEditMode),
-            _textField('Contact Phone *', _contactPhoneController,
-                enabled: _isEditMode),
-            _buildSectionTitle('Location'),
-            _textField('Location *', _locationController, enabled: _isEditMode),
-            _textField('Location Address', _locationAddressController,
-                enabled: _isEditMode, maxLines: 2),
-            _buildSectionTitle('Booking Details'),
-            _textField("Parish",
-                TextEditingController(text: _booking?.parishName ?? ''),
-                enabled: false),
-            _textField("Preferred Date *", _preferredDateController,
-                enabled: _isEditMode,
-                readOnly: _isEditMode,
-                onTap: _selectDate),
-            _textField("Time Slot *", _preferredTimeController,
-                enabled: _isEditMode,
-                readOnly: _isEditMode,
-                onTap: _selectTime),
-            if (_isEditMode)
-              _buildPriestDropdown()
-            else
-              _textField("Preferred Priest",
-                  TextEditingController(text: _booking?.priestName ?? ''),
-                  enabled: false),
-            NotesDisplay(notes: _booking?.notes),
-            if (_isEditMode)
-              _textField("Add Note", _notesController,
-                  maxLines: 3, enabled: _isEditMode),
-            _buildStatusSection(isAdmin, widget.anointingSickId ?? 0),
-          ]),
-        ),
-      ),
-    );
-  }
-
-  Widget _textField(String label, TextEditingController controller,
-      {bool enabled = true,
-      bool readOnly = false,
-      VoidCallback? onTap,
-      int maxLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: controller,
-        enabled: enabled,
-        readOnly: readOnly,
-        maxLines: maxLines,
-        onTap: onTap,
-        decoration: InputDecoration(
-          labelText: label,
-          border: enabled
-              ? const OutlineInputBorder()
-              : OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-          filled: enabled,
-          fillColor: enabled ? null : Colors.grey[100],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) => Padding(
-      padding: const EdgeInsets.only(top: 16, bottom: 8),
-      child: Text(title,
-          style: const TextStyle(
-              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)));
-
-  Widget _buildPriestDropdown() {
-    return Consumer<PriestProvider>(
-      builder: (context, priestProvider, _) {
-        final validPriestId = _selectedPriestId != null &&
-                priestProvider.priests.any((p) => p.id == _selectedPriestId)
-            ? _selectedPriestId
-            : null;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: DropdownButtonFormField<int>(
-            initialValue: validPriestId,
-            decoration: const InputDecoration(
-              labelText: "Preferred Priest (Optional)",
-              border: OutlineInputBorder(),
             ),
-            items: [
-              const DropdownMenuItem<int>(
-                value: null,
-                child: Text("No preference"),
-              ),
-              ...priestProvider.priests.map((priest) => DropdownMenuItem<int>(
-                    value: priest.id,
-                    child: Text(priest.fullName),
-                  )),
-            ],
-            onChanged: (value) {
-              setState(() {
-                _selectedPriestId = value;
-              });
-            },
           ),
-        );
-      },
+        ),
+      ),
     );
-  }
-
-  void _selectDate() async {
-    DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime.now().add(const Duration(days: -7)),
-        lastDate: DateTime.now().add(const Duration(days: 365 * 2)));
-    if (picked != null) {
-      setState(() => _preferredDateController.text =
-          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
-    }
-  }
-
-  void _selectTime() async {
-    TimeOfDay? picked =
-        await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (picked != null) {
-      setState(() => _preferredTimeController.text =
-          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}');
-    }
   }
 
   Widget _buildStatusSection(bool isAdmin, int bookingId) {
@@ -642,6 +591,7 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
     _contactPhoneController.dispose();
     _locationController.dispose();
     _locationAddressController.dispose();
+    _preferredParishController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
     _notesController.dispose();
