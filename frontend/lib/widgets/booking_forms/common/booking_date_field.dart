@@ -3,16 +3,12 @@ import 'package:flutter/material.dart';
 
 class BookingDateField extends StatelessWidget {
   final TextEditingController controller;
-
   final String label;
-
   final DateTime firstDate;
-
   final DateTime lastDate;
-
   final bool enabled;
-
   final FormFieldValidator<String>? validator;
+  final VoidCallback? onTap;
 
   const BookingDateField({
     super.key,
@@ -22,6 +18,7 @@ class BookingDateField extends StatelessWidget {
     required this.lastDate,
     this.enabled = true,
     this.validator,
+    this.onTap,
   });
 
   @override
@@ -38,6 +35,11 @@ class BookingDateField extends StatelessWidget {
         if (!enabled) return;
 
         FocusScope.of(context).unfocus();
+
+        if (onTap != null) {
+          onTap!();
+          return;
+        }
 
         final picked = await showDatePicker(
           context: context,
