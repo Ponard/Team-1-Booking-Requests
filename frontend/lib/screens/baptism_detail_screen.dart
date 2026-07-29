@@ -1,3 +1,7 @@
+import 'package:diocese_frontend/config/api_config.dart';
+import 'package:diocese_frontend/services/booking_document_manager.dart';
+import 'package:diocese_frontend/services/file_service.dart';
+import 'package:diocese_frontend/utils/required_document.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
@@ -19,7 +23,6 @@ import '../models/baptism_booking.dart';
 import '../providers/auth_provider.dart';
 import '../providers/priest_provider.dart';
 import '../services/baptism_service.dart';
-import 'document_preview_screen.dart';
 import '../widgets/notes_display.dart';
 
 class BaptismDetailScreen extends StatefulWidget {
@@ -40,10 +43,9 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _bookingFormController = BookingFormController();
+  final _documentManager = BookingDocumentManager();
 
   final BaptismService _baptismService = BaptismService();
-  PlatformFile? _birthCertificateFile;
-  bool _isUploading = false;
 
   bool _isEditMode = false;
   bool _isSaving = false;
@@ -65,6 +67,15 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
   final TextEditingController _preferredTimeController =
       TextEditingController();
   final TextEditingController _newNoteController = TextEditingController();
+
+  late final List<RequiredDocument> _requiredDocuments = [
+    RequiredDocument(
+      title: 'Birth Certificate *',
+      description:
+          'Please upload a copy of your birth certificate. Accepted formats: PDF, JPG, PNG.',
+      documentType: 'birth_certificate',
+    ),
+  ];
 
   int? _selectedPriestId;
 
@@ -106,7 +117,6 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
           _selectedPriestId = booking.priestId;
         }
         _documents = booking.documents ?? [];
-        _birthCertificateFile = null;
       });
 
       final authProvider = context.read<AuthProvider>();
@@ -139,185 +149,109 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
     }
   }
 
-  Future<void> _pickBirthCertificateFile() async {
+  Future<void> _openDocument(Document doc) => _documentManager.openDocument(
+        context: context,
+        document: doc,
+      );
+
+  Future<void> _deleteDocument(Document doc) => _documentManager.deleteDocument(
+        context: context,
+        endpoint: ApiConfig.baptismsEndpoint,
+        bookingId: widget.baptismId!,
+        document: doc,
+        reload: _loadBooking,
+      );
+
+  Future<void> _replaceDocument(Document doc) =>
+      _documentManager.replaceDocument(
+        context: context,
+        endpoint: ApiConfig.baptismsEndpoint,
+        bookingId: widget.baptismId!,
+        document: doc,
+        reload: _loadBooking,
+      );
+
+  Future<void> _pickDocument(RequiredDocument document) async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+        allowedExtensions: ['pdf', 'jpg', 'png'],
         allowMultiple: false,
       );
 
-      if (result != null && result.files.isNotEmpty) {
-        setState(() {
-          _birthCertificateFile = result.files.first;
-        });
-      }
+      if (!mounted || result == null) return;
+
+      setState(() {
+        document.file = result.files.first;
+      });
     } catch (e) {
-      if (mounted) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error selecting file: $e')),
+      );
+    }
+  }
+
+  Future<void> _uploadDocument(
+    RequiredDocument document,
+  ) async {
+    if (document.file == null || widget.baptismId == null) {
+      return;
+    }
+
+    final authProvider = context.read<AuthProvider>();
+    final token = authProvider.token;
+
+    if (token == null) {
+      return;
+    }
+
+    setState(() {
+      document.isUploading = true;
+    });
+
+    try {
+      final response = await FileService().uploadFile(
+        file: document.file!,
+        token: token,
+        category: 'baptism',
+        additionalFields: {
+          'documentType': document.documentType,
+        },
+      );
+
+      if (!mounted) return;
+
+      if (response.success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error selecting file: $e')),
+          SnackBar(
+            content: Text('${document.title} uploaded successfully'),
+          ),
+        );
+
+        await _loadBooking();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.message ?? 'Upload failed'),
+          ),
         );
       }
-    }
-  }
+    } catch (e) {
+      if (!mounted) return;
 
-  Future<void> _uploadBirthCertificate() async {
-    if (_birthCertificateFile == null || widget.baptismId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a file first')),
-      );
-      return;
-    }
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final token = authProvider.token;
-    if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please login to upload files')),
-      );
-      return;
-    }
-
-    setState(() => _isUploading = true);
-
-    final result = await _baptismService.attachDocumentToBooking(
-      bookingId: widget.baptismId!,
-      token: token,
-      file: _birthCertificateFile!,
-      documentType: 'birth_certificate',
-    );
-
-    setState(() => _isUploading = false);
-
-    if (result.success) {
-      await _loadBooking();
-    }
-
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          result.success
-              ? 'Birth certificate uploaded successfully'
-              : (result.message ?? 'Upload failed'),
+        SnackBar(
+          content: Text('Error uploading file: $e'),
         ),
-      ),
-    );
-  }
-
-  /// Opens a document in the preview screen
-  Future<void> _openDocument(Document document) async {
-    if (document.fileUrl == null || document.fileUrl!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Document URL is not available')),
       );
-      return;
-    }
-
-    // Navigate to document preview screen
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DocumentPreviewScreen(document: document),
-      ),
-    );
-  }
-
-  Future<void> _deleteDocument(Document doc) async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Document'),
-        content: Text(
-            'Are you sure you want to delete "${doc.fileName ?? 'this document'}"?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Delete', style: TextStyle(color: Colors.red))),
-        ],
-      ),
-    );
-
-    if (!mounted) return;
-    if (confirm != true) return;
-
-    final token = authProvider.token;
-    if (token == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Not authenticated')));
-      return;
-    }
-
-    final result = await _baptismService.deleteDocument(
-      bookingId: widget.baptismId!,
-      documentId: doc.id!,
-    );
-
-    if (!mounted) return;
-
-    if (result.success) {
-      await _loadBooking(); // Refresh
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.message ?? 'Document deleted')));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(result.message ?? 'Failed to delete document')));
-    }
-  }
-
-  Future<void> _replaceDocument(Document doc) async {
-    // Pick new file
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-    );
-    if (!mounted || result == null || result.files.isEmpty) return;
-
-    final newFile = result.files.first;
-
-    final token = authProvider.token;
-    if (token == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Not authenticated')));
-      return;
-    }
-
-    // Upload new document
-    final uploadResult = await _baptismService.attachDocumentToBooking(
-      bookingId: widget.baptismId!,
-      token: token,
-      file: newFile,
-      documentType: doc.documentType,
-    );
-
-    if (!mounted) return;
-
-    if (uploadResult.success) {
-      // Delete old document
-      final deleteResult = await _baptismService.deleteDocument(
-        bookingId: widget.baptismId!,
-        documentId: doc.id!,
-      );
-      if (!mounted) return;
-      if (!deleteResult.success) {
-        // Log but continue
-        // print('Failed to delete old document: ${deleteResult.message}');
+    } finally {
+      if (!mounted) {
+        setState(() {
+          document.isUploading = false;
+        });
       }
-      await _loadBooking();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(uploadResult.message ?? 'Document replaced')));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content:
-              Text(uploadResult.message ?? 'Failed to upload new document')));
     }
   }
 
@@ -408,7 +342,6 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
       _isEditMode = !_isEditMode;
       if (!_isEditMode) {
         _showStatusButtons = true;
-        _birthCertificateFile = null;
       }
     });
   }
@@ -591,23 +524,34 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
 
                     BookingSection(
                       title: 'Required Documents',
-                      children: [
-                        DocumentUploadSection(
-                          title: 'PSA Birth Certificate *',
-                          description:
-                              "Please upload a copy of the PSA birth certificate. Accepted formats: PDF, JPG, PNG",
-                          file: _birthCertificateFile,
-                          isUploading: _isUploading,
-                          isUploaded: false,
-                          documents: _documents,
-                          canEdit: _isEditMode,
-                          onPick: _pickBirthCertificateFile,
-                          onUpload: _uploadBirthCertificate,
-                          onOpenDocument: _openDocument,
-                          onDeleteDocument: _deleteDocument,
-                          onReplaceDocument: _replaceDocument,
-                        ),
-                      ],
+                      children:
+                          List.generate(_requiredDocuments.length, (index) {
+                        final document = _requiredDocuments[index];
+
+                        return Column(
+                          children: [
+                            DocumentUploadSection(
+                              title: document.title,
+                              description: document.description,
+                              file: document.file,
+                              isUploading: document.isUploading,
+                              isUploaded: false,
+                              canEdit: _isEditMode,
+                              documents: _documents
+                                  .where((d) =>
+                                      d.documentType == document.documentType)
+                                  .toList(),
+                              onPick: () => _pickDocument(document),
+                              onUpload: () => _uploadDocument(document),
+                              onOpenDocument: _openDocument,
+                              onDeleteDocument: _deleteDocument,
+                              onReplaceDocument: _replaceDocument,
+                            ),
+                            if (index < _requiredDocuments.length - 1)
+                              const SizedBox(height: 24),
+                          ],
+                        );
+                      }),
                     ),
 
                     // Display existing notes in conversation format
