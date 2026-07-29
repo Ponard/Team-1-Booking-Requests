@@ -1,7 +1,9 @@
 import 'package:diocese_frontend/utils/validators.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_dropdown.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/parish_dropdown.dart';
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
@@ -32,7 +34,7 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
-  String _selectedType = 'Thanksgiving';
+  String? _selectedType;
   String? _selectedTime;
   DateTime? _selectedDate;
   List<MassSchedule> _availableSchedules = [];
@@ -88,7 +90,6 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
         _selectedDate = picked;
         _dateController.text =
             "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
-        _selectedTime = null;
       });
       _loadSchedulesForDate(picked);
     }
@@ -124,9 +125,7 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
 
     setState(() {
       _availableSchedules = schedules;
-      if (schedules.isNotEmpty && _selectedTime == null) {
-        _selectedTime = _normalizeTime(schedules.first.startTime);
-      }
+      _selectedTime = null;
       final allSchedules = scheduleProvider.getSchedulesForDate(date);
       if (allSchedules.isEmpty) {
         _noSchedulesMessage =
@@ -152,19 +151,6 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
       return;
     }
 
-    if (_selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a mass date.")),
-      );
-      return;
-    }
-    if (_selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a mass time.")),
-      );
-      return;
-    }
-
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final massIntentionProvider =
         Provider.of<MassIntentionProvider>(context, listen: false);
@@ -174,13 +160,6 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text("Please login to submit a mass intention.")),
-      );
-      return;
-    }
-
-    if (parishProvider.selectedParish == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a parish.")),
       );
       return;
     }
@@ -221,7 +200,7 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
     }
 
     final success = await massIntentionProvider.createMassIntention(
-      type: mapType(_selectedType),
+      type: mapType(_selectedType!),
       intentionDetails: _intentionForController.text.trim(),
       donorName: _offeredByController.text.trim(),
       preferredDate: formatDate(_dateController.text),
@@ -240,30 +219,6 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
                 "Failed to submit mass intention.")),
       );
     }
-  }
-
-  Widget _buildSection(
-      {required String title, required List<Widget> children}) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-                style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue)),
-            const SizedBox(height: 12),
-            ...children,
-          ],
-        ),
-      ),
-    );
   }
 
   String _formatTimeDisplay(String time) {
@@ -324,6 +279,8 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
                         BookingDropdown<String>(
                           initialValue: _selectedType,
                           label: "Intention Type *",
+                          hint: const Text("Select an intention type"),
+                          validator: Validators.requiredField,
                           items: const [
                             'Thanksgiving',
                             'Petition',
@@ -355,83 +312,61 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
                       ],
                     ),
 
-                    // TODO: refactor into BookingSection
                     // Booking Preferences
-                    _buildSection(title: "Booking Preferences", children: [
-                      Consumer<ParishProvider>(
-                        builder: (context, parishProvider, _) {
-                          return DropdownButtonFormField<int>(
-                            initialValue: parishProvider.selectedParish?.id,
-                            decoration: const InputDecoration(
-                              labelText: "Preferred Parish *",
-                              border: OutlineInputBorder(),
-                            ),
-                            items: parishProvider.parishes
-                                .map((parish) => DropdownMenuItem(
-                                      value: parish.id,
-                                      child: Text(parish.name),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
-                              final parish = parishProvider.parishes
-                                  .firstWhere((p) => p.id == value);
-                              parishProvider.selectParish(parish);
-                              if (_selectedDate != null) {
-                                _loadSchedulesForDate(_selectedDate!);
-                              }
-                            },
-                            validator: (value) =>
-                                value == null ? "Please select a parish" : null,
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _dateController,
-                        readOnly: true,
-                        decoration: const InputDecoration(
-                            labelText: "Preferred Mass Date *",
-                            border: OutlineInputBorder(),
-                            suffixIcon: Icon(Icons.calendar_today)),
-                        onTap: () async {
-                          FocusScope.of(context).requestFocus(FocusNode());
-                          await _selectDate();
-                        },
-                        validator: (value) =>
-                            value!.isEmpty ? "Please select a date" : null,
-                      ),
-                      const SizedBox(height: 12),
-                      if (_selectedDate != null && _availableSchedules.isEmpty)
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.shade50,
-                            border: Border.all(color: Colors.orange.shade200),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.info_outline,
-                                  color: Colors.orange.shade700, size: 20),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  _noSchedulesMessage,
-                                  style: TextStyle(
-                                      color: Colors.orange.shade700,
-                                      fontSize: 13),
-                                ),
-                              ),
-                            ],
-                          ),
+                    BookingSection(
+                      title: 'Booking Preferences',
+                      children: [
+                        ParishDropdown(
+                          onParishChanged: () {
+                            if (_selectedDate != null) {
+                              _loadSchedulesForDate(_selectedDate!);
+                            }
+                          },
                         ),
-                      if (_availableSchedules.isNotEmpty)
-                        DropdownButtonFormField<String>(
-                          initialValue: _selectedTime,
-                          decoration: const InputDecoration(
-                            labelText: "Mass Time *",
-                            border: OutlineInputBorder(),
+                        BookingDateField(
+                          controller: _dateController,
+                          label: "Preferred Mass Date *",
+                          firstDate: DateTime.now(),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
+                          validator: Validators.requiredField,
+                          onTap: () async {
+                            await _selectDate();
+                          },
+                        ),
+                        if (_selectedDate != null &&
+                            _availableSchedules.isEmpty)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              border: Border.all(color: Colors.orange.shade200),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.info_outline,
+                                    color: Colors.orange.shade700, size: 20),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _noSchedulesMessage,
+                                    style: TextStyle(
+                                        color: Colors.orange.shade700,
+                                        fontSize: 13),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                        BookingDropdown<String>(
+                          initialValue: _selectedTime,
+                          label: "Mass Time *",
+                          hint: const Text("Select a mass time"),
+                          disabledHint:
+                              const Text("Select a parish and date first"),
+                          enabled: _availableSchedules.isNotEmpty,
                           items: _availableSchedules
                               .fold<Map<String, MassSchedule>>({}, (map, s) {
                                 final normalized = _normalizeTime(s.startTime);
@@ -441,11 +376,17 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
                                 return map;
                               })
                               .values
-                              .map((s) => DropdownMenuItem(
-                                    value: _normalizeTime(s.startTime),
-                                    child: Text(
-                                        '${_formatTimeDisplay(s.startTime)} - ${_formatTimeDisplay(s.endTime)}${s.notes != null ? ' (${s.notes})' : ''}'),
-                                  ))
+                              .map(
+                                (s) => DropdownMenuItem(
+                                  value: _normalizeTime(s.startTime),
+                                  child: Text(
+                                    '${_formatTimeDisplay(s.startTime)} - '
+                                    '${_formatTimeDisplay(s.endTime)}'
+                                    // ignore: prefer_interpolation_to_compose_strings
+                                    '${s.notes != null ? ' (' + s.notes! + ')' : ''}',
+                                  ),
+                                ),
+                              )
                               .toList(),
                           onChanged: (value) =>
                               setState(() => _selectedTime = value),
@@ -453,7 +394,8 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
                               ? "Please select a mass time"
                               : null,
                         ),
-                    ]),
+                      ],
+                    ),
 
                     // Additional Information
                     AdditionalInformationSection(
