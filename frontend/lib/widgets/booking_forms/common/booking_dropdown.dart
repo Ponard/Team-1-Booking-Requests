@@ -5,16 +5,13 @@ import 'package:flutter/material.dart';
 
 class BookingDropdown<T> extends StatefulWidget {
   final T? initialValue;
-
   final String label;
-
   final List<DropdownMenuItem<T>> items;
-
   final ValueChanged<T?>? onChanged;
-
   final FormFieldValidator<T>? validator;
-
   final Widget? hint;
+  final Widget? disabledHint;
+  final bool enabled;
 
   @override
   State<BookingDropdown<T>> createState() => _BookingDropdownState<T>();
@@ -27,6 +24,8 @@ class BookingDropdown<T> extends StatefulWidget {
     this.onChanged,
     this.validator,
     this.hint,
+    this.disabledHint,
+    this.enabled = true,
   });
 
   Widget build(BuildContext context) {
@@ -40,9 +39,10 @@ class BookingDropdown<T> extends StatefulWidget {
           border: const OutlineInputBorder(),
         ),
         items: items,
-        onChanged: onChanged,
+        onChanged: enabled ? onChanged : null,
         validator: validator,
         hint: hint,
+        disabledHint: disabledHint,
       ),
     );
   }
@@ -92,8 +92,10 @@ class _BookingDropdownState<T> extends State<BookingDropdown<T>> {
           border: const OutlineInputBorder(),
         ),
         items: widget.items,
-        onChanged: widget.onChanged,
+        onChanged: widget.enabled ? widget.onChanged : null,
         validator: widget.validator,
+        hint: widget.hint,
+        disabledHint: widget.disabledHint,
       ),
     );
   }
