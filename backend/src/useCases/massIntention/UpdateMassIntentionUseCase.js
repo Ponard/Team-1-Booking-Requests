@@ -26,7 +26,7 @@ class UpdateMassIntentionUseCase {
       throw new Error('Mass intention not found');
     }
 
-    console.log('[UpdateMassIntentionUseCase] DTO preferredTime:', dto.preferredTime);
+    console.log('[UpdateMassIntentionUseCase] DTO preferredTime:', dto.preferredTimeSlot);
     console.log('[UpdateMassIntentionUseCase] DTO all:', JSON.stringify(dto));
 
     // Get allowed fields based on user role (pass full user object for parish check)
@@ -71,7 +71,7 @@ class UpdateMassIntentionUseCase {
       case 'diocese_staff':
       case 'diocese_admin':
         // Can update everything including notes
-        return ['type', 'intentionDetails', 'donorName', 'parishId', 'massSchedule', 'preferredTime', 'preferredPriest', 'notes', 'status'];
+        return ['type', 'intentionDetails', 'donorName', 'parishId', 'massSchedule', 'preferredDate', 'preferredTimeSlot', 'preferredPriest', 'notes', 'status'];
 
       case 'parish_admin':
         // Parish admin can only manage their assigned parish's intentions
@@ -79,12 +79,12 @@ class UpdateMassIntentionUseCase {
           throw new Error('Access denied: You can only manage mass intentions in your assigned parish');
         }
         // Can update most fields except parishId and userId
-        return ['type', 'intentionDetails', 'donorName', 'massSchedule', 'preferredTime', 'preferredPriest', 'notes', 'status'];
+        return ['type', 'intentionDetails', 'donorName', 'massSchedule', 'preferredDate', 'preferredTimeSlot', 'preferredPriest', 'notes', 'status'];
 
       case 'parish_staff':
       case 'priest':
         // Can update all fields like parish_admin
-        return ['type', 'intentionDetails', 'donorName', 'massSchedule', 'preferredTime', 'preferredPriest', 'notes', 'status'];
+        return ['type', 'intentionDetails', 'donorName', 'massSchedule', 'preferredDate', 'preferredTimeSlot', 'preferredPriest', 'notes', 'status'];
 
       case 'parishioner':
         // Can only update their own intentions
@@ -95,11 +95,11 @@ class UpdateMassIntentionUseCase {
         if (intention.status === 'declined') {
           // If no status in request, allow regular update (keep declined)
           if (!dto.status) {
-            return ['intentionDetails', 'donorName', 'parishId', 'massSchedule', 'preferredTime', 'preferredPriest', 'notes'];
+            return ['type', 'intentionDetails', 'donorName', 'parishId', 'massSchedule', 'preferredDate', 'preferredTimeSlot', 'preferredPriest', 'notes'];
           }
           // If status is 'pending', allow resubmit
           if (dto.status === 'pending') {
-            return ['intentionDetails', 'donorName', 'parishId', 'massSchedule', 'preferredTime', 'preferredPriest', 'notes', 'status'];
+            return ['type', 'intentionDetails', 'donorName', 'parishId', 'massSchedule', 'preferredDate', 'preferredTimeSlot', 'preferredPriest', 'notes', 'status'];
           }
           // Any other status is not allowed
           throw new Error('Cannot update a declined mass intention unless resubmitting');
@@ -107,7 +107,7 @@ class UpdateMassIntentionUseCase {
         if (intention.status !== 'pending') {
           throw new Error('Cannot update mass intention once it is no longer pending');
         }
-        return ['intentionDetails', 'donorName', 'parishId', 'massSchedule', 'preferredTime', 'preferredPriest', 'notes'];
+        return ['type', 'intentionDetails', 'donorName', 'parishId', 'massSchedule', 'preferredDate', 'preferredTimeSlot', 'preferredPriest', 'notes'];
 
       default:
         throw new Error('Insufficient permissions');
