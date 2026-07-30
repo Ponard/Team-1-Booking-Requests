@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
 import 'package:flutter/material.dart';
 
 class BookingStatusActionsSection extends StatelessWidget {
@@ -19,64 +20,65 @@ class BookingStatusActionsSection extends StatelessWidget {
     }
 
     final normalizedStatus = status.toLowerCase();
+    bool showActions = ['pending', 'approved'].contains(normalizedStatus);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (['pending', 'approved'].contains(normalizedStatus))
-          const Text(
-            'Actions',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue,
-            ),
-          ),
-        const SizedBox(height: 8),
-        if (normalizedStatus == 'pending') ...[
-          Row(
+    return showActions
+        ? BookingSection(
+            title: "Actions",
+            transparent: true,
+            padding: 0,
             children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.check_circle),
-                  label: const Text('Approve'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: () => onUpdateStatus('approved'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.cancel),
-                  label: const Text('Decline'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.error,
-                    side:
-                        BorderSide(color: Theme.of(context).colorScheme.error),
-                  ),
-                  onPressed: () => onUpdateStatus('declined'),
-                ),
-              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (normalizedStatus == 'pending') ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.check_circle),
+                            label: const Text('Approve'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                            ),
+                            onPressed: () => onUpdateStatus('approved'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            icon: const Icon(Icons.cancel),
+                            label: const Text('Decline'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor:
+                                  Theme.of(context).colorScheme.error,
+                              side: BorderSide(
+                                  color: Theme.of(context).colorScheme.error),
+                            ),
+                            onPressed: () => onUpdateStatus('declined'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else if (normalizedStatus == 'approved') ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.check_circle_outline),
+                        label: const Text('Mark as Completed'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () => onUpdateStatus('completed'),
+                      ),
+                    ),
+                  ],
+                ],
+              )
             ],
-          ),
-        ] else if (normalizedStatus == 'approved') ...[
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.check_circle_outline),
-              label: const Text('Mark as Completed'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () => onUpdateStatus('completed'),
-            ),
-          ),
-        ],
-      ],
-    );
+          )
+        : const SizedBox.shrink();
   }
 }
