@@ -108,30 +108,14 @@ class _ReconciliationDetailScreenState
   }
 
   Future<void> _saveChanges() async {
-    if (widget.reconciliationId == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Invalid booking ID')));
+    if (!_formKey.currentState!.validate()) {
+      _bookingFormController.focusFirstInvalid();
       return;
     }
 
-    if (_penitentNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Penitent name is required')));
-      return;
-    }
-    if (_contactPhoneController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Contact phone is required')));
-      return;
-    }
-    if (_preferredDateController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preferred date is required')));
-      return;
-    }
-    if (_preferredTimeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preferred time slot is required')));
+    if (widget.reconciliationId == null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Invalid booking ID')));
       return;
     }
 
