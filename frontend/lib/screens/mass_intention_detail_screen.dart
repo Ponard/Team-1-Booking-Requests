@@ -1,4 +1,5 @@
 import 'package:diocese_frontend/extensions/build_context_extensions.dart';
+import 'package:diocese_frontend/models/note.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_detail_title.dart';
@@ -281,21 +282,13 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
     setState(() => _isSaving = true);
 
     try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final currentUser = authProvider.currentUser;
-      final isParishioner = currentUser?.role == 'parishioner';
-
       // Prepare notes array if a new note was added
-      List<Map<String, dynamic>>? notesToAdd;
-      if (_newNoteController.text.trim().isNotEmpty) {
-        notesToAdd = [
-          {
-            'author': isParishioner ? 'parishioner' : 'admin',
-            'content': _newNoteController.text.trim(),
-            'authorId': currentUser?.id,
-          }
-        ];
-      }
+      final note = Note.fromInput(
+        text: _newNoteController.text,
+        currentUser: context.read<AuthProvider>().currentUser,
+      );
+
+      final notesToAdd = note == null ? null : [note.toJson()];
 
       final result = await _massIntentionService.updateMassIntention(
         id: widget.massIntentionId!,

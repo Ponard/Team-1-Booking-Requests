@@ -1,4 +1,5 @@
 import 'package:diocese_frontend/extensions/build_context_extensions.dart';
+import 'package:diocese_frontend/models/note.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_detail_title.dart';
@@ -159,17 +160,12 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
     setState(() => _isSaving = true);
 
     try {
-      List<Map<String, dynamic>>? notesToAdd;
-      if (_notesController.text.trim().isNotEmpty) {
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        notesToAdd = [
-          {
-            'author': 'parishioner',
-            'content': _notesController.text.trim(),
-            'authorId': authProvider.currentUser!.id,
-          }
-        ];
-      }
+      final note = Note.fromInput(
+        text: _notesController.text,
+        currentUser: context.read<AuthProvider>().currentUser,
+      );
+
+      final notesToAdd = note == null ? null : [note.toJson()];
 
       final result = await _anointingSickService.updateAnointingSickBooking(
         token: token,

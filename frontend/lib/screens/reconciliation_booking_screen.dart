@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/models/note.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_dropdown.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
@@ -139,16 +140,12 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
     }
 
     // Prepare notes array if a note was added
-    List<Map<String, dynamic>>? notesToAdd;
-    if (_notesController.text.trim().isNotEmpty) {
-      notesToAdd = [
-        {
-          'author': 'parishioner',
-          'content': _notesController.text.trim(),
-          'authorId': authProvider.currentUser!.id,
-        }
-      ];
-    }
+    final note = Note.fromInput(
+      text: _notesController.text,
+      currentUser: context.read<AuthProvider>().currentUser,
+    );
+
+    final notesToAdd = note == null ? null : [note.toJson()];
 
     final success = await reconciliationProvider.createReconciliationBooking(
       token: token,

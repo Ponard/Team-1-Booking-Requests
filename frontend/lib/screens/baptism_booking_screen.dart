@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/models/note.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
@@ -265,16 +266,12 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
     }
 
     // Safely parse notes
-    List<Map<String, dynamic>>? notesToAdd;
-    if (cleanNotes.isNotEmpty) {
-      notesToAdd = [
-        {
-          'author': 'parishioner',
-          'content': cleanNotes,
-          'authorId': authProvider.currentUser!.id,
-        }
-      ];
-    }
+    final note = Note.fromInput(
+      text: cleanNotes,
+      currentUser: context.read<AuthProvider>().currentUser,
+    );
+
+    final notesToAdd = note == null ? null : [note.toJson()];
 
     // 2. Execute API Call
     final success = await baptismProvider.createBaptismBooking(

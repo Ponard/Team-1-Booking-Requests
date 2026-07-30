@@ -1,4 +1,5 @@
 import 'package:diocese_frontend/extensions/build_context_extensions.dart';
+import 'package:diocese_frontend/models/note.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_detail_title.dart';
@@ -140,19 +141,12 @@ class _ReconciliationDetailScreenState
     setState(() => _isSaving = true);
 
     //QA FIX: Dynamic role check for notes
-    List<Map<String, dynamic>>? notesToAdd;
-    if (_notesController.text.trim().isNotEmpty) {
-      final currentUser = authProvider.currentUser;
-      final isParishioner =
-          currentUser?.role == 'parishioner'; //for logic checking
-      notesToAdd = [
-        {
-          'author': isParishioner ? 'parishioner' : 'admin',
-          'content': _notesController.text.trim(),
-          'authorId': authProvider.currentUser!.id,
-        }
-      ];
-    }
+    final note = Note.fromInput(
+      text: _notesController.text,
+      currentUser: context.read<AuthProvider>().currentUser,
+    );
+
+    final notesToAdd = note == null ? null : [note.toJson()];
 
     //QA FIX: Added .trim() to date and time fields
     final result = await _reconciliationService.updateReconciliationBooking(

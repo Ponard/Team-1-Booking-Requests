@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/models/note.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
@@ -564,16 +565,12 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
     }
 
     // Prepare notes array if a note was added
-    List<Map<String, dynamic>>? notesToAdd;
-    if (_notesController.text.trim().isNotEmpty) {
-      notesToAdd = [
-        {
-          'author': 'parishioner',
-          'content': _notesController.text.trim(),
-          'authorId': authProvider.currentUser!.id,
-        }
-      ];
-    }
+    final note = Note.fromInput(
+      text: _notesController.text,
+      currentUser: context.read<AuthProvider>().currentUser,
+    );
+
+    final notesToAdd = note == null ? null : [note.toJson()];
 
     // QA FIX: Input Sanitization
     // Added .trim() to text, date, and time controllers to strip trailing/leading whitespace,

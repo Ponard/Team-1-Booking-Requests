@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/models/note.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
@@ -150,19 +151,12 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
     }
 
     // Prepare notes array if additional notes were provided
-    List<Map<String, dynamic>>? notesToAdd;
-    if (_additionalNotesController.text.trim().isNotEmpty) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final currentUser = authProvider.currentUser;
-      notesToAdd = [
-        {
-          'author': 'parishioner',
-          'content': _additionalNotesController.text.trim(),
-          'authorId': currentUser?.id,
-          'timestamp': DateTime.now().toIso8601String(),
-        }
-      ];
-    }
+    final note = Note.fromInput(
+      text: _additionalNotesController.text,
+      currentUser: context.read<AuthProvider>().currentUser,
+    );
+
+    final notesToAdd = note == null ? null : [note.toJson()];
 
     final success = await funeralMassProvider.createFuneralMassBooking(
       token: authProvider.token!,

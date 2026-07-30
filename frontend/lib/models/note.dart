@@ -1,3 +1,5 @@
+import 'package:diocese_frontend/models/user.dart';
+
 class Note {
   final String? author;
   final String? content;
@@ -27,5 +29,21 @@ class Note {
       if (authorId != null) 'authorId': authorId,
       if (timestamp != null) 'timestamp': timestamp,
     };
+  }
+
+  static Note? fromInput({
+    required String text,
+    required User? currentUser,
+  }) {
+    final trimmed = text.trim();
+
+    if (trimmed.isEmpty) return null;
+
+    return Note(
+      author: currentUser?.role == 'parishioner' ? 'parishioner' : 'admin',
+      content: trimmed,
+      authorId: currentUser?.id,
+      timestamp: DateTime.now().toIso8601String(),
+    );
   }
 }
