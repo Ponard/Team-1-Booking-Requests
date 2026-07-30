@@ -391,6 +391,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                             label: const Text('View'),
                                             style: ElevatedButton.styleFrom(
                                               backgroundColor: Colors.grey,
+                                              foregroundColor: Colors.white,
                                             ),
                                           ),
                                         // Spacing before delete if we have a preceding button (edit or view) and delete is present
