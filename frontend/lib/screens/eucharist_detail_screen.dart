@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/services/booking_document_manager.dart';
 import 'package:diocese_frontend/utils/required_document.dart';
 import 'package:diocese_frontend/utils/validators.dart';
@@ -9,6 +10,7 @@ import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.da
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/booking_status_actions_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/parent_information_section.dart';
@@ -49,7 +51,6 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
 
   bool _isEditMode = false;
   bool _isSaving = false;
-  bool _showStatusButtons = true;
 
   EucharistBooking? _booking;
 
@@ -90,7 +91,6 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _showStatusButtons = !widget.fromStatusButton;
     _loadBooking();
   }
 
@@ -162,14 +162,11 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
 
       if (!mounted) return;
 
-      if (widget.fromStatusButton && isEditable) {
+      // Auto-enable edit mode if user is owner and booking is editable
+      final currentUser = authProvider.currentUser;
+      final isOwner = booking.userId == currentUser?.id;
+      if (isOwner && isEditable) {
         setState(() => _isEditMode = true);
-      } else {
-        final currentUser = authProvider.currentUser;
-        final isOwner = booking.userId == currentUser?.id;
-        if (!widget.fromStatusButton && isOwner && isEditable) {
-          setState(() => _isEditMode = true);
-        }
       }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -285,6 +282,12 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
     }
   }
 
+  void _toggleEditMode() {
+    setState(() {
+      _isEditMode = !_isEditMode;
+    });
+  }
+
   Future<void> _saveBooking() async {
     if (!_formKey.currentState!.validate()) {
       _bookingFormController.focusFirstInvalid();
@@ -356,91 +359,6 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
     }
   }
 
-  // Future<void> _updateStatus(String status) async {
-  //   if (widget.eucharistId == null) return;
-
-  //   final authProvider = Provider.of<AuthProvider>(context, listen: false);
-  //   final token = authProvider.token;
-  //   if (token == null) return;
-
-  //   final result = await _eucharistService.updateEucharistStatus(
-  //     token: token,
-  //     id: widget.eucharistId!,
-  //     status: status,
-  //   );
-
-  //   if (mounted) {
-  //     if (result.success) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text('Booking marked as $status')),
-  //       );
-  //       Navigator.pop(context, true);
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text(result.message ?? 'Failed')),
-  //       );
-  //     }
-  //   }
-  // }
-
-  Future<void> _deleteBooking() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel Booking'),
-        content: const Text('Are you sure you want to cancel this booking?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('No'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Yes'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
-    setState(() => _isSaving = true);
-
-    final token = authProvider.token;
-    if (token == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please login to delete booking')),
-        );
-      }
-      setState(() => _isSaving = false);
-      return;
-    }
-
-    final result = await _eucharistService.deleteEucharistBooking(
-      token: token,
-      id: widget.eucharistId!,
-    );
-
-    //QA FIX: Check if the widget is still mounted BEFORE calling setState
-
-    setState(() => _isSaving = false);
-
-    if (mounted) {
-      if (result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Booking cancelled successfully')),
-        );
-        Navigator.pop(context, true);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.message ?? 'Failed to cancel booking')),
-        );
-      }
-    }
-  }
-
   Future<void> _resubmitBooking() async {
     if (widget.eucharistId == null) return;
 
@@ -482,12 +400,6 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
     }
   }
 
-  String get _displayStatus {
-    if (_booking == null) return 'PENDING';
-    final status = (_booking?.status.toUpperCase() ?? 'PENDING');
-    return status;
-  }
-
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -503,21 +415,26 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
     final status = _booking?.status.toLowerCase();
     final canEdit =
         isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
-    final effectiveStatus = _displayStatus.toLowerCase();
-    final canDelete = isAdmin || (isOwner && effectiveStatus != 'approved');
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
             _booking != null ? 'First Communion' : 'First Communion Details'),
         actions: [
-          if (_booking != null && !_isEditMode && _showStatusButtons)
-            if (canEdit)
-              IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: () => setState(() => _isEditMode = true),
-                tooltip: 'Edit',
-              ),
+          if (_isEditMode)
+            IconButton(
+                icon: Icon(_isSaving ? Icons.edit : Icons.save),
+                tooltip: _isSaving ? 'Saving...' : 'Save changes',
+                color: _isSaving ? Colors.orange : null,
+                onPressed: _saveBooking)
+          else if (canEdit)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Edit',
+              onPressed: _toggleEditMode,
+            )
+          else
+            const SizedBox.shrink(),
         ],
       ),
       body: SingleChildScrollView(
@@ -641,6 +558,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                           label: "Preferred Parish *",
                         ),
                         BookingDateField(
+                          enabled: _isEditMode,
                           controller: _preferredDateController,
                           label: 'Preferred Confirmation Date *',
                           firstDate: DateTime.now(),
@@ -649,11 +567,13 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                           validator: Validators.requiredField,
                         ),
                         BookingTimeField(
+                          enabled: _isEditMode,
                           controller: _preferredTimeController,
                           label: 'Preferred Time Slot *',
                           validator: Validators.requiredField,
                         ),
                         PriestDropdown(
+                          enabled: _isEditMode,
                           selectedPriestId: _selectedPriestId,
                           onChanged: (value) {
                             setState(() => _selectedPriestId = value);
@@ -711,9 +631,9 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                         notesController: _newNoteController,
                       ),
                     ],
-                    const SizedBox(height: 16),
 
                     if (status == 'declined' && isOwner) ...[
+                      const SizedBox(height: 16),
                       Card(
                         color: Colors.orange.shade50,
                         child: Padding(
@@ -756,62 +676,11 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                       ),
                     ],
 
-                    // Save/Cancel Buttons
-                    if (_isEditMode)
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: _isSaving ? null : _saveBooking,
-                              style: ElevatedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                              ),
-                              child: _isSaving
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Text('Save Changes'),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: _isSaving
-                                  ? null
-                                  : () => setState(() => _isEditMode = false),
-                              style: OutlinedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                              ),
-                              child: const Text('Cancel'),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                    // Delete Button (owners can delete any non-approved booking)
-                    if (_isEditMode && _booking != null && canDelete)
-                      const SizedBox(height: 16),
-                    if (_isEditMode && _booking != null && canDelete)
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: _isSaving ? null : _deleteBooking,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.red,
-                            side: const BorderSide(color: Colors.red),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                          child: const Text('Cancel Booking'),
-                        ),
-                      ),
-
-                    const SizedBox(height: 32),
+                    BookingStatusActionsSection(
+                      visible: isAdmin && !_isEditMode,
+                      status: _booking?.status ?? 'pending',
+                      onUpdateStatus: _updateStatus,
+                    ),
                   ],
                 ),
               ),
@@ -819,6 +688,27 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _updateStatus(String status) async {
+    if (widget.eucharistId == null) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Authentication required')));
+      return;
+    }
+
+    context.handleBookingStatusUpdate(
+      _eucharistService.updateEucharistStatus(
+        token: token,
+        id: widget.eucharistId!,
+        status: status,
+      ),
+      status,
     );
   }
 
