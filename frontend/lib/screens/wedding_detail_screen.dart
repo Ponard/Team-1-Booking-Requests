@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/utils/required_document.dart';
 import 'package:diocese_frontend/services/booking_document_manager.dart';
 import 'package:diocese_frontend/utils/validators.dart';
@@ -9,6 +10,7 @@ import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.da
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/booking_status_actions_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/couple_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
@@ -49,7 +51,6 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
 
   bool _isEditMode = false;
   bool _isSaving = false;
-  bool _showStatusButtons = true;
 
   WeddingBooking? _booking;
 
@@ -99,132 +100,9 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
 
   List<Document> _documents = [];
 
-  String get _displayBookingStatus {
-    if (_booking == null) return 'PENDING';
-    final status = (_booking?.status.toUpperCase() ?? 'PENDING');
-    return status;
-  }
-
-  // bool get _canChangeStatus {
-  //   if (_booking == null) return false;
-  //   final status = _booking!.status.toLowerCase();
-  //   if (status == 'pending') {
-  //     return true;
-  //   } else if (status == 'approved') {
-  //     final scheduledDate = _booking!.preferredDate;
-  //     if (scheduledDate != null && scheduledDate.isNotEmpty) {
-  //       try {
-  //         final now = DateTime.now();
-  //         final bookingDate = DateTime.parse(scheduledDate);
-  //         final today = DateTime(now.year, now.month, now.day);
-  //         final eventDate =
-  //             DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
-  //         return eventDate.isBefore(today);
-  //       } catch (e) {
-  //         return false;
-  //       }
-  //     }
-  //     return false;
-  //   }
-  //   return false;
-  // }
-
-  // String get _actionButtonText {
-  //   if (_booking == null) return 'Approve';
-  //   final status = _booking!.status.toLowerCase();
-  //   if (status == 'pending') return 'Approve';
-  //   if (status == 'approved') return 'Mark as Completed';
-  //   return 'Approve';
-  // }
-
-  // Widget _buildStatusSection(bool isAdmin) {
-  //   if (!isAdmin || _showStatusButtons) return const SizedBox.shrink();
-
-  //   final displayStatus = _displayBookingStatus;
-  //   final canChangeStatus = _canChangeStatus;
-  //   final actionButtonText = _actionButtonText;
-  //   final status = _booking?.status.toLowerCase();
-
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       const SizedBox(height: 16),
-  //       const Text(
-  //         'Status',
-  //         style: TextStyle(
-  //           fontSize: 16,
-  //           fontWeight: FontWeight.bold,
-  //           color: Colors.blue,
-  //         ),
-  //       ),
-  //       Padding(
-  //         padding: const EdgeInsets.symmetric(vertical: 6),
-  //         child: Row(
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: [
-  //             const SizedBox(
-  //               width: 120,
-  //               child: Text(
-  //                 'Status',
-  //                 style: TextStyle(fontWeight: FontWeight.w500),
-  //               ),
-  //             ),
-  //             Expanded(
-  //               child: Text(
-  //                 displayStatus,
-  //                 style: const TextStyle(fontSize: 14),
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //       if (status == 'pending') ...[
-  //         Row(
-  //           children: [
-  //             Expanded(
-  //               child: ElevatedButton.icon(
-  //                 icon: const Icon(Icons.check_circle),
-  //                 label: const Text('Approve'),
-  //                 style:
-  //                     ElevatedButton.styleFrom(backgroundColor: Colors.green),
-  //                 onPressed: () => _updateBookingStatus('approved'),
-  //               ),
-  //             ),
-  //             const SizedBox(width: 12),
-  //             Expanded(
-  //               child: ElevatedButton.icon(
-  //                 icon: const Icon(Icons.cancel),
-  //                 label: const Text('Decline'),
-  //                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-  //                 onPressed: () => _updateBookingStatus('declined'),
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //       ] else if (status == 'approved') ...[
-  //         Row(
-  //           children: [
-  //             Expanded(
-  //               child: ElevatedButton.icon(
-  //                 icon: const Icon(Icons.check_circle_outline),
-  //                 label: Text(actionButtonText),
-  //                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-  //                 onPressed: canChangeStatus
-  //                     ? () => _updateBookingStatus('completed')
-  //                     : null,
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //       ],
-  //     ],
-  //   );
-  // }
-
   @override
   void initState() {
     super.initState();
-    _showStatusButtons = !widget.fromStatusButton;
     _loadBooking();
   }
 
@@ -296,14 +174,13 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
 
       if (!mounted) return;
 
-      // Auto-enable edit mode if fromStatusButton (with editable status) or user is owner and booking is editable
+      // Auto-enable edit mode if user is owner and booking is editable
       final currentUser = authProvider.currentUser;
       final isOwner = booking.userId == currentUser?.id;
       final status = booking.status.toLowerCase();
       final isEditable = status == 'pending' || status == 'declined';
-      if (widget.fromStatusButton && isEditable) {
-        setState(() => _isEditMode = true);
-      } else if (!widget.fromStatusButton && isOwner && isEditable) {
+      // TODO: apply this to the rest of the detail screens
+      if (isOwner && isEditable) {
         setState(() => _isEditMode = true);
       }
     } else if (mounted) {
@@ -396,6 +273,12 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
         });
       }
     }
+  }
+
+  void _toggleEditMode() {
+    setState(() {
+      _isEditMode = !_isEditMode;
+    });
   }
 
   Future<void> _saveBooking() async {
@@ -507,62 +390,6 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
     }
   }
 
-  Future<void> _deleteBooking() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel Booking'),
-        content: const Text('Are you sure you want to cancel this booking?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('No'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Yes'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
-    setState(() => _isSaving = true);
-
-    final token = authProvider.token;
-    if (token == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please login to delete booking')),
-        );
-      }
-      setState(() => _isSaving = false);
-      return;
-    }
-
-    final result = await _weddingService.deleteWeddingBooking(
-      token: token,
-      id: widget.weddingId!,
-    );
-
-    setState(() => _isSaving = false);
-
-    if (mounted) {
-      if (result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Booking cancelled successfully')),
-        );
-        Navigator.pop(context, true);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.message ?? 'Failed to cancel booking')),
-        );
-      }
-    }
-  }
-
   Future<void> _openDocument(Document doc) => _documentManager.openDocument(
         context: context,
         document: doc,
@@ -600,19 +427,26 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
     final status = _booking?.status.toLowerCase();
     final canEdit =
         isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
-    final effectiveStatus = _displayBookingStatus.toLowerCase();
-    final canDelete = isAdmin || (isOwner && effectiveStatus != 'approved');
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Wedding Details'),
         actions: [
-          if (_booking != null && !_isEditMode && _showStatusButtons && canEdit)
+          if (_isEditMode)
+            IconButton(
+              icon: Icon(_isSaving ? Icons.edit : Icons.save),
+              tooltip: _isSaving ? 'Saving...' : 'Save changes',
+              color: _isSaving ? Colors.orange : null,
+              onPressed: _saveBooking,
+            )
+          else if (canEdit)
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () => setState(() => _isEditMode = true),
               tooltip: 'Edit',
-            ),
+              onPressed: _toggleEditMode,
+            )
+          else
+            const SizedBox.shrink(),
         ],
       ),
       body: SingleChildScrollView(
@@ -663,6 +497,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                           label: "Preferred Parish *",
                         ),
                         BookingDateField(
+                          enabled: _isEditMode,
                           controller: _preferredDateController,
                           label: 'Preferred Wedding Date *',
                           firstDate: DateTime.now(),
@@ -671,11 +506,13 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                           validator: Validators.requiredField,
                         ),
                         BookingTimeField(
+                          enabled: _isEditMode,
                           controller: _preferredTimeController,
                           label: 'Preferred Time Slot *',
                           validator: Validators.requiredField,
                         ),
                         BookingDateField(
+                          enabled: _isEditMode,
                           controller: _seminarScheduleController,
                           label: 'Seminar Schedule *',
                           firstDate: DateTime.now(),
@@ -684,6 +521,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                           validator: Validators.requiredField,
                         ),
                         PriestDropdown(
+                          enabled: _isEditMode,
                           selectedPriestId: _selectedPriestId,
                           onChanged: (value) {
                             setState(() => _selectedPriestId = value);
@@ -743,9 +581,8 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                       ),
                     ],
 
-                    const SizedBox(height: 20),
-
                     if (status == 'declined' && isOwner) ...[
+                      const SizedBox(height: 20),
                       Card(
                         color: Colors.orange.shade50,
                         child: Padding(
@@ -779,62 +616,11 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                       const SizedBox(height: 32),
                     ],
 
-                    // Save/Cancel Buttons
-                    if (_isEditMode)
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: _isSaving ? null : _saveBooking,
-                              style: ElevatedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                              ),
-                              child: _isSaving
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Text('Save Changes'),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: _isSaving
-                                  ? null
-                                  : () => setState(() => _isEditMode = false),
-                              style: OutlinedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                              ),
-                              child: const Text('Cancel'),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                    // Delete Button (owners can delete any non-approved booking)
-                    if (_isEditMode && _booking != null && canDelete)
-                      const SizedBox(height: 16),
-                    if (_isEditMode && _booking != null && canDelete)
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: _isSaving ? null : _deleteBooking,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.red,
-                            side: const BorderSide(color: Colors.red),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                          child: const Text('Cancel Booking'),
-                        ),
-                      ),
-
-                    const SizedBox(height: 32),
+                    BookingStatusActionsSection(
+                      visible: isAdmin && !_isEditMode,
+                      status: _booking?.status ?? 'pending',
+                      onUpdateStatus: _updateStatus,
+                    )
                   ],
                 ),
               ),
@@ -842,6 +628,27 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _updateStatus(String status) async {
+    if (widget.weddingId == null) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Authentication required')));
+      return;
+    }
+
+    context.handleBookingStatusUpdate(
+      _weddingService.updateWeddingStatus(
+        token: token,
+        id: widget.weddingId!,
+        status: status,
+      ),
+      status,
     );
   }
 }
