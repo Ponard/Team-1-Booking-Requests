@@ -6,11 +6,13 @@ import 'package:provider/provider.dart';
 class PriestDropdown extends StatelessWidget {
   final int? selectedPriestId;
   final ValueChanged<int?>? onChanged;
+  final bool enabled;
 
   const PriestDropdown({
     super.key,
     required this.selectedPriestId,
     required this.onChanged,
+    this.enabled = true,
   });
 
   @override
@@ -39,7 +41,7 @@ class PriestDropdown extends StatelessWidget {
               ),
             ),
           ],
-          onChanged: onChanged,
+          onChanged: enabled ? onChanged : null,
         );
       },
     );
