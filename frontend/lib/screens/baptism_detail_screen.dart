@@ -126,6 +126,14 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
             );
       }
 
+      // Auto-enable edit mode if user is owner and booking is editable
+      final currentUser = authProvider.currentUser;
+      final isOwner = booking.userId == currentUser?.id;
+      final status = booking.status?.toLowerCase() ?? 'pending';
+      final isEditable = status == 'pending' || status == 'declined';
+      if (isOwner && isEditable) {
+        setState(() => _isEditMode = true);
+      }
       // Debug: Print documents count
       // print('=== BAPTISM DETAIL: Documents loaded: ${_documents.length} ===');
       // for (var doc in _documents) {

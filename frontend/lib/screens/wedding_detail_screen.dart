@@ -179,7 +179,6 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
       final isOwner = booking.userId == currentUser?.id;
       final status = booking.status.toLowerCase();
       final isEditable = status == 'pending' || status == 'declined';
-      // TODO: apply this to the rest of the detail screens
       if (isOwner && isEditable) {
         setState(() => _isEditMode = true);
       }

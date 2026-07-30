@@ -134,6 +134,15 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
             booking.parishId,
             token: authProvider.token,
           );
+
+      // Auto-enable edit mode if user is owner and booking is editable
+      final currentUser = authProvider.currentUser;
+      final isOwner = booking.userId == currentUser?.id;
+      final status = booking.status.toLowerCase();
+      final isEditable = status == 'pending' || status == 'declined';
+      if (isOwner && isEditable) {
+        setState(() => _isEditMode = true);
+      }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result.message ?? 'Failed to load booking')));
