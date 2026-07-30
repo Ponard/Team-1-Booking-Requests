@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/services/booking_document_manager.dart';
 import 'package:diocese_frontend/services/file_service.dart';
 import 'package:diocese_frontend/utils/required_document.dart';
@@ -10,6 +11,7 @@ import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.da
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/booking_status_actions_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/parent_information_section.dart';
@@ -50,7 +52,6 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
   bool _isEditMode = false;
   bool _isSaving = false;
-  bool _showStatusButtons = true;
 
   ConfirmationBooking? _booking;
 
@@ -89,7 +90,6 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _showStatusButtons = !widget.fromStatusButton;
     _loadBooking();
   }
 
@@ -115,8 +115,6 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
     if (mounted && result.success && result.data != null) {
       final booking = result.data!;
-      final status = booking.status.toLowerCase();
-      final isEditable = status == 'pending' || status == 'declined';
       setState(() {
         _booking = booking;
         _confirmandNameController.text = booking.confirmandName ?? '';
@@ -136,19 +134,6 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
             booking.parishId,
             token: authProvider.token,
           );
-
-      if (!mounted) return;
-
-      if (widget.fromStatusButton && isEditable) {
-        setState(() => _isEditMode = true);
-      } else {
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        final currentUser = authProvider.currentUser;
-        final isOwner = booking.userId == currentUser?.id;
-        if (!widget.fromStatusButton && isOwner && isEditable) {
-          setState(() => _isEditMode = true);
-        }
-      }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result.message ?? 'Failed to load booking')));
@@ -349,11 +334,10 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
   void _toggleEditMode() {
     setState(() {
       _isEditMode = !_isEditMode;
-      if (!_isEditMode) _showStatusButtons = true;
     });
   }
 
-  void _updateStatus(String status) async {
+  Future<void> _updateStatus(String status) async {
     if (widget.confirmationId == null) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -364,60 +348,14 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
       return;
     }
 
-    final result = await _confirmationService.updateConfirmationStatus(
-      token: token,
-      id: widget.confirmationId!,
-      status: status,
+    context.handleBookingStatusUpdate(
+      _confirmationService.updateConfirmationStatus(
+        token: token,
+        id: widget.confirmationId!,
+        status: status,
+      ),
+      status,
     );
-
-    if (mounted) {
-      if (result.success) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Booking marked as $status')));
-        Navigator.pop(context, true);
-      } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
-      }
-    }
-  }
-
-  String get _displayStatus {
-    if (_booking == null) return 'PENDING';
-    final status = _booking!.status.toUpperCase();
-    return status;
-  }
-
-  bool get _canChangeStatus {
-    if (_booking == null) return false;
-    final status = _booking!.status.toLowerCase();
-    if (status == 'pending') {
-      return true;
-    } else if (status == 'approved') {
-      final scheduledDate = _booking!.preferredDate;
-      if (scheduledDate != null && scheduledDate.isNotEmpty) {
-        try {
-          final now = DateTime.now();
-          final bookingDate = DateTime.parse(scheduledDate);
-          final today = DateTime(now.year, now.month, now.day);
-          final eventDate =
-              DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
-          return eventDate.isBefore(today);
-        } catch (e) {
-          return false;
-        }
-      }
-      return false;
-    }
-    return false;
-  }
-
-  String get _actionButtonText {
-    if (_booking == null) return 'Approve';
-    final status = _booking!.status.toLowerCase();
-    if (status == 'pending') return 'Approve';
-    if (status == 'approved') return 'Mark as Completed';
-    return 'Approve';
   }
 
   Future<void> _resubmitBooking() async {
@@ -492,7 +430,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
               color: _isSaving ? Colors.orange : null,
               onPressed: _saveChanges,
             )
-          else if (!_showStatusButtons && canEdit)
+          else if (canEdit)
             IconButton(
               icon: const Icon(Icons.edit),
               tooltip: 'Edit',
@@ -554,6 +492,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
                         label: "Preferred Parish *",
                       ),
                       BookingDateField(
+                        enabled: _isEditMode,
                         controller: _preferredDateController,
                         label: 'Preferred Confirmation Date *',
                         firstDate: DateTime.now(),
@@ -561,11 +500,13 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
                         validator: Validators.requiredField,
                       ),
                       BookingTimeField(
+                        enabled: _isEditMode,
                         controller: _preferredTimeController,
                         label: 'Preferred Time Slot *',
                         validator: Validators.requiredField,
                       ),
                       PriestDropdown(
+                        enabled: _isEditMode,
                         selectedPriestId: _selectedPriestId,
                         onChanged: (value) {
                           setState(() => _selectedPriestId = value);
@@ -621,9 +562,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
                     ),
                   ],
 
-                  const SizedBox(height: 16),
-
                   if (status == 'declined' && isOwner) ...[
+                    const SizedBox(height: 16),
                     Card(
                       color: Colors.orange.shade50,
                       child: Padding(
@@ -657,96 +597,17 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
                     const SizedBox(height: 16),
                   ],
 
-                  _buildStatusSection(isAdmin, widget.confirmationId ?? 0),
+                  BookingStatusActionsSection(
+                    visible: isAdmin && !_isEditMode,
+                    status: _booking?.status ?? 'pending',
+                    onUpdateStatus: _updateStatus,
+                  )
                 ],
               ),
             ),
           ),
         )),
       ),
-    );
-  }
-
-  Widget _buildStatusSection(bool isAdmin, int bookingId) {
-    if (!isAdmin || _showStatusButtons) return const SizedBox.shrink();
-
-    final displayStatus = _displayStatus;
-    final canChangeStatus = _canChangeStatus;
-    final actionButtonText = _actionButtonText;
-    final status = _booking?.status.toLowerCase();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-        const Text(
-          'Status',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(
-                width: 120,
-                child: Text(
-                  'Status',
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  displayStatus,
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (status == 'pending') ...[
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.check_circle),
-                  label: const Text('Approve'),
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  onPressed: () => _updateStatus('approved'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.cancel),
-                  label: const Text('Decline'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  onPressed: () => _updateStatus('declined'),
-                ),
-              ),
-            ],
-          ),
-        ] else if (status == 'approved') ...[
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: Text(actionButtonText),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                  onPressed:
-                      canChangeStatus ? () => _updateStatus('completed') : null,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ],
     );
   }
 
