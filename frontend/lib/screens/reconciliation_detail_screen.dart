@@ -384,8 +384,8 @@ class _ReconciliationDetailScreenState
                         notesController: _notesController,
                       ),
                     ],
-                    const SizedBox(height: 16),
                     if (status == 'declined' && isOwner) ...[
+                      const SizedBox(height: 16),
                       Card(
                         color: Colors.orange.shade50,
                         child: Padding(
