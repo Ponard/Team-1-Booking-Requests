@@ -23,14 +23,15 @@ class BookingStatusActionsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Actions',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
+        if (['pending', 'approved'].contains(normalizedStatus))
+          const Text(
+            'Actions',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue,
+            ),
           ),
-        ),
         const SizedBox(height: 8),
         if (normalizedStatus == 'pending') ...[
           Row(
