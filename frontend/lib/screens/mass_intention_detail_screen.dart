@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_dropdown.dart';
@@ -6,6 +7,7 @@ import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/booking_status_actions_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/mass_intention.dart';
@@ -39,7 +41,6 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
   bool _isLoadingIntention = false;
   bool _isEditMode = false;
   bool _isSaving = false;
-  bool _showStatusButtons = true;
 
   MassIntention? _intention;
 
@@ -58,7 +59,6 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _showStatusButtons = !widget.fromStatusButton;
     _loadMassIntention();
   }
 
@@ -117,16 +117,9 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         } else {
           _dateController.text = intention.preferredDate ?? '';
           _selectedTime = _normalizeTime(intention.preferredTimeSlot);
+          _selectedDate = DateTime.parse(_dateController.text);
           // print(
           //     '[MassIntentionDetail] Fallback date: "${_dateController.text}", time: "$_selectedTime"');
-        }
-
-        if (_dateController.text.isNotEmpty) {
-          try {
-            _selectedDate = DateTime.parse(_dateController.text);
-          } catch (e) {
-            // Ignore invalid date
-          }
         }
         // Do not populate _newNoteController - it's for adding new notes
       });
@@ -199,9 +192,13 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
     final normalizedSelectedTime = _normalizeTime(_selectedTime);
 
     setState(() {
-      _availableSchedules = schedules;
       final allSchedules = scheduleProvider.getSchedulesForDate(date);
-      if (!_isLoadingIntention) _selectedTime = null;
+      if (_isLoadingIntention) {
+        _availableSchedules = allSchedules;
+        return;
+      }
+      _availableSchedules = schedules;
+      _selectedTime = null;
       if (schedules.isNotEmpty) {
         final availableTimes =
             schedules.map((s) => _normalizeTime(s.startTime)).toSet();
@@ -339,28 +336,27 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
   void _toggleEditMode() {
     setState(() {
       _isEditMode = !_isEditMode;
-      if (!_isEditMode) _showStatusButtons = true;
     });
   }
 
-  void _updateStatus(String status) async {
+  Future<void> _updateStatus(String status) async {
     if (widget.massIntentionId == null) return;
 
-    final result = await _massIntentionService.updateMassIntentionStatus(
-      id: widget.massIntentionId!,
-      status: status,
-    );
-
-    if (mounted) {
-      if (result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Mass intention marked as $status')));
-        Navigator.pop(context, true);
-      } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
-      }
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Authentication required')));
+      return;
     }
+
+    context.handleBookingStatusUpdate(
+      _massIntentionService.updateMassIntentionStatus(
+        id: widget.massIntentionId!,
+        status: status,
+      ),
+      status,
+    );
   }
 
   Future<void> _resubmitMassIntention(dynamic currentUser) async {
@@ -434,45 +430,6 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
     }
   }
 
-  String get _displayStatus {
-    if (_intention == null) return 'PENDING';
-    final status = (_intention?.status?.toUpperCase() ?? 'PENDING');
-    return status;
-  }
-
-  bool get _canChangeStatus {
-    if (_intention == null) return false;
-    final status = _intention!.status?.toLowerCase();
-    if (status == 'pending') {
-      return true;
-    } else if (status == 'approved') {
-      final scheduledDate = _intention!.massSchedule;
-      if (scheduledDate != null && scheduledDate.isNotEmpty) {
-        try {
-          final nowPh = DateTime.now().add(const Duration(hours: 8));
-          final bookingDateUtc = DateTime.parse(scheduledDate);
-          final bookingDatePh = bookingDateUtc.add(const Duration(hours: 8));
-          final todayPh = DateTime(nowPh.year, nowPh.month, nowPh.day);
-          final eventDatePh = DateTime(
-              bookingDatePh.year, bookingDatePh.month, bookingDatePh.day);
-          return eventDatePh.isBefore(todayPh);
-        } catch (e) {
-          return false;
-        }
-      }
-      return false;
-    }
-    return false;
-  }
-
-  String get _actionButtonText {
-    if (_intention == null) return 'Approve';
-    final status = _intention!.status?.toLowerCase();
-    if (status == 'pending') return 'Approve';
-    if (status == 'approved') return 'Mark as Completed';
-    return 'Approve';
-  }
-
   String _formatTimeDisplay(String time) {
     try {
       final parts = time.split(':');
@@ -497,117 +454,6 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
       'Sunday'
     ];
     return days[weekday - 1];
-  }
-
-  Widget _buildStatusSection(bool isAdmin, int intentionId) {
-    if (!isAdmin || _showStatusButtons) return const SizedBox.shrink();
-
-    // 1. Check the current user's role
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final currentUserRole = authProvider.currentUser?.role;
-
-    // 2. Define who has final approval authority (exclude parish_staff)
-    final canApprove = currentUserRole == 'priest' ||
-        currentUserRole == 'parish_admin' ||
-        currentUserRole == 'diocese_admin' ||
-        currentUserRole == 'diocese_staff';
-
-    final displayStatus = _displayStatus;
-    final canChangeStatus = _canChangeStatus;
-    final actionButtonText = _actionButtonText;
-    final status = _intention?.status?.toLowerCase();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-        const Text(
-          'Status',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(
-                width: 120,
-                child: Text(
-                  'Status',
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  displayStatus,
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (status == 'pending') ...[
-          // 3. Conditionally render buttons based on the role flag
-          if (canApprove)
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.check_circle),
-                    label: const Text('Approve'),
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                    onPressed: () => _updateStatus('approved'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.cancel),
-                    label: const Text('Decline'),
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                    onPressed: () => _updateStatus('declined'),
-                  ),
-                ),
-              ],
-            )
-          else
-            // Fallback UI for parish_staff
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Text(
-                "Pending Priest Approval",
-                style: TextStyle(
-                    color: Colors.orange,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w500),
-              ),
-            ),
-        ] else if (status == 'approved') ...[
-          if (canApprove)
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.check_circle_outline),
-                    label: Text(actionButtonText),
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                    onPressed: canChangeStatus
-                        ? () => _updateStatus('completed')
-                        : null,
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ],
-    );
   }
 
   @override
@@ -641,7 +487,7 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
               color: _isSaving ? Colors.orange : null,
               onPressed: _saveChanges,
             )
-          else if (!_showStatusButtons && canEdit)
+          else if (canEdit)
             IconButton(
               icon: const Icon(Icons.edit),
               tooltip: 'Edit',
@@ -713,6 +559,7 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
                           label: "Preferred Parish *",
                         ),
                         BookingDateField(
+                          enabled: _isEditMode,
                           controller: _dateController,
                           label: "Preferred Mass Date *",
                           firstDate: DateTime.now(),
@@ -756,7 +603,8 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
                           hint: const Text("Select a mass time"),
                           disabledHint:
                               const Text("Select a parish and date first"),
-                          enabled: _selectedDate != null &&
+                          enabled: _isEditMode &&
+                              _selectedDate != null &&
                               _availableSchedules.isNotEmpty,
                           items: _availableSchedules
                               .fold<Map<String, MassSchedule>>({}, (map, s) {
@@ -800,8 +648,6 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
                       ),
                     ],
 
-                    const SizedBox(height: 20),
-
                     // Resubmit button for declined status (owner only)
                     Consumer<AuthProvider>(
                       builder: (context, authProvider, child) {
@@ -812,6 +658,7 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
                         if (status == 'declined' && isOwner) {
                           return Column(
                             children: [
+                              const SizedBox(height: 20),
                               Card(
                                 color: Colors.orange.shade50,
                                 child: Padding(
@@ -864,7 +711,11 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
                       },
                     ),
 
-                    _buildStatusSection(isAdmin, widget.massIntentionId ?? 0),
+                    BookingStatusActionsSection(
+                      visible: isAdmin && !_isEditMode,
+                      status: _intention?.status ?? 'pending',
+                      onUpdateStatus: _updateStatus,
+                    ),
                   ],
                 ),
               ),
