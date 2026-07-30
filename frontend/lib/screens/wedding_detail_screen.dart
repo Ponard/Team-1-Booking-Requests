@@ -3,6 +3,7 @@ import 'package:diocese_frontend/utils/required_document.dart';
 import 'package:diocese_frontend/services/booking_document_manager.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_detail_title.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
@@ -429,7 +430,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Wedding Details'),
+        title: BookingDetailTitle(title: 'Wedding Details', status: status),
         actions: [
           if (_isEditMode)
             IconButton(

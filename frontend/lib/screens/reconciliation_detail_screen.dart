@@ -1,6 +1,7 @@
 import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_detail_title.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_dropdown.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
@@ -263,7 +264,8 @@ class _ReconciliationDetailScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Reconciliation Details"),
+        title:
+            BookingDetailTitle(title: 'Reconciliation Details', status: status),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(false),

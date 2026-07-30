@@ -5,6 +5,7 @@ import 'package:diocese_frontend/services/file_service.dart';
 import 'package:diocese_frontend/utils/required_document.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_detail_title.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
@@ -371,12 +372,13 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
     ].contains(role);
     final isOwner = _booking?.userId == currentUser?.id;
     final status = _booking?.status?.toLowerCase();
+
     final canEdit =
         isAdmin || (isOwner && (status == 'pending' || status == 'declined'));
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Baptism Details"),
+        title: BookingDetailTitle(title: 'Baptism Details', status: status),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(false),

@@ -4,6 +4,7 @@ import 'package:diocese_frontend/services/file_service.dart';
 import 'package:diocese_frontend/utils/required_document.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_detail_title.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
@@ -426,7 +427,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Confirmation Details"),
+        title:
+            BookingDetailTitle(title: 'Confirmation Details', status: status),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(false),

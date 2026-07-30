@@ -3,6 +3,7 @@ import 'package:diocese_frontend/services/booking_document_manager.dart';
 import 'package:diocese_frontend/utils/required_document.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_detail_title.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_text_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field.dart';
@@ -418,8 +419,8 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-            _booking != null ? 'First Communion' : 'First Communion Details'),
+        title: BookingDetailTitle(
+            title: 'First Communion Details', status: status),
         actions: [
           if (_isEditMode)
             IconButton(
@@ -449,73 +450,6 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Status Card
-                    // Card(
-                    //   child: Padding(
-                    //     padding: const EdgeInsets.all(16.0),
-                    //     child: Row(
-                    //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    //       children: [
-                    //         Column(
-                    //           crossAxisAlignment: CrossAxisAlignment.start,
-                    //           children: [
-                    //             const Text(
-                    //               'Status',
-                    //               style: TextStyle(
-                    //                   fontSize: 12, color: Colors.grey),
-                    //             ),
-                    //             const SizedBox(height: 4),
-                    //             Container(
-                    //               padding: const EdgeInsets.symmetric(
-                    //                   horizontal: 12, vertical: 6),
-                    //               decoration: BoxDecoration(
-                    //                 color: _getStatusColor(
-                    //                         _booking!.status.toLowerCase())
-                    //                     .withValues(alpha: 0.2),
-                    //                 borderRadius: BorderRadius.circular(12),
-                    //               ),
-                    //               child: Text(
-                    //                 _displayStatus,
-                    //                 style: TextStyle(
-                    //                   color: _getStatusColor(
-                    //                       _displayStatus.toLowerCase()),
-                    //                   fontWeight: FontWeight.bold,
-                    //                 ),
-                    //               ),
-                    //             ),
-                    //           ],
-                    //         ),
-                    //         if (!_showStatusButtons && isAdmin)
-                    //           Row(
-                    //             children: [
-                    //               if (_booking!.status.toLowerCase() ==
-                    //                   'pending')
-                    //                 ElevatedButton(
-                    //                   onPressed: () =>
-                    //                       _updateStatus('declined'),
-                    //                   style: ElevatedButton.styleFrom(
-                    //                       backgroundColor: Colors.red),
-                    //                   child: const Text('Decline'),
-                    //                 ),
-                    //               if (_booking!.status.toLowerCase() ==
-                    //                   'pending')
-                    //                 const SizedBox(width: 8),
-                    //               if (_booking!.status.toLowerCase() ==
-                    //                   'pending')
-                    //                 ElevatedButton(
-                    //                   onPressed: () =>
-                    //                       _updateStatus('approved'),
-                    //                   style: ElevatedButton.styleFrom(
-                    //                       backgroundColor: Colors.green),
-                    //                   child: const Text('Approve'),
-                    //                 ),
-                    //             ],
-                    //           ),
-                    //       ],
-                    //     ),
-                    //   ),
-                    // ),
-
                     // Communicant Name
                     BookingSection(
                       title: "Communicant Information",
@@ -711,18 +645,4 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
       status,
     );
   }
-
-  // Color _getStatusColor(String? status) {
-  //   switch (status?.toLowerCase()) {
-  //     case 'approved':
-  //       return Colors.green;
-  //     case 'declined':
-  //     case 'rejected':
-  //       return Colors.red;
-  //     case 'completed':
-  //       return Colors.blue;
-  //     default:
-  //       return Colors.orange;
-  //   }
-  // }
 }
