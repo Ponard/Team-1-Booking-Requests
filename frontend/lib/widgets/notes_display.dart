@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/widgets/booking_forms/common/booking_section.dart';
 import 'package:flutter/material.dart';
 import '../models/note.dart';
 import '../utils/sacrament_icons.dart';
@@ -20,18 +21,15 @@ class NotesDisplay extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return BookingSection(
+      title: "Notes History",
       children: [
-        const Text(
-          'Notes History',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        ...notes!.map((note) => _buildNoteItem(context, note)).toList(),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ...notes!.map((note) => _buildNoteItem(context, note)).toList(),
+          ],
+        )
       ],
     );
   }
@@ -39,12 +37,10 @@ class NotesDisplay extends StatelessWidget {
   Widget _buildNoteItem(BuildContext context, Note note) {
     final isParishioner = note.author == 'parishioner';
     final authorLabel = isParishioner ? 'Parishioner' : 'Admin';
-    final backgroundColor = isParishioner
-        ? Colors.blue.shade50
-        : Colors.grey.shade200;
-    final borderColor = isParishioner
-        ? Colors.blue.shade200
-        : Colors.grey.shade400;
+    final backgroundColor =
+        isParishioner ? Colors.blue.shade50 : Colors.grey.shade200;
+    final borderColor =
+        isParishioner ? Colors.blue.shade200 : Colors.grey.shade400;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
