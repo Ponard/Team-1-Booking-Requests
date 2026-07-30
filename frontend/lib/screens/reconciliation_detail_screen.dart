@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_dropdown.dart';
@@ -7,6 +8,7 @@ import 'package:diocese_frontend/widgets/booking_forms/common/booking_time_field
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/booking_status_actions_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -39,7 +41,6 @@ class _ReconciliationDetailScreenState
 
   bool _isEditMode = false;
   bool _isSaving = false;
-  bool _showStatusButtons = true;
 
   ReconciliationBooking? _booking;
 
@@ -59,7 +60,6 @@ class _ReconciliationDetailScreenState
   @override
   void initState() {
     super.initState();
-    _showStatusButtons = !widget.fromStatusButton;
     _loadBooking();
   }
 
@@ -85,8 +85,6 @@ class _ReconciliationDetailScreenState
 
     if (mounted && result.success && result.data != null) {
       final booking = result.data!;
-      final status = booking.status.toLowerCase();
-      final isEditable = status == 'pending' || status == 'declined';
       setState(() {
         _booking = booking;
         _penitentNameController.text = booking.penitentName ?? '';
@@ -97,16 +95,6 @@ class _ReconciliationDetailScreenState
             booking.preferredDate?.split('T')[0] ?? '';
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
       });
-      if (widget.fromStatusButton && isEditable) {
-        setState(() => _isEditMode = true);
-      } else {
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        final currentUser = authProvider.currentUser;
-        final isOwner = booking.userId == currentUser?.id;
-        if (!widget.fromStatusButton && isOwner && isEditable) {
-          setState(() => _isEditMode = true);
-        }
-      }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result.message ?? 'Failed to load booking')));
@@ -116,7 +104,6 @@ class _ReconciliationDetailScreenState
   void _toggleEditMode() {
     setState(() {
       _isEditMode = !_isEditMode;
-      if (!_isEditMode) _showStatusButtons = true;
     });
   }
 
@@ -203,7 +190,7 @@ class _ReconciliationDetailScreenState
     }
   }
 
-  void _updateStatus(String status) async {
+  Future<void> _updateStatus(String status) async {
     if (widget.reconciliationId == null) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -214,63 +201,14 @@ class _ReconciliationDetailScreenState
       return;
     }
 
-    final result = await _reconciliationService.updateReconciliationStatus(
-      token: token,
-      id: widget.reconciliationId!,
-      status: status,
+    context.handleBookingStatusUpdate(
+      _reconciliationService.updateReconciliationStatus(
+        token: token,
+        id: widget.reconciliationId!,
+        status: status,
+      ),
+      status,
     );
-
-    if (mounted) {
-      //QA FIX: Add mounted check here
-      if (!mounted) return;
-
-      if (result.success) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Booking marked as $status')));
-        Navigator.pop(context, true);
-      } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
-      }
-    }
-  }
-
-  String get _displayStatus {
-    if (_booking == null) return 'PENDING';
-    final status = (_booking?.status.toUpperCase() ?? 'PENDING');
-    return status;
-  }
-
-  bool get _canChangeStatus {
-    if (_booking == null) return false;
-    final status = _booking!.status.toLowerCase();
-    if (status == 'pending') {
-      return true;
-    } else if (status == 'approved') {
-      final scheduledDate = _booking!.preferredDate;
-      if (scheduledDate != null && scheduledDate.isNotEmpty) {
-        try {
-          final now = DateTime.now();
-          final bookingDate = DateTime.parse(scheduledDate);
-          final today = DateTime(now.year, now.month, now.day);
-          final eventDate =
-              DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
-          return eventDate.isBefore(today);
-        } catch (e) {
-          return false;
-        }
-      }
-      return false;
-    }
-    return false;
-  }
-
-  String get _actionButtonText {
-    if (_booking == null) return 'Approve';
-    final status = _booking!.status.toLowerCase();
-    if (status == 'pending') return 'Approve';
-    if (status == 'approved') return 'Mark as Completed';
-    return 'Approve';
   }
 
   Future<void> _resubmitBooking() async {
@@ -345,7 +283,7 @@ class _ReconciliationDetailScreenState
               color: _isSaving ? Colors.orange : null,
               onPressed: _saveChanges,
             )
-          else if (!_showStatusButtons && canEdit)
+          else if (canEdit)
             IconButton(
               icon: const Icon(Icons.edit),
               tooltip: 'Edit',
@@ -401,6 +339,7 @@ class _ReconciliationDetailScreenState
                         BookingDropdown<String>(
                           initialValue: _confessionType,
                           label: "Type of Confession",
+                          enabled: _isEditMode,
                           items: const [
                             DropdownMenuItem(
                               value: "Regular",
@@ -430,6 +369,7 @@ class _ReconciliationDetailScreenState
                           label: "Preferred Parish *",
                         ),
                         BookingDateField(
+                          enabled: _isEditMode,
                           controller: _preferredDateController,
                           label: 'Preferred Reconciliation Date *',
                           firstDate: DateTime.now(),
@@ -438,6 +378,7 @@ class _ReconciliationDetailScreenState
                           validator: Validators.requiredField,
                         ),
                         BookingTimeField(
+                          enabled: _isEditMode,
                           controller: _preferredTimeController,
                           label: 'Preferred Time Slot *',
                           validator: Validators.requiredField,
@@ -482,9 +423,12 @@ class _ReconciliationDetailScreenState
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
                     ],
-                    _buildStatusSection(isAdmin, widget.reconciliationId ?? 0),
+                    BookingStatusActionsSection(
+                      visible: isAdmin && !_isEditMode,
+                      status: _booking?.status ?? 'pending',
+                      onUpdateStatus: _updateStatus,
+                    )
                   ],
                 ),
               ),
@@ -492,90 +436,6 @@ class _ReconciliationDetailScreenState
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildStatusSection(bool isAdmin, int bookingId) {
-    if (!isAdmin || _showStatusButtons) return const SizedBox.shrink();
-
-    final displayStatus = _displayStatus;
-    final canChangeStatus = _canChangeStatus;
-    final actionButtonText = _actionButtonText;
-    final status = _booking?.status.toLowerCase();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-        const Text(
-          'Status',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            //change from "Current Status" to "Status" for visual alignment
-            const SizedBox(
-              width: 120,
-              child: Text(
-                'Status', //changed from 'Current Status'
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
-            ),
-            Expanded(
-              child: Text(
-                displayStatus,
-                style: const TextStyle(fontSize: 14),
-              ),
-            ),
-          ],
-        ),
-        if (status == 'pending') ...[
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.check_circle),
-                  label: const Text('Approve'),
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  onPressed: () => _updateStatus('approved'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.cancel),
-                  label: const Text('Decline'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  onPressed: () => _updateStatus('declined'),
-                ),
-              ),
-            ],
-          ),
-        ] else if (status == 'approved') ...[
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: Text(actionButtonText),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                  onPressed:
-                      canChangeStatus ? () => _updateStatus('completed') : null,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ],
     );
   }
 
