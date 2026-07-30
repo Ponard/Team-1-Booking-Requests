@@ -1,4 +1,5 @@
 import 'package:diocese_frontend/config/api_config.dart';
+import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/services/booking_document_manager.dart';
 import 'package:diocese_frontend/services/file_service.dart';
 import 'package:diocese_frontend/utils/required_document.dart';
@@ -11,6 +12,7 @@ import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.da
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/booking_status_actions_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/child_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
@@ -49,7 +51,6 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
 
   bool _isEditMode = false;
   bool _isSaving = false;
-  bool _showStatusButtons = true;
 
   BaptismBooking? _booking;
 
@@ -84,7 +85,6 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _showStatusButtons = !widget.fromStatusButton;
     _loadBooking();
   }
 
@@ -99,8 +99,6 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         await _baptismService.getBaptismBookingById(id: widget.baptismId!);
     if (mounted && result.success && result.data != null) {
       final booking = result.data!;
-      final status = booking.status?.toLowerCase() ?? 'pending';
-      final isEditable = status == 'pending' || status == 'declined';
       setState(() {
         _booking = booking;
         _childNameController.text = booking.childFullName ?? '';
@@ -134,15 +132,6 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
       //   print(
       //       'Document: id=${doc.id}, type=${doc.documentType}, fileName=${doc.fileName}, fileUrl=${doc.fileUrl}');
       // }
-      if (widget.fromStatusButton && isEditable) {
-        setState(() => _isEditMode = true);
-      } else {
-        final currentUser = authProvider.currentUser;
-        final isOwner = booking.userId == currentUser?.id;
-        if (!widget.fromStatusButton && isOwner && isEditable) {
-          setState(() => _isEditMode = true);
-        }
-      }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result.message ?? 'Failed to load booking')));
@@ -340,72 +329,25 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
   void _toggleEditMode() {
     setState(() {
       _isEditMode = !_isEditMode;
-      if (!_isEditMode) {
-        _showStatusButtons = true;
-      }
     });
   }
 
-  void _updateStatus(String status) async {
+  Future<void> _updateStatus(String status) async {
     if (widget.baptismId == null) return;
 
-    final result = await _baptismService.updateBaptismStatus(
-        id: widget.baptismId!, status: status);
-
-    if (mounted) {
-      if (result.success) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Booking marked as $status')));
-        Navigator.pop(context, true);
-      } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(result.message ?? 'Failed')));
-      }
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Authentication required')));
+      return;
     }
-  }
 
-  /// Computes the display status based on current status and scheduled date
-  String get _displayStatus {
-    if (_booking == null) return 'PENDING';
-    final status = (_booking?.status?.toUpperCase() ?? 'PENDING');
-    return status;
-  }
-
-  /// Determines if the action button should be enabled
-  /// - For pending status: always true (can approve/decline)
-  /// - For approved status: true only if event date has passed (can mark completed)
-  /// - For other statuses: false
-  bool get _canChangeStatus {
-    if (_booking == null) return false;
-    final status = _booking!.status?.toLowerCase();
-    if (status == 'pending') {
-      return true;
-    } else if (status == 'approved') {
-      final scheduledDate = _booking!.preferredDate;
-      if (scheduledDate != null && scheduledDate.isNotEmpty) {
-        try {
-          final now = DateTime.now();
-          final bookingDate = DateTime.parse(scheduledDate);
-          final today = DateTime(now.year, now.month, now.day);
-          final eventDate =
-              DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
-          return eventDate.isBefore(today);
-        } catch (e) {
-          return false;
-        }
-      }
-      return false;
-    }
-    return false;
-  }
-
-  /// Returns the appropriate action button text based on status
-  String get _actionButtonText {
-    if (_booking == null) return 'Approve';
-    final status = _booking!.status?.toLowerCase();
-    if (status == 'pending') return 'Approve';
-    if (status == 'approved') return 'Mark as Completed';
-    return 'Approve';
+    context.handleBookingStatusUpdate(
+      _baptismService.updateBaptismStatus(
+          id: widget.baptismId!, status: status),
+      status,
+    );
   }
 
   @override
@@ -439,7 +381,7 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
               color: _isSaving ? Colors.orange : null,
               onPressed: _saveChanges,
             )
-          else if (!_showStatusButtons && canEdit)
+          else if (canEdit)
             IconButton(
               icon: const Icon(Icons.edit),
               tooltip: 'Edit',
@@ -501,6 +443,7 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
                           label: "Preferred Parish *",
                         ),
                         BookingDateField(
+                          enabled: _isEditMode,
                           controller: _preferredDateController,
                           label: 'Preferred Baptism Date *',
                           firstDate: DateTime.now(),
@@ -509,11 +452,13 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
                           validator: Validators.requiredField,
                         ),
                         BookingTimeField(
+                          enabled: _isEditMode,
                           controller: _preferredTimeController,
                           label: 'Preferred Time Slot *',
                           validator: Validators.requiredField,
                         ),
                         PriestDropdown(
+                          enabled: _isEditMode,
                           selectedPriestId: _selectedPriestId,
                           onChanged: (value) {
                             setState(() => _selectedPriestId = value);
@@ -565,8 +510,8 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
                       ),
                     ],
 
-                    const SizedBox(height: 20),
                     if (status == 'declined' && isOwner) ...[
+                      const SizedBox(height: 20),
                       Card(
                         color: Colors.orange.shade50,
                         child: Padding(
@@ -607,10 +552,13 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
                     ],
 
-                    _buildStatusSection(isAdmin, widget.baptismId ?? 0),
+                    BookingStatusActionsSection(
+                      visible: isAdmin && !_isEditMode,
+                      status: _booking?.status ?? 'pending',
+                      onUpdateStatus: _updateStatus,
+                    )
                   ],
                 ),
               ),
@@ -667,117 +615,6 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
             .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
-  }
-
-  Widget _buildStatusSection(bool isAdmin, int bookingId) {
-    if (!isAdmin || _showStatusButtons) return const SizedBox.shrink();
-
-    // 1. Fetch user role
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final currentUserRole = authProvider.currentUser?.role;
-
-    // 2. Restrict approval permissions (block parish_staff)
-    final canApprove = currentUserRole == 'priest' ||
-        currentUserRole == 'parish_admin' ||
-        currentUserRole == 'diocese_admin' ||
-        currentUserRole == 'diocese_staff';
-
-    final displayStatus = _displayStatus;
-    final canChangeStatus = _canChangeStatus;
-    final actionButtonText = _actionButtonText;
-    final status = _booking?.status?.toLowerCase();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-        const Text(
-          'Status',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(
-                width: 120,
-                child: Text(
-                  'Status',
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  displayStatus,
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (status == 'pending') ...[
-          // 3. Enforce Role Hierarchy UI logic
-          if (canApprove)
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.check_circle),
-                    label: const Text('Approve'),
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                    onPressed: () => _updateStatus('approved'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.cancel),
-                    label: const Text('Decline'),
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                    onPressed: () => _updateStatus('declined'),
-                  ),
-                ),
-              ],
-            )
-          else
-            // Fallback UI for parish_staff
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Text(
-                "Pending Priest Approval",
-                style: TextStyle(
-                    color: Colors.orange,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w500),
-              ),
-            ),
-        ] else if (status == 'approved') ...[
-          if (canApprove)
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.check_circle_outline),
-                    label: Text(actionButtonText),
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                    onPressed: canChangeStatus
-                        ? () => _updateStatus('completed')
-                        : null,
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ],
-    );
   }
 
   @override
