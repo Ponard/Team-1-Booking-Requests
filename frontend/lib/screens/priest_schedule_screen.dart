@@ -1,4 +1,5 @@
 import 'package:diocese_frontend/config/app_routes.dart';
+import 'package:diocese_frontend/utils/booking_status.dart';
 import 'package:diocese_frontend/widgets/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -144,26 +145,12 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
     }
   }
 
-  Color _getStatusColor(String? status) {
-    switch (status) {
-      case 'pending':
-        return Colors.orange;
-      case 'approved':
-        return Colors.green;
-      case 'completed':
-        return Colors.blue;
-      case 'declined':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
   IconData _getSacramentIcon(String? type) {
     return getSacramentIcon(type);
   }
 
-  void _showBookingDetails(Map<String, dynamic> booking) {
+  void _showBookingDetails(
+      BuildContext buildContext, Map<String, dynamic> booking) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -197,7 +184,7 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
                   Icon(
                     _getSacramentIcon(booking['bookingType']),
                     size: 32,
-                    color: Theme.of(context).primaryColor,
+                    color: Theme.of(buildContext).primaryColor,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -214,7 +201,8 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
               const SizedBox(height: 20),
               _buildDetailRow('Status',
                   booking['status']?.toString().toUpperCase() ?? 'N/A',
-                  color: _getStatusColor(booking['status'])),
+                  color:
+                      BookingStatus.getColor(buildContext, booking['status'])),
               _buildDetailRow('Date', _formatDate(booking['preferredDate'])),
               _buildDetailRow(
                   'Time', booking['preferredTimeSlot'] ?? 'Not specified'),
@@ -481,7 +469,8 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
                               return Card(
                                 margin: const EdgeInsets.only(bottom: 12),
                                 child: InkWell(
-                                  onTap: () => _showBookingDetails(booking),
+                                  onTap: () =>
+                                      _showBookingDetails(context, booking),
                                   borderRadius: BorderRadius.circular(12),
                                   child: Padding(
                                     padding: const EdgeInsets.all(16),
@@ -544,8 +533,8 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
                                             vertical: 6,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: _getStatusColor(
-                                                    booking['status'])
+                                            color: BookingStatus.getColor(
+                                                    context, booking['status'])
                                                 .withValues(alpha: 0.1),
                                             borderRadius:
                                                 BorderRadius.circular(20),
@@ -558,8 +547,8 @@ class _PriestScheduleScreenState extends State<PriestScheduleScreen> {
                                             style: TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
-                                              color: _getStatusColor(
-                                                  booking['status']),
+                                              color: BookingStatus.getColor(
+                                                  context, booking['status']),
                                             ),
                                           ),
                                         ),

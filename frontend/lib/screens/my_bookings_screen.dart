@@ -1,4 +1,5 @@
 import 'package:diocese_frontend/config/app_routes.dart';
+import 'package:diocese_frontend/utils/booking_status.dart';
 import 'package:diocese_frontend/widgets/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -188,21 +189,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     }
   }
 
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return Colors.orange;
-      case 'approved':
-        return Colors.green;
-      case 'declined':
-        return Colors.red;
-      case 'completed':
-        return Colors.blue;
-      default:
-        return Colors.grey;
-    }
-  }
-
   String _getSacramentDisplayName(String sacramentType) {
     switch (sacramentType) {
       case 'baptism':
@@ -288,6 +274,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                 booking['sacramentType'] ?? 'unknown';
                             var status =
                                 booking['status']?.toLowerCase() ?? 'pending';
+                            final statusColor =
+                                BookingStatus.getColor(context, status);
                             // Determine edit and delete permissions based on status
                             final canEdit =
                                 status == 'pending' || status == 'declined';
@@ -335,19 +323,20 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 8, vertical: 4),
                                           decoration: BoxDecoration(
-                                            color: _getStatusColor(status)
-                                                .withValues(alpha: 0.2),
+                                            color: statusColor.withValues(
+                                                alpha: 0.2),
                                             borderRadius:
                                                 BorderRadius.circular(12),
                                             border: Border.all(
-                                                color: _getStatusColor(status)),
+                                              color: statusColor,
+                                            ),
                                           ),
                                           child: Text(
                                             status.toUpperCase(),
                                             style: TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
-                                              color: _getStatusColor(status),
+                                              color: statusColor,
                                             ),
                                           ),
                                         ),

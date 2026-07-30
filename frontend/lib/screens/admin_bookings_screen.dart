@@ -1,4 +1,5 @@
 import 'package:diocese_frontend/config/app_routes.dart';
+import 'package:diocese_frontend/utils/booking_status.dart';
 import 'package:diocese_frontend/widgets/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -497,21 +498,6 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'approved':
-      case 'completed':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      case 'declined':
-      case 'cancelled':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return AppShell(
@@ -775,7 +761,8 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                                   child: Row(
                                     children: [
                                       CircleAvatar(
-                                        backgroundColor: _getStatusColor(
+                                        backgroundColor: BookingStatus.getColor(
+                                          context,
                                           booking['status'] ?? 'pending',
                                         ),
                                         radius: 24,
@@ -855,7 +842,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                                       MaterialButton(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 12, vertical: 8),
-                                        color: _getStatusColor(
+                                        color: BookingStatus.getColor(context,
                                             booking['status'] ?? 'pending'),
                                         textColor: Colors.white,
                                         shape: RoundedRectangleBorder(
