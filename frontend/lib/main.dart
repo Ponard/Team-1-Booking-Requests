@@ -232,14 +232,21 @@ class MyApp extends StatelessWidget {
   }
 
   ThemeData buildTheme(Brightness brightness) {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: const Color(0xFFCF0109),
+      brightness: brightness,
+    );
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFFCF0109),
-        brightness: brightness,
-      ),
+      colorScheme: colorScheme,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       fontFamily: 'Roboto',
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.surfaceContainerHighest,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+      ),
     );
   }
 
