@@ -779,7 +779,6 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),

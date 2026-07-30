@@ -320,7 +320,7 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
                       notesController: _notesController,
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     Consumer<ReconciliationProvider>(
                       builder: (context, reconciliationProvider, _) {
                         return CustomButton(
@@ -331,7 +331,6 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),

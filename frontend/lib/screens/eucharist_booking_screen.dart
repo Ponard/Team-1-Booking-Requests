@@ -551,7 +551,6 @@ class _EucharistScreenState extends State<EucharistScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),

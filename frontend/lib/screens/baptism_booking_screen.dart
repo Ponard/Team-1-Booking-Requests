@@ -451,7 +451,6 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),

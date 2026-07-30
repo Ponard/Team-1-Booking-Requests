@@ -344,7 +344,7 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                       notesController: _additionalNotesController,
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
                     // Submit Button with loading state
                     Consumer<FuneralMassProvider>(
@@ -357,7 +357,6 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),

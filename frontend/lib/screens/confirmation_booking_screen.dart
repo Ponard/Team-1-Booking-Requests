@@ -555,7 +555,6 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),

@@ -361,7 +361,6 @@ class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),
