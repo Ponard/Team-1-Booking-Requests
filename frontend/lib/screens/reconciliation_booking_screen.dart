@@ -176,14 +176,13 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Sacrament of Reconciliation"),
+        title: const Text("Reconciliation Booking"),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
-        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

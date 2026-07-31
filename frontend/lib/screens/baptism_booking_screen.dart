@@ -322,7 +322,6 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(), // Back to Home
         ),
-        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

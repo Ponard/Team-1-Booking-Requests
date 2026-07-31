@@ -205,14 +205,13 @@ class _AnointingTheSickScreenState extends State<AnointingTheSickScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Anointing of the Sick"),
+        title: const Text("Anointing the Sick Booking"),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
-        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

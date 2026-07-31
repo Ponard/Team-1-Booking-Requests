@@ -402,7 +402,6 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Confirmation Booking"),
-        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {

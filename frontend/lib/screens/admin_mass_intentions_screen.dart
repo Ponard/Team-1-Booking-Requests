@@ -449,7 +449,6 @@ class _AdminMassIntentionsScreenState extends State<AdminMassIntentionsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mass Intentions'),
-        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),

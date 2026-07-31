@@ -235,8 +235,7 @@ class _MassIntentionScreenState extends State<MassIntentionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Mass Intention"),
-        centerTitle: true,
+        title: const Text("Mass Intention Booking"),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),

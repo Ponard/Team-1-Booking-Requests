@@ -403,14 +403,13 @@ class _EucharistScreenState extends State<EucharistScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("First Holy Communion"),
+        title: const Text("First Communion Booking"),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.of(context).pop(); // Back to Home
           },
         ),
-        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

@@ -616,7 +616,6 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
             Navigator.of(context).pop();
           },
         ),
-        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

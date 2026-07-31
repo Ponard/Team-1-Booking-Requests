@@ -111,7 +111,6 @@ class _AdminMassScheduleScreenState extends State<AdminMassScheduleScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mass Schedule Management'),
-        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),

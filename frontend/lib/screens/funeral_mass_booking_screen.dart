@@ -209,7 +209,6 @@ class _FuneralMassScreenState extends State<FuneralMassScreen> {
             Navigator.of(context).pop();
           },
         ),
-        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
