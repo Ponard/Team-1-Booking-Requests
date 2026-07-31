@@ -249,7 +249,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         ),
       );
     } finally {
-      if (!mounted) {
+      if (mounted) {
         setState(() {
           document.isUploading = false;
         });

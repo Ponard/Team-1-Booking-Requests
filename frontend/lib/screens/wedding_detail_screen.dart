@@ -267,7 +267,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
         ),
       );
     } finally {
-      if (!mounted) {
+      if (mounted) {
         setState(() {
           document.isUploading = false;
         });

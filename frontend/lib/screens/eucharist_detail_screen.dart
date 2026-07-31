@@ -184,7 +184,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
 
   Future<void> _deleteDocument(Document doc) => _documentManager.deleteDocument(
         context: context,
-        endpoint: ApiConfig.confirmationsEndpoint,
+        endpoint: ApiConfig.eucharistEndpoint,
         bookingId: widget.eucharistId!,
         document: doc,
         reload: _loadBooking,
@@ -193,7 +193,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
   Future<void> _replaceDocument(Document doc) =>
       _documentManager.replaceDocument(
         context: context,
-        endpoint: ApiConfig.confirmationsEndpoint,
+        endpoint: ApiConfig.eucharistEndpoint,
         bookingId: widget.eucharistId!,
         document: doc,
         reload: _loadBooking,
@@ -275,7 +275,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
         ),
       );
     } finally {
-      if (!mounted) {
+      if (mounted) {
         setState(() {
           document.isUploading = false;
         });
@@ -487,7 +487,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                         BookingDateField(
                           enabled: _isEditMode,
                           controller: _preferredDateController,
-                          label: 'Preferred Confirmation Date *',
+                          label: 'Preferred Eucharist Date *',
                           firstDate: DateTime.now(),
                           lastDate:
                               DateTime.now().add(const Duration(days: 365)),

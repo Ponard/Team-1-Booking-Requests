@@ -246,7 +246,7 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         ),
       );
     } finally {
-      if (!mounted) {
+      if (mounted) {
         setState(() {
           document.isUploading = false;
         });
