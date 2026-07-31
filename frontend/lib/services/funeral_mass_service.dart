@@ -237,7 +237,7 @@ class FuneralMassService {
         if (wakeLocation != null) 'wakeLocation': wakeLocation,
         if (preferredDate != null) 'preferredDate': preferredDate,
         if (preferredTimeSlot != null) 'preferredTimeSlot': preferredTimeSlot,
-        if (priestId != null) 'preferredPriest': priestId,
+        if (priestId != null) 'priestId': priestId,
         if (notes != null) 'notes': notes,
       };
 

@@ -60,9 +60,13 @@ const AnointingSickBooking = sequelize.define('AnointingSickBooking', {
     allowNull: true,
   },
   // Optional priest
-  preferredPriest: {
-    type: DataTypes.STRING(255),
+  priestId: {
+    type: DataTypes.INTEGER,
     allowNull: true,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
   },
   // Status tracking
   status: {

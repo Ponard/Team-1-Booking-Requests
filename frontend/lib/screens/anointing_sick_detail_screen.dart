@@ -192,8 +192,9 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
         if (result.success) {
           ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Booking updated successfully')));
+          _notesController.clear();
           _toggleEditMode();
-          Navigator.pop(context, true);
+          await _loadBooking();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(result.message ?? 'Failed')));

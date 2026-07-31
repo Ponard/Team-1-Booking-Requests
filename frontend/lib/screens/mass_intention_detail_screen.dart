@@ -309,11 +309,8 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Mass intention updated successfully')));
         _newNoteController.clear();
-        // Reload data to get updated preferredTime
-        await _loadMassIntention();
-        if (!mounted) return;
         _toggleEditMode();
-        Navigator.pop(context, true);
+        await _loadMassIntention();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(result.message ?? 'Failed to update')));

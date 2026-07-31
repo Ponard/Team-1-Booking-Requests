@@ -313,7 +313,7 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
               const SnackBar(content: Text('Booking updated successfully')));
           _newNoteController.clear();
           _toggleEditMode();
-          Navigator.pop(context, true);
+          await _loadBooking();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(result.message ?? 'Failed')));
