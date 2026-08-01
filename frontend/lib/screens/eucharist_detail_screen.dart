@@ -240,13 +240,12 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
     });
 
     try {
-      final response = await FileService().uploadFile(
-        file: document.file!,
+      final response = await _documentManager.attachDocument(
+        endpoint: ApiConfig.eucharistEndpoint,
+        bookingId: widget.eucharistId!,
         token: token,
-        category: 'eucharist',
-        additionalFields: {
-          'documentType': document.documentType,
-        },
+        file: document.file!,
+        documentType: document.documentType,
       );
 
       if (!mounted) return;

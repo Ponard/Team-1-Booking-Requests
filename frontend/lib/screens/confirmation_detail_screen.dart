@@ -214,13 +214,12 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
     });
 
     try {
-      final response = await FileService().uploadFile(
-        file: document.file!,
+      final response = await _documentManager.attachDocument(
+        endpoint: ApiConfig.confirmationsEndpoint,
+        bookingId: widget.confirmationId!,
         token: token,
-        category: 'confirmation',
-        additionalFields: {
-          'documentType': document.documentType,
-        },
+        file: document.file!,
+        documentType: document.documentType,
       );
 
       if (!mounted) return;

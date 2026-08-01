@@ -1,8 +1,14 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:diocese_frontend/config/api_config.dart';
+import 'package:diocese_frontend/models/api_response.dart';
 import 'package:diocese_frontend/models/document.dart';
 import 'package:diocese_frontend/screens/document_preview_screen.dart';
 import 'package:diocese_frontend/services/booking_document_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class BookingDocumentManager {
   BookingDocumentManager({
@@ -173,5 +179,65 @@ class BookingDocumentManager {
         ),
       ),
     );
+  }
+
+  Future<ApiResponse<Map<String, dynamic>>> attachDocument({
+    required String endpoint,
+    required int bookingId,
+    required String token,
+    required PlatformFile file,
+    required String documentType,
+  }) async {
+    try {
+      final response = await ApiConfig.sendMultipartWithAuth(
+        endpoint: '$endpoint/$bookingId/document',
+        fileField: 'document',
+        file: file,
+        additionalFields: {
+          'documentType': documentType,
+        },
+      );
+
+      final Map<String, dynamic> data =
+          response.body.isNotEmpty ? json.decode(response.body) : {};
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return ApiResponse<Map<String, dynamic>>(
+          success: true,
+          data: data['document'] ?? data,
+          message: data['message'],
+        );
+      }
+
+      return ApiResponse<Map<String, dynamic>>(
+        success: false,
+        message: data['message'] ?? 'Failed to attach document',
+        statusCode: response.statusCode,
+      );
+    } on http.ClientException catch (e) {
+      return ApiResponse<Map<String, dynamic>>(
+        success: false,
+        message: 'Connection error. Please check your internet connection.',
+        errors: [e.toString()],
+      );
+    } on HttpException catch (e) {
+      return ApiResponse<Map<String, dynamic>>(
+        success: false,
+        message: e.message,
+        errors: [e.toString()],
+      );
+    } on FormatException catch (e) {
+      return ApiResponse<Map<String, dynamic>>(
+        success: false,
+        message: 'Server response error. Please try again.',
+        errors: [e.toString()],
+      );
+    } catch (e) {
+      return ApiResponse<Map<String, dynamic>>(
+        success: false,
+        message: 'Network error attaching document: $e',
+        errors: [e.toString()],
+      );
+    }
   }
 }

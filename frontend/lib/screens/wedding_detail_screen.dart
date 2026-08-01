@@ -232,13 +232,12 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
     });
 
     try {
-      final response = await FileService().uploadFile(
-        file: document.file!,
+      final response = await _documentManager.attachDocument(
+        endpoint: ApiConfig.weddingsEndpoint,
+        bookingId: widget.weddingId!,
         token: token,
-        category: 'wedding',
-        additionalFields: {
-          'documentType': document.documentType,
-        },
+        file: document.file!,
+        documentType: document.documentType,
       );
 
       if (!mounted) return;

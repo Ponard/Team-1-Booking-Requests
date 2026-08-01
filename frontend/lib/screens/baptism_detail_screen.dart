@@ -211,13 +211,12 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
     });
 
     try {
-      final response = await FileService().uploadFile(
-        file: document.file!,
+      final response = await _documentManager.attachDocument(
+        endpoint: ApiConfig.baptismsEndpoint,
+        bookingId: widget.baptismId!,
         token: token,
-        category: 'baptism',
-        additionalFields: {
-          'documentType': document.documentType,
-        },
+        file: document.file!,
+        documentType: document.documentType,
       );
 
       if (!mounted) return;
