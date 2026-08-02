@@ -1,6 +1,5 @@
 import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/services/booking_document_manager.dart';
-import 'package:diocese_frontend/services/file_service.dart';
 import 'package:diocese_frontend/utils/required_document.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
@@ -225,6 +224,8 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
       if (!mounted) return;
 
       if (response.success) {
+        document.file = null;
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${document.title} uploaded successfully'),
@@ -543,7 +544,7 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
                             onReplaceDocument: _replaceDocument,
                           ),
                           if (index < _requiredDocuments.length - 1)
-                            const SizedBox(height: 24),
+                            const Divider(height: 30),
                         ],
                       );
                     }),

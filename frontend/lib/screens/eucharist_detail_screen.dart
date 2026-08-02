@@ -22,7 +22,6 @@ import 'package:file_picker/file_picker.dart';
 import '../providers/auth_provider.dart';
 import '../providers/priest_provider.dart';
 import '../services/eucharist_service.dart';
-import '../services/file_service.dart';
 import '../models/document.dart';
 import '../models/eucharist_booking.dart';
 import '../models/note.dart';
@@ -251,6 +250,8 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
       if (!mounted) return;
 
       if (response.success) {
+        document.file = null;
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${document.title} uploaded successfully'),
@@ -534,7 +535,7 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                               onReplaceDocument: _replaceDocument,
                             ),
                             if (index < _requiredDocuments.length - 1)
-                              const SizedBox(height: 24),
+                              const Divider(height: 30),
                           ],
                         );
                       }),

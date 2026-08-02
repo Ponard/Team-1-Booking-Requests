@@ -87,7 +87,7 @@ class DocumentUploadSection extends StatelessWidget {
         if (hasExistingDocuments) ...[
           const SizedBox(height: 16),
           const Text(
-            'Uploaded Documents',
+            'Uploaded Document',
             style: TextStyle(
               fontWeight: FontWeight.w600,
             ),
@@ -161,20 +161,22 @@ class DocumentUploadSection extends StatelessWidget {
           ),
         ],
         if (canEdit) ...[
-          const SizedBox(height: 12),
-          ElevatedButton.icon(
-            onPressed: isUploading ? null : onPick,
-            icon: const Icon(Icons.attach_file),
-            label: Text(
-              file?.name ?? selectButtonText,
-              overflow: TextOverflow.ellipsis,
+          if (!hasExistingDocuments) ...[
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: isUploading ? null : onPick,
+              icon: const Icon(Icons.attach_file),
+              label: Text(
+                file?.name ?? selectButtonText,
+                overflow: TextOverflow.ellipsis,
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    file != null ? Colors.green[100] : Colors.grey[200],
+                foregroundColor: Colors.black87,
+              ),
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  file != null ? Colors.green[100] : Colors.grey[200],
-              foregroundColor: Colors.black87,
-            ),
-          ),
+          ],
           if (file != null) ...[
             const SizedBox(height: 12),
             if (isUploading)
