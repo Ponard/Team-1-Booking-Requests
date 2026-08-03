@@ -11,6 +11,7 @@ import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.da
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/booking_resubmit_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/booking_status_actions_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/couple_information_section.dart';
@@ -574,40 +575,10 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                       ),
                     ],
 
-                    if (status == 'declined' && isOwner) ...[
-                      const SizedBox(height: 20),
-                      Card(
-                        color: Colors.orange.shade50,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Your booking was declined. Please make the necessary changes and resubmit.',
-                                style: TextStyle(
-                                    color: Colors.orange,
-                                    fontWeight: FontWeight.w500),
-                              ),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton.icon(
-                                  icon: const Icon(Icons.refresh),
-                                  label: const Text('Resubmit Booking'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.orange,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  onPressed: _resubmitBooking,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                    if (status == 'declined' && isOwner)
+                      BookingResubmitSection(
+                        onResubmit: _resubmitBooking,
                       ),
-                      const SizedBox(height: 32),
-                    ],
 
                     BookingStatusActionsSection(
                       visible: isAdmin && !_isEditMode,

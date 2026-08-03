@@ -5,6 +5,9 @@ class BookingSection extends StatelessWidget {
   final List<Widget> children;
   final bool transparent;
   final double padding;
+  final TextStyle? titleStyle;
+  final Color? backgroundColor;
+  final Widget? leading;
 
   const BookingSection({
     super.key,
@@ -12,6 +15,9 @@ class BookingSection extends StatelessWidget {
     required this.children,
     this.transparent = false,
     this.padding = 16,
+    this.titleStyle,
+    this.backgroundColor,
+    this.leading,
   });
 
   @override
@@ -22,7 +28,8 @@ class BookingSection extends StatelessWidget {
         elevation: transparent ? 0 : 2,
         color: transparent
             ? Colors.transparent
-            : Theme.of(context).colorScheme.surfaceContainerLow,
+            : backgroundColor ??
+                Theme.of(context).colorScheme.surfaceContainerLow,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -31,13 +38,25 @@ class BookingSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                ),
+              Row(
+                children: [
+                  if (leading != null) ...[
+                    leading!,
+                    const SizedBox(width: 8),
+                  ],
+                  Flexible(
+                    child: Text(
+                      title,
+                      overflow: TextOverflow.ellipsis,
+                      style: titleStyle ??
+                          const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                    ),
+                  )
+                ],
               ),
               const SizedBox(height: 12),
               ...children,

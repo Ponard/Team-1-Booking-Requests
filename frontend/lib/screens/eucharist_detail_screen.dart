@@ -11,6 +11,7 @@ import 'package:diocese_frontend/widgets/booking_forms/common/priest_dropdown.da
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_controller.dart';
 import 'package:diocese_frontend/widgets/booking_forms/form/booking_form_scope.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/additional_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/booking_resubmit_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/booking_status_actions_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
@@ -559,49 +560,10 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                       ),
                     ],
 
-                    if (status == 'declined' && isOwner) ...[
-                      const SizedBox(height: 20),
-                      Card(
-                        color: Colors.orange.shade50,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Your booking was declined. Please make the necessary changes and resubmit.',
-                                style: TextStyle(
-                                    color: Colors.orange,
-                                    fontWeight: FontWeight.w500),
-                              ),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton.icon(
-                                  icon: _isSaving
-                                      ? const SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: Colors.white))
-                                      : const Icon(Icons.refresh),
-                                  label: Text(_isSaving
-                                      ? 'Resubmitting...'
-                                      : 'Resubmit Booking'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.orange,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  onPressed:
-                                      _isSaving ? null : _resubmitBooking,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                    if (status == 'declined' && isOwner)
+                      BookingResubmitSection(
+                        onResubmit: _resubmitBooking,
                       ),
-                    ],
 
                     BookingStatusActionsSection(
                       visible: isAdmin && !_isEditMode,
