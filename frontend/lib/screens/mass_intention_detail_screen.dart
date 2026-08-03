@@ -130,14 +130,11 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
       if (_selectedDate != null) {
         await _loadSchedulesForDate(_selectedDate!);
       }
-      if (widget.fromStatusButton && isEditable) {
+
+      final currentUser = authProvider.currentUser;
+      final isOwner = intention.userId == currentUser?.id;
+      if (isOwner && isEditable) {
         setState(() => _isEditMode = true);
-      } else {
-        final currentUser = authProvider.currentUser;
-        final isOwner = intention.userId == currentUser?.id;
-        if (!widget.fromStatusButton && isOwner && isEditable) {
-          setState(() => _isEditMode = true);
-        }
       }
     } else if (mounted) {
       // print('Failed to load: ${result.message}');
