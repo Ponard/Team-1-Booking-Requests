@@ -408,6 +408,7 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
                       ),
                     ],
                     if (status == 'declined' && isOwner) ...[
+                      const SizedBox(height: 20),
                       Card(
                         color: Colors.orange.shade50,
                         child: Padding(
