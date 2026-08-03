@@ -1,6 +1,8 @@
 import 'package:diocese_frontend/config/app_routes.dart';
+import 'package:diocese_frontend/models/paginated_response.dart';
 import 'package:diocese_frontend/utils/booking_status.dart';
 import 'package:diocese_frontend/widgets/app_shell.dart';
+import 'package:diocese_frontend/widgets/booking_forms/common/pagination_controls.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -16,10 +18,16 @@ class MyBookingsScreen extends StatefulWidget {
 
 class _MyBookingsScreenState extends State<MyBookingsScreen> {
   final UserBookingService _bookingService = UserBookingService();
-  List<dynamic> _bookings = [];
+  PaginatedResponse<dynamic>? _bookings;
   bool _isLoading = false;
   String? _errorMessage;
   bool _hasChanges = false;
+
+  int _currentPage = 1;
+  final int _pageSize = 10;
+
+  int _totalPages = 1;
+  int _totalItems = 0;
 
   @override
   void initState() {
@@ -27,7 +35,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     _loadBookings();
   }
 
-  Future<void> _loadBookings() async {
+  Future<void> _loadBookings({int? page}) async {
+    if (page != null) {
+      _currentPage = page;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -44,13 +56,20 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       return;
     }
 
-    final result = await _bookingService.getUserBookings(token: token);
+    final result = await _bookingService.getUserBookings(
+      page: _currentPage,
+      limit: _pageSize,
+      token: token,
+    );
 
     if (mounted) {
       setState(() {
         _isLoading = false;
         if (result.success && result.data != null) {
           _bookings = result.data!;
+          _currentPage = _bookings!.page;
+          _totalPages = _bookings!.totalPages;
+          _totalItems = _bookings!.totalItems;
         } else {
           _errorMessage = result.message ?? 'Failed to load bookings';
         }
@@ -224,9 +243,17 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       child: AppShell(
         currentRoute: AppRoutes.myBookings,
         toolbar: AppBar(
-          title: const Text('My Bookings'),
-          automaticallyImplyLeading: false,
-        ),
+            title: const Text('My Bookings'),
+            automaticallyImplyLeading: false,
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(90),
+              child: PaginationControls(
+                currentPage: _currentPage,
+                totalPages: _totalPages,
+                totalItems: _totalItems,
+                onPageChanged: (page) => _loadBookings(page: page),
+              ),
+            )),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _errorMessage != null
@@ -244,7 +271,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                       ],
                     ),
                   )
-                : _bookings.isEmpty
+                : _bookings!.items.isEmpty
                     ? Center(
                         //add an icon to make it visually engaging - s vitug
                         child: Column(
@@ -264,161 +291,167 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                       )
                     : RefreshIndicator(
                         onRefresh: _loadBookings,
-                        child: ListView.builder(
+                        child: ListView(
                           padding: const EdgeInsets.all(16),
-                          itemCount: _bookings.length,
-                          itemBuilder: (context, index) {
-                            final booking = _bookings[index];
-                            final id = booking['id'];
-                            final sacramentType =
-                                booking['sacramentType'] ?? 'unknown';
-                            var status =
-                                booking['status']?.toLowerCase() ?? 'pending';
-                            final statusColor =
-                                BookingStatus.getColor(context, status);
-                            // Determine edit and delete permissions based on status
-                            final canEdit =
-                                status == 'pending' || status == 'declined';
-                            final canDelete = status !=
-                                'approved'; // pending, declined, completed can delete
-                            final hasEditSupport =
-                                _getDetailRouteForSacrament(sacramentType) !=
-                                    null;
+                          children: [
+                            ..._bookings!.items.map((booking) {
+                              final id = booking['id'];
+                              final sacramentType =
+                                  booking['sacramentType'] ?? 'unknown';
+                              var status =
+                                  booking['status']?.toLowerCase() ?? 'pending';
+                              final statusColor =
+                                  BookingStatus.getColor(context, status);
+                              // Determine edit and delete permissions based on status
+                              final canEdit =
+                                  status == 'pending' || status == 'declined';
+                              final canDelete = status !=
+                                  'approved'; // pending, declined, completed can delete
+                              final hasEditSupport =
+                                  _getDetailRouteForSacrament(sacramentType) !=
+                                      null;
 
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                getSacramentIcon(sacramentType),
-                                                size: 20,
-                                                color: Theme.of(context)
-                                                    .primaryColor,
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: Text(
-                                                  _getSacramentDisplayName(
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  getSacramentIcon(
                                                       sacramentType),
-                                                  style: const TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
+                                                  size: 20,
+                                                  color: Theme.of(context)
+                                                      .primaryColor,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    _getSacramentDisplayName(
+                                                        sacramentType),
+                                                    style: const TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
                                                   ),
                                                 ),
+                                              ],
+                                            ),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: statusColor.withValues(
+                                                  alpha: 0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: statusColor,
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: statusColor.withValues(
-                                                alpha: 0.2),
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            border: Border.all(
-                                              color: statusColor,
                                             ),
-                                          ),
-                                          child: Text(
-                                            status.toUpperCase(),
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: statusColor,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    if (booking['preferredDate'] != null)
-                                      Text(
-                                          'Date: ${formatDateMMDDYYYY(booking['preferredDate'])}'),
-                                    if (booking['preferredTimeSlot'] != null)
-                                      Text(
-                                          'Time: ${booking['preferredTimeSlot']}'),
-                                    if (booking['parishName'] != null)
-                                      Text('Parish: ${booking['parishName']}'),
-                                    const SizedBox(height: 12),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        // Edit button for editable bookings
-                                        if (canEdit && hasEditSupport)
-                                          ElevatedButton.icon(
-                                            onPressed: () =>
-                                                _navigateToBookingDetails(
-                                                    id, sacramentType),
-                                            icon: const Icon(Icons.edit,
-                                                size: 16),
-                                            label: const Text('Edit'),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.blue,
-                                              foregroundColor: Colors.white,
-                                            ),
-                                          ),
-                                        // View button for non-editable bookings that have detail support
-                                        if (!canEdit && hasEditSupport)
-                                          ElevatedButton.icon(
-                                            onPressed: () =>
-                                                _viewBookingDetails(
-                                                    id, sacramentType),
-                                            icon: const Icon(Icons.visibility,
-                                                size: 16),
-                                            label: const Text('View'),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.grey,
-                                              foregroundColor: Colors.white,
-                                            ),
-                                          ),
-                                        // Spacing before delete if we have a preceding button (edit or view) and delete is present
-                                        if (hasEditSupport && canDelete)
-                                          const SizedBox(width: 8),
-                                        // Delete button for deletable bookings
-                                        if (canDelete)
-                                          ElevatedButton.icon(
-                                            onPressed: () {
-                                              // print(
-                                              //     '[my_bookings] Delete button pressed - id: $id, sacramentType: $sacramentType');
-                                              _deleteBooking(id, sacramentType);
-                                            },
-                                            icon: const Icon(Icons.delete,
-                                                size: 16),
-                                            label: const Text('Delete'),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.red,
-                                              foregroundColor: Colors.white,
-                                            ),
-                                          ),
-                                        // Fallback message if no actions available
-                                        if (!canEdit &&
-                                            !canDelete &&
-                                            !hasEditSupport)
-                                          const Text(
-                                            'No actions available',
-                                            style: TextStyle(
+                                            child: Text(
+                                              status.toUpperCase(),
+                                              style: TextStyle(
                                                 fontSize: 12,
-                                                color: Colors.grey),
+                                                fontWeight: FontWeight.bold,
+                                                color: statusColor,
+                                              ),
+                                            ),
                                           ),
-                                      ],
-                                    ),
-                                  ],
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      if (booking['preferredDate'] != null)
+                                        Text(
+                                            'Date: ${formatDateMMDDYYYY(booking['preferredDate'])}'),
+                                      if (booking['preferredTimeSlot'] != null)
+                                        Text(
+                                            'Time: ${booking['preferredTimeSlot']}'),
+                                      if (booking['parishName'] != null)
+                                        Text(
+                                            'Parish: ${booking['parishName']}'),
+                                      const SizedBox(height: 12),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          // Edit button for editable bookings
+                                          if (canEdit && hasEditSupport)
+                                            ElevatedButton.icon(
+                                              onPressed: () =>
+                                                  _navigateToBookingDetails(
+                                                      id, sacramentType),
+                                              icon: const Icon(Icons.edit,
+                                                  size: 16),
+                                              label: const Text('Edit'),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.blue,
+                                                foregroundColor: Colors.white,
+                                              ),
+                                            ),
+                                          // View button for non-editable bookings that have detail support
+                                          if (!canEdit && hasEditSupport)
+                                            ElevatedButton.icon(
+                                              onPressed: () =>
+                                                  _viewBookingDetails(
+                                                      id, sacramentType),
+                                              icon: const Icon(Icons.visibility,
+                                                  size: 16),
+                                              label: const Text('View'),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.grey,
+                                                foregroundColor: Colors.white,
+                                              ),
+                                            ),
+                                          // Spacing before delete if we have a preceding button (edit or view) and delete is present
+                                          if (hasEditSupport && canDelete)
+                                            const SizedBox(width: 8),
+                                          // Delete button for deletable bookings
+                                          if (canDelete)
+                                            ElevatedButton.icon(
+                                              onPressed: () {
+                                                // print(
+                                                //     '[my_bookings] Delete button pressed - id: $id, sacramentType: $sacramentType');
+                                                _deleteBooking(
+                                                    id, sacramentType);
+                                              },
+                                              icon: const Icon(Icons.delete,
+                                                  size: 16),
+                                              label: const Text('Delete'),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.red,
+                                                foregroundColor: Colors.white,
+                                              ),
+                                            ),
+                                          // Fallback message if no actions available
+                                          if (!canEdit &&
+                                              !canDelete &&
+                                              !hasEditSupport)
+                                            const Text(
+                                              'No actions available',
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey),
+                                            ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            }),
+                          ],
                         ),
                       ),
       ),

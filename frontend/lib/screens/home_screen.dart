@@ -92,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       if (mounted) {
         if (response.success && response.data != null) {
-          final bookings = response.data as List;
+          final bookings = response.data!.items;
           Map<String, int> stats = {
             'total': bookings.length,
             'pending': 0,

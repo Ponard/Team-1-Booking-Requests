@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:diocese_frontend/models/paginated_response.dart';
+
 import '../models/api_response.dart';
 import '../config/api_config.dart';
 
@@ -7,7 +9,7 @@ class UserBookingService {
   factory UserBookingService() => _instance;
   UserBookingService._internal();
 
-  Future<ApiResponse<List<dynamic>>> getUserBookings({
+  Future<ApiResponse<PaginatedResponse<dynamic>>> getUserBookings({
     required String token,
     int? page,
     int? limit,
@@ -33,22 +35,29 @@ class UserBookingService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final bookings = (data['data'] as List).map((json) => json).toList();
+        final pagination = data['pagination'];
 
-        return ApiResponse<List<dynamic>>(
+        return ApiResponse(
           success: true,
-          data: bookings,
+          data: PaginatedResponse(
+            items: bookings,
+            page: pagination['page'],
+            limit: pagination['limit'],
+            totalItems: pagination['total'],
+            totalPages: pagination['totalPages'],
+          ),
           message: data['message'],
         );
       } else {
         final errorData = json.decode(response.body);
-        return ApiResponse<List<dynamic>>(
+        return ApiResponse(
           success: false,
           message: errorData['error'] ?? 'Failed to fetch bookings',
           statusCode: response.statusCode,
         );
       }
     } catch (e) {
-      return ApiResponse<List<dynamic>>(
+      return ApiResponse(
         success: false,
         message: 'Network error fetching bookings',
         errors: [e.toString()],
