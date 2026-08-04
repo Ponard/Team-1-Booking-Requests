@@ -1,0 +1,11 @@
+const BOOKING_APPROVAL_STAGES = Object.freeze({
+  STAFF: 'staff',
+  PRIEST: 'priest',
+});
+
+const BOOKING_APPROVAL_STAGE_VALUES = Object.values(BOOKING_APPROVAL_STAGES);
+
+module.exports = {
+  BOOKING_APPROVAL_STAGES,
+  BOOKING_APPROVAL_STAGE_VALUES,
+};

@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
+const { BOOKING_APPROVAL_STAGES, BOOKING_APPROVAL_STAGE_VALUES } = require('../constants/bookingApprovalStages');
 
 const ConfirmationBooking = sequelize.define('ConfirmationBooking', {
   id: {
@@ -87,6 +88,12 @@ const ConfirmationBooking = sequelize.define('ConfirmationBooking', {
     type: DataTypes.DATE,
     allowNull: true,
   },
+  approvalStage: {
+    type: DataTypes.ENUM(...BOOKING_APPROVAL_STAGE_VALUES),
+    allowNull: false,
+    defaultValue: BOOKING_APPROVAL_STAGES.STAFF,
+    field: 'approval_stage',
+  },
 }, {
   tableName: 'confirmation_bookings',
   timestamps: true,
@@ -97,6 +104,7 @@ const ConfirmationBooking = sequelize.define('ConfirmationBooking', {
     { fields: ['preferred_date'] },
     { fields: ['status'] },
     { fields: ['confirmand_name'] },
+    { fields: ['approval_stage'] },
   ],
 });
 
