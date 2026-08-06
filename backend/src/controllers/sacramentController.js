@@ -16,6 +16,7 @@ const {
 const { Op } = require('sequelize');
 const emailService = require('../services/emailService');
 const { validateBookingDate, validatePhoneNumber } = require('../utils/validators');
+const { BOOKING_APPROVAL_STAGES } = require('../constants/bookingApprovalStages');
 
 // Mapping of sacrament types to models and config
 const SACRAMENT_CONFIG = {
@@ -963,5 +964,81 @@ exports.getAvailableTimeSlots = (sacramentType) => async (req, res) => {
   } catch (error) {
     console.error(`Error fetching time slots for ${sacramentType}:`, error);
     res.status(500).json({ message: 'Failed to fetch available time slots' });
+  }
+};
+
+
+// Forward booking to priest (Parish Staff only)
+exports.forwardBookingToPriest = (sacramentType) => async (req, res) => {
+  try {
+    const config = SACRAMENT_CONFIG[sacramentType];
+
+    if (!config) {
+      return res.status(400).json({
+        message: 'Invalid sacrament type',
+      });
+    }
+
+    const { id } = req.params;
+    const { notes } = req.body;
+
+    const booking = await config.model.findByPk(id);
+
+    if (!booking) {
+      return res.status(404).json({
+        message: 'Booking not found',
+      });
+    }
+
+    if (booking.status !== 'pending') {
+      return res.status(400).json({
+        message: 'Only pending bookings can be forwarded to the priest.',
+      });
+    }
+
+    if (booking.approvalStage !== BOOKING_APPROVAL_STAGES.STAFF) {
+      return res.status(400).json({
+        message: 'This booking has already been forwarded to the priest.',
+      });
+    }
+
+    if (['parish_staff', 'parish_admin'].includes(req.user.role)) {
+      const user = await User.findByPk(req.user.userId);
+
+      if (booking.parishId !== user.assignedParishId) {
+        return res.status(403).json({
+          message: 'Not authorized to manage this booking.',
+        });
+      }
+    }
+
+    const updateData = {
+      approvalStage: BOOKING_APPROVAL_STAGES.PRIEST,
+    };
+
+    if (notes) {
+      updateData.notes = [
+        ...(booking.notes || []),
+        {
+          author: req.user.role,
+          content: notes,
+          authorId: req.user.userId,
+          timestamp: new Date().toISOString(),
+        },
+      ];
+    }
+
+    await booking.update(updateData);
+
+    res.json({
+      message: `${config.serviceName} booking forwarded to the priest successfully.`,
+      booking,
+    });
+  } catch (error) {
+    console.error(`Error forwarding ${sacramentType} booking:`, error);
+
+    res.status(500).json({
+      message: 'Failed to forward booking to the priest',
+    });
   }
 };

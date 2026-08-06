@@ -27,8 +27,11 @@ router.put('/:id', baptismController.updateBaptismBooking);
 // Delete/cancel booking (owner or admin)
 router.delete('/:id', baptismController.deleteBaptismBooking);
 
-// Admin-only routes for approval
-router.patch('/:id/status', authorizeRoles('parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin'),
+// Staff + priest routes for approval
+router.patch('/:id/status', authorizeRoles('parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin', 'priest'),
   baptismController.approveBaptismBooking);
+
+// Staff-only forwarding
+router.patch(`/:id/forward-to-priest`, authorizeRoles('parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin'), baptismController.forwardBookingToPriest);
 
 module.exports = router;

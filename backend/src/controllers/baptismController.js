@@ -11,6 +11,7 @@ const {
 const { Op } = require('sequelize');
 const emailService = require('../services/emailService');
 const { validateBookingDate, validatePhoneNumber } = require('../utils/validators');
+const { BOOKING_APPROVAL_STAGES } = require('../constants/bookingApprovalStages');
 
 // Helper function to check if date is within booking window
 const checkBookingWindow = async (parishId, serviceType, preferredDate) => {
@@ -836,5 +837,71 @@ exports.deleteDocument = async (req, res) => {
     console.error('Error deleting document:', error);
     console.error('Stack trace:', error.stack);
     res.status(500).json({ message: 'Failed to delete document', details: error.message });
+  }
+};
+
+exports.forwardBookingToPriest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { notes } = req.body;
+
+    const booking = await BaptismBooking.findByPk(id);
+
+    if (!booking) {
+      return res.status(404).json({
+        message: 'Booking not found',
+      });
+    }
+
+    if (booking.status !== 'pending') {
+      return res.status(400).json({
+        message: 'Only pending bookings can be forwarded to the priest.',
+      });
+    }
+
+    if (booking.approvalStage !== BOOKING_APPROVAL_STAGES.STAFF) {
+      return res.status(400).json({
+        message: 'This booking has already been forwarded to the priest.',
+      });
+    }
+
+    if (['parish_staff', 'parish_admin'].includes(req.user.role)) {
+      const user = await User.findByPk(req.user.userId);
+
+      if (booking.parishId !== user.assignedParishId) {
+        return res.status(403).json({
+          message: 'Not authorized to manage this booking.',
+        });
+      }
+    }
+
+    const updateData = {
+      approvalStage: BOOKING_APPROVAL_STAGES.PRIEST,
+    };
+
+    if (notes) {
+      updateData.notes = [
+        ...(booking.notes || []),
+        {
+          author: req.user.role,
+          content: notes,
+          authorId: req.user.userId,
+          timestamp: new Date().toISOString(),
+        },
+      ];
+    }
+
+    await booking.update(updateData);
+
+    res.json({
+      message: 'Baptism booking forwarded to the priest successfully.',
+      booking,
+    });
+  } catch (error) {
+    console.error('Error forwarding baptism booking:', error);
+
+    res.status(500).json({
+      message: 'Failed to forward booking to the priest',
+    });
   }
 };

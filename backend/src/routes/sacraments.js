@@ -19,6 +19,7 @@ const createSacramentRoutes = (sacramentType) => {
   const getAvailableSlots = sacramentController.getAvailableTimeSlots(sacramentType);
   const attachDocument = sacramentController.attachDocument(sacramentType);
   const deleteDocument = sacramentController.deleteDocument(sacramentType);
+  const forwardBookingToPriest = sacramentController.forwardBookingToPriest(sacramentType);
 
   return (prefix) => {
     // Public routes for parishioners
@@ -41,9 +42,12 @@ const createSacramentRoutes = (sacramentType) => {
     // Delete/cancel booking
     router.delete(`/${prefix}/:id`, deleteBooking);
 
-    // Admin-only approval
-    router.patch(`/${prefix}/:id/status`, authorizeRoles('parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin'),
+    // Staff + priest approval
+    router.patch(`/${prefix}/:id/status`, authorizeRoles('parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin', 'priest'),
       approveBooking);
+
+    // Staff-only forwarding
+    router.patch(`/${prefix}/:id/forward-to-priest`, authorizeRoles('parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin'), forwardBookingToPriest);
   };
 };
 
