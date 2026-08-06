@@ -547,6 +547,7 @@ exports.updateSacramentBooking = (sacramentType) => async (req, res) => {
       // Allow parishioners to resubmit: change status from 'declined' back to 'pending'
       if (updateData.status && booking.status === 'declined' && updateData.status === 'pending') {
         // This is allowed - resubmit after decline
+        updateData.approvalStage = BOOKING_APPROVAL_STAGES.STAFF;
       } else if (updateData.status) {
         // Only allow setting back to pending (for resubmit), delete any other status changes
         delete updateData.status;
@@ -595,6 +596,29 @@ exports.approveSacramentBooking = (sacramentType) => async (req, res) => {
     const booking = await config.model.findByPk(id);
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    if (
+      [
+        'parish_staff',
+        'parish_admin',
+        'diocese_staff',
+        'diocese_admin',
+      ].includes(req.user.role) &&
+      booking.approvalStage !== BOOKING_APPROVAL_STAGES.STAFF
+    ) {
+      return res.status(403).json({
+        message: 'This booking has already been forwarded to the priest.',
+      });
+    }
+
+    if (
+      req.user.role === 'priest' &&
+      booking.approvalStage !== BOOKING_APPROVAL_STAGES.PRIEST
+    ) {
+      return res.status(403).json({
+        message: 'This booking is still awaiting staff review.',
+      });
     }
 
     // Prepare update data
