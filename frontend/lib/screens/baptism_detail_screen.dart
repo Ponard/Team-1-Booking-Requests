@@ -1,4 +1,5 @@
 import 'package:diocese_frontend/config/api_config.dart';
+import 'package:diocese_frontend/constants/booking_approval_stages.dart';
 import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/models/note.dart';
 import 'package:diocese_frontend/services/booking_document_manager.dart';
@@ -520,11 +521,15 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
                         onResubmit: _resubmitBooking,
                       ),
 
-                    BookingStatusActionsSection(
-                      visible: isAdmin && !_isEditMode,
-                      status: _booking?.status ?? 'pending',
-                      onUpdateStatus: _updateStatus,
-                    )
+                    if (!_isEditMode)
+                      BookingStatusActionsSection(
+                        status: _booking?.status ?? 'pending',
+                        approvalStage: _booking?.approvalStage ??
+                            BookingApprovalStages.staff,
+                        role: currentUser?.role,
+                        onUpdateStatus: _updateStatus,
+                        onForwardToPriest: _forwardToPriest,
+                      )
                   ],
                 ),
               ),
@@ -580,6 +585,30 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
+    }
+  }
+
+  Future<void> _forwardToPriest() async {
+    if (!mounted) return;
+
+    try {
+      await _baptismService.forwardToPriest(id: widget.baptismId!);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Booking forwarded to the priest successfully.'),
+        ),
+      );
+
+      await _loadBooking();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
     }
   }
 

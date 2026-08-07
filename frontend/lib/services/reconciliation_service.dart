@@ -4,11 +4,13 @@ import '../models/api_response.dart';
 import '../config/api_config.dart';
 
 class ReconciliationService {
-  static final ReconciliationService _instance = ReconciliationService._internal();
+  static final ReconciliationService _instance =
+      ReconciliationService._internal();
   factory ReconciliationService() => _instance;
   ReconciliationService._internal();
 
-  Future<ApiResponse<List<ReconciliationBooking>>> getAllReconciliationBookings({
+  Future<ApiResponse<List<ReconciliationBooking>>>
+      getAllReconciliationBookings({
     required String token,
     int? page,
     int? limit,
@@ -44,7 +46,8 @@ class ReconciliationService {
         final errorData = json.decode(response.body);
         return ApiResponse<List<ReconciliationBooking>>(
           success: false,
-          message: errorData['message'] ?? 'Failed to fetch reconciliation bookings',
+          message:
+              errorData['message'] ?? 'Failed to fetch reconciliation bookings',
           statusCode: response.statusCode,
         );
       }
@@ -80,7 +83,8 @@ class ReconciliationService {
         final errorData = json.decode(response.body);
         return ApiResponse<ReconciliationBooking>(
           success: false,
-          message: errorData['message'] ?? 'Failed to fetch reconciliation booking',
+          message:
+              errorData['message'] ?? 'Failed to fetch reconciliation booking',
           statusCode: response.statusCode,
         );
       }
@@ -133,7 +137,8 @@ class ReconciliationService {
         final errorData = json.decode(response.body);
         return ApiResponse<ReconciliationBooking>(
           success: false,
-          message: errorData['message'] ?? 'Failed to create reconciliation booking',
+          message:
+              errorData['message'] ?? 'Failed to create reconciliation booking',
           statusCode: response.statusCode,
         );
       }
@@ -177,7 +182,8 @@ class ReconciliationService {
         final errorData = json.decode(response.body);
         return ApiResponse<ReconciliationBooking>(
           success: false,
-          message: errorData['message'] ?? 'Failed to update reconciliation status',
+          message:
+              errorData['message'] ?? 'Failed to update reconciliation status',
           statusCode: response.statusCode,
         );
       }
@@ -229,7 +235,8 @@ class ReconciliationService {
         final errorData = json.decode(response.body);
         return ApiResponse<ReconciliationBooking>(
           success: false,
-          message: errorData['message'] ?? 'Failed to update reconciliation booking',
+          message:
+              errorData['message'] ?? 'Failed to update reconciliation booking',
           statusCode: response.statusCode,
         );
       }
@@ -278,6 +285,49 @@ class ReconciliationService {
       return ApiResponse<ReconciliationBooking>(
         success: false,
         message: 'Network error resubmitting booking',
+        errors: [e.toString()],
+      );
+    }
+  }
+
+  Future<ApiResponse> forwardToPriest({
+    required int id,
+    String? notes,
+  }) async {
+    try {
+      final requestBody = <String, dynamic>{
+        if (notes != null && notes.isNotEmpty) 'notes': notes,
+      };
+
+      final response = await ApiConfig.patchWithAuth(
+        '${ApiConfig.reconciliationsEndpoint}/$id/forward-to-priest',
+        null,
+        json.encode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final booking = ReconciliationBooking.fromJson(data['booking']);
+
+        return ApiResponse<ReconciliationBooking>(
+          success: true,
+          data: booking,
+          message: data['message'],
+        );
+      } else {
+        final errorData = json.decode(response.body);
+
+        return ApiResponse<ReconciliationBooking>(
+          success: false,
+          message:
+              errorData['message'] ?? 'Failed to forward booking to the priest',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      return ApiResponse<ReconciliationBooking>(
+        success: false,
+        message: 'Network error forwarding booking to the priest',
         errors: [e.toString()],
       );
     }

@@ -195,6 +195,12 @@ class AppDrawer extends StatelessWidget {
             ),
             _buildNavTile(
               context: context,
+              icon: Icons.calendar_today,
+              title: 'Manage Bookings',
+              route: AppRoutes.adminBookings,
+            ),
+            _buildNavTile(
+              context: context,
               icon: Icons.person,
               title: 'My Profile',
               route: AppRoutes.myProfile,

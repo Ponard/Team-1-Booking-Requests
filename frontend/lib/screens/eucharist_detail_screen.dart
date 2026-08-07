@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/constants/booking_approval_stages.dart';
 import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/services/booking_document_manager.dart';
 import 'package:diocese_frontend/utils/required_document.dart';
@@ -565,11 +566,15 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                         onResubmit: _resubmitBooking,
                       ),
 
-                    BookingStatusActionsSection(
-                      visible: isAdmin && !_isEditMode,
-                      status: _booking?.status ?? 'pending',
-                      onUpdateStatus: _updateStatus,
-                    ),
+                    if (!_isEditMode)
+                      BookingStatusActionsSection(
+                        status: _booking?.status ?? 'pending',
+                        approvalStage: _booking?.approvalStage ??
+                            BookingApprovalStages.staff,
+                        role: currentUser?.role,
+                        onUpdateStatus: _updateStatus,
+                        onForwardToPriest: _forwardToPriest,
+                      )
                   ],
                 ),
               ),
@@ -599,5 +604,29 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
       ),
       status,
     );
+  }
+
+  Future<void> _forwardToPriest() async {
+    if (!mounted) return;
+
+    try {
+      await _eucharistService.forwardToPriest(id: widget.eucharistId!);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Booking forwarded to the priest successfully.'),
+        ),
+      );
+
+      await _loadBooking();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
   }
 }

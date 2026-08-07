@@ -1,3 +1,5 @@
+import 'package:diocese_frontend/constants/booking_approval_stages.dart';
+
 import 'note.dart';
 import 'document.dart';
 
@@ -20,6 +22,7 @@ class BaptismBooking {
   final String? status;
   final int? approvedBy;
   final String? approvedAt;
+  final String approvalStage;
   final String? createdAt;
   final String? updatedAt;
   final List<Document>? documents;
@@ -43,6 +46,7 @@ class BaptismBooking {
     this.status,
     this.approvedBy,
     this.approvedAt,
+    this.approvalStage = BookingApprovalStages.staff,
     this.createdAt,
     this.updatedAt,
     this.documents,
@@ -70,17 +74,20 @@ class BaptismBooking {
       preferredDate: json['preferredDate'],
       preferredTimeSlot: json['preferredTimeSlot'],
       priestId: json['priestId'],
-      priestName: json['priest']?['firstName'] != null 
-          ? '${json['priest']['firstName']} ${json['priest']['lastName']}' 
+      priestName: json['priest']?['firstName'] != null
+          ? '${json['priest']['firstName']} ${json['priest']['lastName']}'
           : json['priestName'],
       notes: notesList,
       status: json['status'],
       approvedBy: json['approvedBy'],
       approvedAt: json['approvedAt'],
+      approvalStage: json['approvalStage'] ?? BookingApprovalStages.staff,
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
       documents: json['documents'] != null
-          ? (json['documents'] as List).map((doc) => Document.fromJson(doc)).toList()
+          ? (json['documents'] as List)
+              .map((doc) => Document.fromJson(doc))
+              .toList()
           : null,
     );
   }
@@ -91,6 +98,7 @@ class BaptismBooking {
       'parishId': parishId,
       'userId': userId,
       'childFullName': childFullName,
+      'approvalStage': approvalStage,
       if (dateOfBirth != null) 'dateOfBirth': dateOfBirth,
       if (fatherName != null) 'fatherName': fatherName,
       if (motherName != null) 'motherName': motherName,
@@ -102,7 +110,8 @@ class BaptismBooking {
       if (priestName != null) 'priestName': priestName,
       if (notes != null) 'notes': notes!.map((n) => n.toJson()).toList(),
       if (status != null) 'status': status,
-      if (documents != null) 'documents': documents!.map((doc) => doc.toJson()).toList(),
+      if (documents != null)
+        'documents': documents!.map((doc) => doc.toJson()).toList(),
     };
   }
 
@@ -124,6 +133,7 @@ class BaptismBooking {
     String? status,
     int? approvedBy,
     String? approvedAt,
+    String? approvalStage,
     String? createdAt,
     String? updatedAt,
     List<Document>? documents,
@@ -146,6 +156,7 @@ class BaptismBooking {
       status: status ?? this.status,
       approvedBy: approvedBy ?? this.approvedBy,
       approvedAt: approvedAt ?? this.approvedAt,
+      approvalStage: approvalStage ?? this.approvalStage,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       documents: documents ?? this.documents,

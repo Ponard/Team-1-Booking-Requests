@@ -1,3 +1,5 @@
+import 'package:diocese_frontend/constants/booking_approval_stages.dart';
+
 import '../models/document.dart';
 
 class EucharistBooking {
@@ -18,6 +20,7 @@ class EucharistBooking {
   final String? adminNotes;
   final int? approvedBy;
   final String? approvedAt;
+  final String approvalStage;
   final String? createdAt;
   final String? updatedAt;
   final List<Document>? documents;
@@ -40,6 +43,7 @@ class EucharistBooking {
     this.adminNotes,
     this.approvedBy,
     this.approvedAt,
+    this.approvalStage = BookingApprovalStages.staff,
     this.createdAt,
     this.updatedAt,
     this.documents,
@@ -64,6 +68,7 @@ class EucharistBooking {
       adminNotes: json['adminNotes'],
       approvedBy: json['approvedBy'],
       approvedAt: json['approvedAt'],
+      approvalStage: json['approvalStage'] ?? BookingApprovalStages.staff,
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
       documents: json['documents'] != null
@@ -79,6 +84,7 @@ class EucharistBooking {
       if (id != null) 'id': id,
       'parishId': parishId,
       'userId': userId,
+      'approvalStage': approvalStage,
       if (communicantName != null) 'communicantName': communicantName,
       if (fatherName != null) 'fatherName': fatherName,
       if (motherName != null) 'motherName': motherName,
@@ -110,6 +116,7 @@ class EucharistBooking {
     String? adminNotes,
     int? approvedBy,
     String? approvedAt,
+    String? approvalStage,
     String? createdAt,
     String? updatedAt,
     List<Document>? documents,
@@ -131,6 +138,7 @@ class EucharistBooking {
       adminNotes: adminNotes ?? this.adminNotes,
       approvedBy: approvedBy ?? this.approvedBy,
       approvedAt: approvedAt ?? this.approvedAt,
+      approvalStage: approvalStage ?? this.approvalStage,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       documents: documents ?? this.documents,

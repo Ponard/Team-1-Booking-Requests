@@ -1,3 +1,5 @@
+import 'package:diocese_frontend/constants/booking_approval_stages.dart';
+
 import 'document.dart';
 import 'note.dart';
 
@@ -23,6 +25,7 @@ class FuneralMassBooking {
   final String? adminNotes;
   final int? approvedBy;
   final String? approvedAt;
+  final String approvalStage;
   final String? createdAt;
   final String? updatedAt;
   final List<Document>? documents;
@@ -49,6 +52,7 @@ class FuneralMassBooking {
     this.adminNotes,
     this.approvedBy,
     this.approvedAt,
+    this.approvalStage = BookingApprovalStages.staff,
     this.createdAt,
     this.updatedAt,
     this.documents,
@@ -83,6 +87,7 @@ class FuneralMassBooking {
       adminNotes: json['adminNotes'],
       approvedBy: json['approvedBy'],
       approvedAt: json['approvedAt'],
+      approvalStage: json['approvalStage'] ?? BookingApprovalStages.staff,
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
       documents: json['documents'] != null
@@ -98,6 +103,7 @@ class FuneralMassBooking {
       if (id != null) 'id': id,
       'parishId': parishId,
       'userId': userId,
+      'approvalStage': approvalStage,
       if (deceasedFullName != null) 'deceasedFullName': deceasedFullName,
       if (dateOfDeath != null) 'dateOfDeath': dateOfDeath,
       if (representativeName != null) 'representativeName': representativeName,
@@ -138,6 +144,7 @@ class FuneralMassBooking {
     String? adminNotes,
     int? approvedBy,
     String? approvedAt,
+    String? approvalStage,
     String? createdAt,
     String? updatedAt,
     List<Document>? documents,
@@ -164,6 +171,7 @@ class FuneralMassBooking {
       adminNotes: adminNotes ?? this.adminNotes,
       approvedBy: approvedBy ?? this.approvedBy,
       approvedAt: approvedAt ?? this.approvedAt,
+      approvalStage: approvalStage ?? this.approvalStage,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       documents: documents ?? this.documents,

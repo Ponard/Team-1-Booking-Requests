@@ -1,3 +1,5 @@
+import 'package:diocese_frontend/constants/booking_approval_stages.dart';
+
 import 'document.dart';
 
 class ConfirmationBooking {
@@ -18,6 +20,7 @@ class ConfirmationBooking {
   final String? adminNotes;
   final int? approvedBy;
   final String? approvedAt;
+  final String approvalStage;
   final String? createdAt;
   final String? updatedAt;
   final List<Document>? documents;
@@ -40,6 +43,7 @@ class ConfirmationBooking {
     this.adminNotes,
     this.approvedBy,
     this.approvedAt,
+    this.approvalStage = BookingApprovalStages.staff,
     this.createdAt,
     this.updatedAt,
     this.documents,
@@ -64,10 +68,13 @@ class ConfirmationBooking {
       adminNotes: json['adminNotes'],
       approvedBy: json['approvedBy'],
       approvedAt: json['approvedAt'],
+      approvalStage: json['approvalStage'] ?? BookingApprovalStages.staff,
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
       documents: json['documents'] != null
-          ? (json['documents'] as List).map((doc) => Document.fromJson(doc)).toList()
+          ? (json['documents'] as List)
+              .map((doc) => Document.fromJson(doc))
+              .toList()
           : null,
     );
   }
@@ -77,6 +84,7 @@ class ConfirmationBooking {
       if (id != null) 'id': id,
       'parishId': parishId,
       'userId': userId,
+      'approvalStage': approvalStage,
       if (confirmandName != null) 'confirmandName': confirmandName,
       if (fatherName != null) 'fatherName': fatherName,
       if (motherName != null) 'motherName': motherName,
@@ -88,7 +96,8 @@ class ConfirmationBooking {
       if (notes != null) 'notes': notes,
       'status': status,
       if (adminNotes != null) 'adminNotes': adminNotes,
-      if (documents != null) 'documents': documents!.map((doc) => doc.toJson()).toList(),
+      if (documents != null)
+        'documents': documents!.map((doc) => doc.toJson()).toList(),
     };
   }
 
@@ -109,6 +118,7 @@ class ConfirmationBooking {
     String? adminNotes,
     int? approvedBy,
     String? approvedAt,
+    String? approvalStage,
     String? createdAt,
     String? updatedAt,
     List<Document>? documents,
@@ -130,6 +140,7 @@ class ConfirmationBooking {
       adminNotes: adminNotes ?? this.adminNotes,
       approvedBy: approvedBy ?? this.approvedBy,
       approvedAt: approvedAt ?? this.approvedAt,
+      approvalStage: approvalStage ?? this.approvalStage,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       documents: documents ?? this.documents,

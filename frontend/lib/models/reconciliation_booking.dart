@@ -1,3 +1,5 @@
+import 'package:diocese_frontend/constants/booking_approval_stages.dart';
+
 import 'note.dart';
 
 class ReconciliationBooking {
@@ -13,6 +15,7 @@ class ReconciliationBooking {
   final String status;
   final int? approvedBy;
   final String? approvedAt;
+  final String approvalStage;
   final String? createdAt;
   final String? updatedAt;
   final String? parishName;
@@ -30,6 +33,7 @@ class ReconciliationBooking {
     this.status = 'pending',
     this.approvedBy,
     this.approvedAt,
+    this.approvalStage = BookingApprovalStages.staff,
     this.createdAt,
     this.updatedAt,
     this.parishName,
@@ -56,6 +60,7 @@ class ReconciliationBooking {
       status: json['status'] ?? 'pending',
       approvedBy: json['approvedBy'],
       approvedAt: json['approvedAt'],
+      approvalStage: json['approvalStage'] ?? BookingApprovalStages.staff,
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
       parishName: json['parish']?['name'],
@@ -67,6 +72,7 @@ class ReconciliationBooking {
       if (id != null) 'id': id,
       'parishId': parishId,
       'userId': userId,
+      'approvalStage': approvalStage,
       if (penitentName != null) 'penitentName': penitentName,
       if (contactEmail != null) 'contactEmail': contactEmail,
       if (contactPhone != null) 'contactPhone': contactPhone,
@@ -90,6 +96,7 @@ class ReconciliationBooking {
     String? status,
     int? approvedBy,
     String? approvedAt,
+    String? approvalStage,
     String? createdAt,
     String? updatedAt,
   }) {
@@ -106,6 +113,7 @@ class ReconciliationBooking {
       status: status ?? this.status,
       approvedBy: approvedBy ?? this.approvedBy,
       approvedAt: approvedAt ?? this.approvedAt,
+      approvalStage: approvalStage ?? this.approvalStage,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

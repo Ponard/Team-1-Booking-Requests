@@ -109,7 +109,7 @@ class ApiConfig {
   }
 
   // HTTP Methods with Authorization and auto-refresh
-  static Future<http.Response> getWithAuth(String endpoint, String token,
+  static Future<http.Response> getWithAuth(String endpoint, String? token,
       {bool retried = false}) async {
     final token = await _getAccessToken();
 
@@ -142,7 +142,7 @@ class ApiConfig {
   }
 
   static Future<http.Response> postWithAuth(
-      String endpoint, String token, dynamic body,
+      String endpoint, String? token, dynamic body,
       {bool retried = false}) async {
     final token = await _getAccessToken();
 
@@ -179,7 +179,7 @@ class ApiConfig {
   }
 
   static Future<http.Response> putWithAuth(
-      String endpoint, String token, dynamic body,
+      String endpoint, String? token, dynamic body,
       {bool retried = false}) async {
     final token = await _getAccessToken();
 
@@ -213,7 +213,7 @@ class ApiConfig {
   }
 
   static Future<http.Response> patchWithAuth(
-      String endpoint, String token, dynamic body,
+      String endpoint, String? token, dynamic body,
       {bool retried = false}) async {
     final token = await _getAccessToken();
 
@@ -246,7 +246,7 @@ class ApiConfig {
     return response;
   }
 
-  static Future<http.Response> deleteWithAuth(String endpoint, String token,
+  static Future<http.Response> deleteWithAuth(String endpoint, String? token,
       {bool retried = false}) async {
     final token = await _getAccessToken();
 

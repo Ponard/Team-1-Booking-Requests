@@ -574,7 +574,8 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
 
                     // If current user is parish-level, only show their assigned parish
                     if (currentUser != null &&
-                        Roles.isParishLevel(currentUser.role) &&
+                        (Roles.isParishLevel(currentUser.role) ||
+                            Roles.isPriest(currentUser.role)) &&
                         currentUser.effectiveParishId != null) {
                       final currentUserParish = parishProvider.parishes
                           .where((parish) =>

@@ -116,21 +116,21 @@ router.delete(
 // Get all bookings (admin view with filtering)
 router.get(
   '/bookings',
-  authorizeRoles('diocese_admin', 'diocese_staff', 'parish_admin', 'parish_staff'),
+  authorizeRoles('diocese_admin', 'diocese_staff', 'parish_admin', 'parish_staff', 'priest'),
   adminController.getAllBookings
 );
 
 // Get single booking by ID
 router.get(
   '/bookings/:id',
-  authorizeRoles('diocese_admin', 'diocese_staff', 'parish_admin', 'parish_staff'),
+  authorizeRoles('diocese_admin', 'diocese_staff', 'parish_admin', 'parish_staff', 'priest'),
   adminController.getBookingById
 );
 
 // Update booking status (approve/reject/reschedule)
 router.put(
   '/bookings/:id/status',
-  authorizeRoles('diocese_admin', 'diocese_staff', 'parish_admin', 'parish_staff'),
+  authorizeRoles('diocese_admin', 'diocese_staff', 'parish_admin', 'parish_staff', 'priest'),
   adminController.updateBookingStatus
 );
 

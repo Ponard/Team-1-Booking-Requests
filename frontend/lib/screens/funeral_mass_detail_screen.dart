@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/constants/booking_approval_stages.dart';
 import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/models/note.dart';
 import 'package:diocese_frontend/utils/validators.dart';
@@ -489,11 +490,16 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
                       ),
                       const SizedBox(height: 16),
                     ],
+
+                    if (!_isEditMode)
                     BookingStatusActionsSection(
-                      visible: isAdmin && !_isEditMode,
                       status: _booking?.status ?? 'pending',
+                      approvalStage: _booking?.approvalStage ??
+                          BookingApprovalStages.staff,
+                      role: currentUser?.role,
                       onUpdateStatus: _updateStatus,
-                    ),
+                      onForwardToPriest: _forwardToPriest,
+                    )
                   ],
                 ),
               ),
@@ -502,6 +508,30 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _forwardToPriest() async {
+    if (!mounted) return;
+
+    try {
+      await _funeralMassService.forwardToPriest(id: widget.funeralMassId!);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Booking forwarded to the priest successfully.'),
+        ),
+      );
+
+      await _loadBooking();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
   }
 
   @override

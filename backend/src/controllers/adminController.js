@@ -16,6 +16,7 @@ const { sequelize } = require('../config/database');
 const { Op } = require('sequelize');
 const { generateRandomPassword } = require('../utils/passwordUtils');
 const emailService = require('../services/emailService');
+const { BOOKING_APPROVAL_STAGES } = require('../constants/bookingApprovalStages');
 
 // Helper to get sacrament name from model
 const _getSacramentName = (modelName) => {
@@ -969,10 +970,14 @@ const getAllBookings = async (req, res) => {
     }
 
     // Restrict parish-level users to their parish
-    if (user.role === 'parish_admin' || user.role === 'parish_staff') {
-      if (user.assignedParishId) {
-        bookingWhereClause.parishId = user.assignedParishId;
-      }
+    if (user.role === 'priest') {
+      bookingWhereClause.parishId = user.assignedParishId;
+      bookingWhereClause.approvalStage = BOOKING_APPROVAL_STAGES.PRIEST;
+    } else if (
+      user.role === 'parish_admin' ||
+      user.role === 'parish_staff'
+    ) {
+      bookingWhereClause.parishId = user.assignedParishId;
     }
 
     // Query all booking tables
@@ -1023,6 +1028,7 @@ const getAllBookings = async (req, res) => {
     let totalCount = 0;
     for (const { model, type } of bookingTables) {
       if (sacramentType && sacramentType !== type) continue;
+      if (type === 'mass_intention') delete bookingWhereClause.approvalStage;
       const count = await model.count({ where: bookingWhereClause });
       totalCount += count;
     }

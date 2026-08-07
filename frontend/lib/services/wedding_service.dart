@@ -298,7 +298,8 @@ class WeddingService {
     String? documentType,
   }) async {
     try {
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.weddingsEndpoint}/$bookingId/document');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.weddingsEndpoint}/$bookingId/document');
       final request = http.MultipartRequest('POST', uri);
 
       if (kIsWeb) {
@@ -314,7 +315,8 @@ class WeddingService {
         if (file.path == null) {
           throw Exception('File path is null on mobile platform');
         }
-        request.files.add(await http.MultipartFile.fromPath('document', file.path!));
+        request.files
+            .add(await http.MultipartFile.fromPath('document', file.path!));
       }
 
       if (documentType != null) {
@@ -322,7 +324,8 @@ class WeddingService {
       }
       request.headers.addAll(ApiConfig.getAuthHeaders(token));
 
-      final streamedResponse = await request.send().timeout(const Duration(seconds: 60));
+      final streamedResponse =
+          await request.send().timeout(const Duration(seconds: 60));
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -385,6 +388,49 @@ class WeddingService {
       return ApiResponse<WeddingBooking>(
         success: false,
         message: 'Network error resubmitting booking',
+        errors: [e.toString()],
+      );
+    }
+  }
+
+  Future<ApiResponse> forwardToPriest({
+    required int id,
+    String? notes,
+  }) async {
+    try {
+      final requestBody = <String, dynamic>{
+        if (notes != null && notes.isNotEmpty) 'notes': notes,
+      };
+
+      final response = await ApiConfig.patchWithAuth(
+        '${ApiConfig.weddingsEndpoint}/$id/forward-to-priest',
+        null,
+        json.encode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final booking = WeddingBooking.fromJson(data['booking']);
+
+        return ApiResponse<WeddingBooking>(
+          success: true,
+          data: booking,
+          message: data['message'],
+        );
+      } else {
+        final errorData = json.decode(response.body);
+
+        return ApiResponse<WeddingBooking>(
+          success: false,
+          message:
+              errorData['message'] ?? 'Failed to forward booking to the priest',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      return ApiResponse<WeddingBooking>(
+        success: false,
+        message: 'Network error forwarding booking to the priest',
         errors: [e.toString()],
       );
     }

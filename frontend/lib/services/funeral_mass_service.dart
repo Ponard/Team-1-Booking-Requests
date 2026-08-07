@@ -359,4 +359,47 @@ class FuneralMassService {
       );
     }
   }
+
+  Future<ApiResponse> forwardToPriest({
+    required int id,
+    String? notes,
+  }) async {
+    try {
+      final requestBody = <String, dynamic>{
+        if (notes != null && notes.isNotEmpty) 'notes': notes,
+      };
+
+      final response = await ApiConfig.patchWithAuth(
+        '${ApiConfig.funeralMassEndpoint}/$id/forward-to-priest',
+        null,
+        json.encode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final booking = FuneralMassBooking.fromJson(data['booking']);
+
+        return ApiResponse<FuneralMassBooking>(
+          success: true,
+          data: booking,
+          message: data['message'],
+        );
+      } else {
+        final errorData = json.decode(response.body);
+
+        return ApiResponse<FuneralMassBooking>(
+          success: false,
+          message:
+              errorData['message'] ?? 'Failed to forward booking to the priest',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      return ApiResponse<FuneralMassBooking>(
+        success: false,
+        message: 'Network error forwarding booking to the priest',
+        errors: [e.toString()],
+      );
+    }
+  }
 }

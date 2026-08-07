@@ -700,11 +700,11 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
                       },
                     ),
 
-                    BookingStatusActionsSection(
-                      visible: isAdmin && !_isEditMode,
-                      status: _intention?.status ?? 'pending',
-                      onUpdateStatus: _updateStatus,
-                    ),
+                    // TODO: update mass intention status actions
+                    // BookingStatusActionsSection(
+                    //   status: _intention?.status ?? 'pending',
+                    //   onUpdateStatus: _updateStatus,
+                    // ),
                   ],
                 ),
               ),
