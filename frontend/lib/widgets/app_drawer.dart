@@ -179,7 +179,7 @@ class AppDrawer extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
-                'MY SCHEDULE',
+                'ADMINISTRATION',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -187,17 +187,29 @@ class AppDrawer extends StatelessWidget {
                 ),
               ),
             ),
-            _buildNavTile(
-              context: context,
-              icon: Icons.calendar_month,
-              title: 'My Schedule',
-              route: AppRoutes.priestSchedule,
-            ),
+            // TODO: revamp priest schedule screen
+            // _buildNavTile(
+            //   context: context,
+            //   icon: Icons.calendar_month,
+            //   title: 'My Schedule',
+            //   route: AppRoutes.priestSchedule,
+            // ),
             _buildNavTile(
               context: context,
               icon: Icons.calendar_today,
               title: 'Manage Bookings',
               route: AppRoutes.adminBookings,
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                'MY ACCOUNT',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
             ),
             _buildNavTile(
               context: context,
