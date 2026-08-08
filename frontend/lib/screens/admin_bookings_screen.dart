@@ -597,7 +597,8 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                         isDense: true,
                       ),
                       items: [
-                        if (!Roles.isParishLevel(currentUser?.role ?? ''))
+                        if (!Roles.isParishLevel(currentUser?.role ?? '') &&
+                            !Roles.isPriest(currentUser?.role ?? ''))
                           const DropdownMenuItem(
                               value: null, child: Text('All Parishes')),
                         ...availableParishes
