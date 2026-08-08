@@ -280,3 +280,27 @@ exports.declineMassIntention = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.forwardToPriest = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { notes } = req.body;
+
+    const useCase = container.get(
+      'forwardMassIntentionToPriestUseCase'
+    );
+
+    const result = await useCase.execute(id, req.user, notes);
+
+    res.json({
+      message: 'Mass intention forwarded to the priest successfully.',
+      massIntention: result.toObject(),
+    });
+  } catch (error) {
+    console.error(
+      '[forwardToPriest] Error:',
+      error.message
+    );
+    next(error);
+  }
+};

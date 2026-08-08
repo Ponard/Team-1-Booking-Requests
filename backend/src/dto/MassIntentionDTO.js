@@ -15,6 +15,7 @@ class MassIntentionDTO {
     preferredPriest,
     notes = [],
     status,
+    approvalStage,
     userId,
     createdAt,
     updatedAt,
@@ -30,6 +31,7 @@ class MassIntentionDTO {
     this.preferredPriest = preferredPriest;
     this.notes = Array.isArray(notes) ? notes : [];
     this.status = status;
+    this.approvalStage = approvalStage;
     this.userId = userId;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
@@ -95,6 +97,7 @@ class MassIntentionDTO {
       preferredPriest: entity.preferredPriest,
       notes: notes,
       status: entity.status,
+      approvalStage: entity.approvalStage,
       userId: entity.userId,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
@@ -169,6 +172,7 @@ class MassIntentionDTO {
       preferredPriest: this.preferredPriest,
       notes: this.notes,
       status: this.status,
+      approvalStage: this.approvalStage,
       userId: this.userId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,

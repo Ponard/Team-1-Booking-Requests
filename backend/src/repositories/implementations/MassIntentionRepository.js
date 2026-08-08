@@ -118,6 +118,21 @@ class MassIntentionRepository {
   }
 
   /**
+   * Forwards a mass intention to the priest
+   */
+  async updateApprovalStage(id, approvalStage) {
+    const entity = await MassIntention.findByPk(id);
+
+    if (!entity) {
+      throw new Error('Mass intention not found');
+    }
+
+    await entity.update({ approvalStage });
+
+    return MassIntentionDTO.fromEntity(entity);
+  }
+
+  /**
    * Builds WHERE clause from filters
    */
   _buildWhereClause(filters) {

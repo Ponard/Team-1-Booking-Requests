@@ -20,7 +20,7 @@ class ApproveMassIntentionUseCase {
    */
   async execute(id, user) {
     // Check role permission
-    const allowedRoles = ['parish_staff', 'priest', 'diocese_staff', 'diocese_admin'];
+    const allowedRoles = ['parish_staff', 'parish_admin', 'priest', 'diocese_staff', 'diocese_admin'];
     if (!allowedRoles.includes(user.role)) {
       throw new Error('Access denied: Only authorized personnel can approve mass intentions');
     }
@@ -41,7 +41,7 @@ class ApproveMassIntentionUseCase {
    */
   async _sendApprovalNotification(intention) {
     if (!this.emailService) return;
-    
+
     // In production, get user email from repository
     await this.emailService.sendNotification(
       intention.email || 'user@example.com',

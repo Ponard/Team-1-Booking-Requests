@@ -333,4 +333,47 @@ class MassIntentionService {
       );
     }
   }
+
+  Future<ApiResponse> forwardToPriest({
+    required int id,
+    String? notes,
+  }) async {
+    try {
+      final requestBody = <String, dynamic>{
+        if (notes != null && notes.isNotEmpty) 'notes': notes,
+      };
+
+      final response = await ApiConfig.patchWithAuth(
+        '${ApiConfig.massIntentionsEndpoint}/$id/forward-to-priest',
+        null,
+        json.encode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final booking = MassIntention.fromJson(data['massIntention']);
+
+        return ApiResponse<MassIntention>(
+          success: true,
+          data: booking,
+          message: data['message'],
+        );
+      } else {
+        final errorData = json.decode(response.body);
+
+        return ApiResponse<MassIntention>(
+          success: false,
+          message:
+              errorData['message'] ?? 'Failed to forward booking to the priest',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      return ApiResponse<MassIntention>(
+        success: false,
+        message: 'Network error forwarding booking to the priest',
+        errors: [e.toString()],
+      );
+    }
+  }
 }

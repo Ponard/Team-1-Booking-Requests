@@ -1,3 +1,5 @@
+import 'package:diocese_frontend/constants/booking_approval_stages.dart';
+
 import 'note.dart';
 
 class MassIntention {
@@ -13,6 +15,7 @@ class MassIntention {
   final String? preferredPriest;
   final List<Note>? notes;
   final String? status;
+  final String approvalStage;
   final int? userId;
   final String? createdAt;
   final String? updatedAt;
@@ -30,6 +33,7 @@ class MassIntention {
     this.preferredPriest,
     this.notes,
     this.status,
+    this.approvalStage = BookingApprovalStages.staff,
     this.userId,
     this.createdAt,
     this.updatedAt,
@@ -61,6 +65,7 @@ class MassIntention {
       preferredPriest: json['preferredPriest'],
       notes: notesList,
       status: json['status'] ?? 'pending',
+      approvalStage: json['approvalStage'] ?? BookingApprovalStages.staff,
       userId: json['userId'],
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
@@ -76,6 +81,7 @@ class MassIntention {
       'preferredDate': preferredDate,
       'parishId': parishId,
       'massSchedule': massSchedule,
+      'approvalStage': approvalStage,
       if (preferredTimeSlot != null) 'preferredTimeSlot': preferredTimeSlot,
       if (preferredPriest != null) 'preferredPriest': preferredPriest,
       if (notes != null) 'notes': notes!.map((n) => n.toJson()).toList(),
@@ -96,6 +102,7 @@ class MassIntention {
     String? preferredPriest,
     List<Note>? notes,
     String? status,
+    String? approvalStage,
     int? userId,
     String? createdAt,
     String? updatedAt,
@@ -112,6 +119,7 @@ class MassIntention {
       preferredPriest: preferredPriest ?? this.preferredPriest,
       notes: notes ?? this.notes,
       status: status ?? this.status,
+      approvalStage: approvalStage ?? this.approvalStage,
       userId: userId ?? this.userId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

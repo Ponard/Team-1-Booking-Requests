@@ -128,4 +128,7 @@ router.patch('/:id/decline',
   massIntentionController.declineMassIntention
 );
 
+// Staff-only forwarding
+router.patch(`/:id/forward-to-priest`, authorizeRoles('parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin'), massIntentionController.forwardToPriest);
+
 module.exports = router;

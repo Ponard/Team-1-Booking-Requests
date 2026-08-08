@@ -38,9 +38,8 @@ router.post('/', [
     .withMessage('Notes are too long'),
 ], massScheduleController.createMassSchedule);
 
-// Get all mass schedules (parish_admin, parish_staff, diocese_staff, diocese_admin only)
+// Get all mass schedules (public)
 router.get('/', [
-  authorizeRoles('parishioner', 'parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin'),
   query('parishId')
     .optional()
     .isInt({ min: 1 })

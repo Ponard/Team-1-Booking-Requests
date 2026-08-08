@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
+const { BOOKING_APPROVAL_STAGES, BOOKING_APPROVAL_STAGE_VALUES } = require('../constants/bookingApprovalStages');
 
 const MassIntention = sequelize.define('MassIntention', {
   id: {
@@ -72,6 +73,12 @@ const MassIntention = sequelize.define('MassIntention', {
     },
     allowNull: false,
   },
+  approvalStage: {
+    type: DataTypes.ENUM(...BOOKING_APPROVAL_STAGE_VALUES),
+    allowNull: false,
+    defaultValue: BOOKING_APPROVAL_STAGES.STAFF,
+    field: 'approval_stage',
+  },
 }, {
   tableName: 'mass_intentions',
   timestamps: true,
@@ -81,6 +88,7 @@ const MassIntention = sequelize.define('MassIntention', {
     { fields: ['preferred_date'] },
     { fields: ['parish_id'] },
     { fields: ['status'] },
+    { fields: ['approval_stage'] },
   ],
 });
 

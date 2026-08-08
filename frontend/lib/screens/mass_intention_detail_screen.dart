@@ -1,3 +1,4 @@
+import 'package:diocese_frontend/constants/booking_approval_stages.dart';
 import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/models/note.dart';
 import 'package:diocese_frontend/utils/validators.dart';
@@ -700,11 +701,15 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
                       },
                     ),
 
-                    // TODO: update mass intention status actions
-                    // BookingStatusActionsSection(
-                    //   status: _intention?.status ?? 'pending',
-                    //   onUpdateStatus: _updateStatus,
-                    // ),
+                    if (!_isEditMode)
+                      BookingStatusActionsSection(
+                        status: _intention?.status ?? 'pending',
+                        approvalStage: _intention?.approvalStage ??
+                            BookingApprovalStages.staff,
+                        role: currentUser?.role,
+                        onUpdateStatus: _updateStatus,
+                        onForwardToPriest: _forwardToPriest,
+                      )
                   ],
                 ),
               ),
@@ -713,6 +718,30 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _forwardToPriest() async {
+    if (!mounted) return;
+
+    try {
+      await _massIntentionService.forwardToPriest(id: widget.massIntentionId!);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Booking forwarded to the priest successfully.'),
+        ),
+      );
+
+      await _loadMassIntention();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
   }
 
   @override

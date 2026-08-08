@@ -20,7 +20,7 @@ class DeclineMassIntentionUseCase {
    */
   async execute(id, user) {
     // Check role permission
-    const allowedRoles = ['parish_staff', 'priest', 'diocese_staff', 'diocese_admin'];
+    const allowedRoles = ['parish_staff', 'parish_admin', 'priest', 'diocese_staff', 'diocese_admin'];
     if (!allowedRoles.includes(user.role)) {
       throw new Error('Access denied: Only authorized personnel can decline mass intentions');
     }
@@ -41,7 +41,7 @@ class DeclineMassIntentionUseCase {
    */
   async _sendDeclineNotification(intention) {
     if (!this.emailService) return;
-    
+
     await this.emailService.sendNotification(
       intention.email || 'user@example.com',
       'Mass Intention Update',
