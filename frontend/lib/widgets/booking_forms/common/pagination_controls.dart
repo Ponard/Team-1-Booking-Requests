@@ -16,10 +16,6 @@ class PaginationControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (totalPages <= 1) {
-      return const SizedBox.shrink();
-    }
-
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Padding(
