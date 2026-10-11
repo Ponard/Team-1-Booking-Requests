@@ -41,7 +41,8 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _fatherNameController = TextEditingController();
   final TextEditingController _motherNameController = TextEditingController();
-  final TextEditingController _godparentsController = TextEditingController();
+  final List<TextEditingController> _sponsorsControllers = [];
+  List<String> _sponsors = [];
   final TextEditingController _contactEmailController = TextEditingController();
   final TextEditingController _contactPhoneController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
@@ -193,13 +194,17 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
     _dobController.dispose();
     _fatherNameController.dispose();
     _motherNameController.dispose();
-    _godparentsController.dispose();
     _contactEmailController.dispose();
     _contactPhoneController.dispose();
     _notesController.dispose();
     _preferredParishController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
+
+    for (final controller in _sponsorsControllers) {
+      controller.dispose();
+    }
+
     super.dispose();
   }
 
@@ -254,14 +259,12 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
     final cleanPreferredTime = _preferredTimeController.text.trim();
     final cleanNotes = _notesController.text.trim();
 
-    // Safely parse godparents (prevents empty array items)
-    List<Map<String, String>> godparents = [];
-    if (_godparentsController.text.trim().isNotEmpty) {
-      final godparentsList = _godparentsController.text.split(';');
-      for (var godparent in godparentsList) {
-        if (godparent.trim().isNotEmpty) {
-          godparents.add({'fullName': godparent.trim()});
-        }
+    // Safely parse sponsors (prevents empty array items)
+    List<Map<String, String>> sponsors = [];
+    final sponsorsList = _sponsors;
+    for (var sponsor in sponsorsList) {
+      if (sponsor.trim().isNotEmpty) {
+        sponsors.add({'fullName': sponsor.trim()});
       }
     }
 
@@ -286,7 +289,7 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
       preferredTimeSlot: cleanPreferredTime,
       priestId: _selectedPriestId,
       notes: notesToAdd,
-      godparents: godparents.isEmpty ? null : godparents,
+      godparents: sponsors.isEmpty ? null : sponsors,
       uploadedFile: _uploadedFileData!['filename'],
       filePath: _uploadedFileData!['path'],
       fileUrl: _uploadedFileData!['url'],
@@ -362,7 +365,12 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                     ),
 
                     SponsorsInformationSection(
-                      sponsorsController: _godparentsController,
+                      sponsorsControllers: _sponsorsControllers,
+                      // TODO: pull max sponsors value from database
+                      maxSponsors: 4,
+                      onChanged: (sponsors) {
+                        _sponsors = sponsors;
+                      },
                     ),
 
                     // Contact Info Section

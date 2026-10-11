@@ -42,7 +42,8 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
       TextEditingController();
   final TextEditingController _fatherNameController = TextEditingController();
   final TextEditingController _motherNameController = TextEditingController();
-  final TextEditingController _sponsorController = TextEditingController();
+  final List<TextEditingController> _sponsorsControllers = [];
+  List<String> _sponsors = [];
   final TextEditingController _contactEmailController = TextEditingController();
   final TextEditingController _contactPhoneController = TextEditingController();
   final TextEditingController _preferredDateController =
@@ -114,12 +115,16 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
     _confirmandNameController.dispose();
     _fatherNameController.dispose();
     _motherNameController.dispose();
-    _sponsorController.dispose();
     _contactEmailController.dispose();
     _contactPhoneController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
     _notesController.dispose();
+
+    for (final controller in _sponsorsControllers) {
+      controller.dispose();
+    }
+
     super.dispose();
   }
 
@@ -349,6 +354,15 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
       return date;
     }
 
+    // Safely parse sponsors (prevents empty array items)
+    List<Map<String, String>> sponsors = [];
+    final sponsorsList = _sponsors;
+    for (var sponsor in sponsorsList) {
+      if (sponsor.trim().isNotEmpty) {
+        sponsors.add({'fullName': sponsor.trim()});
+      }
+    }
+
     // Prepare notes array if a note was added
     final note = Note.fromInput(
       text: _notesController.text,
@@ -365,7 +379,7 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
       motherName: _motherNameController.text.trim(),
 
       //add the missing sponsor payload
-      sponsorName: _sponsorController.text.trim(),
+      sponsors: sponsors,
 
       contactEmail: _contactEmailController.text.trim().isNotEmpty
           ? _contactEmailController.text.trim()
@@ -456,7 +470,12 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
 
                     // Sponsor Information
                     SponsorsInformationSection(
-                      sponsorsController: _sponsorController,
+                      sponsorsControllers: _sponsorsControllers,
+                      // TODO: pull max sponsors value from database
+                      maxSponsors: 4,
+                      onChanged: (sponsors) {
+                        _sponsors = sponsors;
+                      },
                     ),
 
                     // Contact Information

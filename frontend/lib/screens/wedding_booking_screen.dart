@@ -38,7 +38,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
   // Controllers
   final TextEditingController _groomNameController = TextEditingController();
   final TextEditingController _brideNameController = TextEditingController();
-  final TextEditingController _godparentsController = TextEditingController();
+  final List<TextEditingController> _sponsorsControllers = [];
+  List<String> _sponsors = [];
   final TextEditingController _contactEmailController = TextEditingController();
   final TextEditingController _contactPhoneController = TextEditingController();
   final TextEditingController _preferredDateController =
@@ -119,13 +120,17 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
   void dispose() {
     _groomNameController.dispose();
     _brideNameController.dispose();
-    _godparentsController.dispose();
     _contactEmailController.dispose();
     _contactPhoneController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
     _seminarScheduleController.dispose();
     _notesController.dispose();
+
+    for (final controller in _sponsorsControllers) {
+      controller.dispose();
+    }
+
     super.dispose();
   }
 
@@ -651,7 +656,12 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
 
                     // Sponsors
                     SponsorsInformationSection(
-                      sponsorsController: _godparentsController,
+                      sponsorsControllers: _sponsorsControllers,
+                      // TODO: pull max sponsors value from database
+                      maxSponsors: 4,
+                      onChanged: (sponsors) {
+                        _sponsors = sponsors;
+                      },
                     ),
 
                     // Contact

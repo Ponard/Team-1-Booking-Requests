@@ -99,6 +99,7 @@ class BaptismService {
         );
       }
     } catch (e) {
+      print(e);
       return ApiResponse<BaptismBooking>(
         success: false,
         message: 'Network error fetching baptism booking',
@@ -205,6 +206,7 @@ class BaptismService {
     int? priestId,
     List<Map<String, dynamic>>? notes, // New format: append notes
     String? additionalNotes, // Legacy support
+    List<Map<String, dynamic>>? godparents,
   }) async {
     try {
       final requestBody = <String, dynamic>{
@@ -219,6 +221,7 @@ class BaptismService {
         if (priestId != null) 'priestId': priestId,
         if (notes != null && notes.isNotEmpty) 'notes': notes,
         if (additionalNotes != null) 'additionalNotes': additionalNotes,
+        if (godparents != null) 'godparents': godparents,
       };
 
       // print('=== UPDATE BAPTISM REQUEST ===');

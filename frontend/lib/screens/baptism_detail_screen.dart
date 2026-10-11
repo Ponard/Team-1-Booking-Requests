@@ -20,6 +20,7 @@ import 'package:diocese_frontend/widgets/booking_forms/sections/child_informatio
 import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/parent_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/sponsors_information_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -61,7 +62,8 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _fatherNameController = TextEditingController();
   final TextEditingController _motherNameController = TextEditingController();
-  final TextEditingController _godparentsController = TextEditingController();
+  final List<TextEditingController> _sponsorsControllers = [];
+  List<String> _sponsors = [];
   final TextEditingController _contactEmailController = TextEditingController();
   final TextEditingController _contactPhoneController = TextEditingController();
   final TextEditingController _preferredParishController =
@@ -118,6 +120,29 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
           _selectedPriestId = booking.priestId;
         }
         _documents = booking.documents ?? [];
+
+        _sponsors = booking.godparents
+                ?.map((g) => g['fullName'])
+                .whereType<String>()
+                .where((name) => name.trim().isNotEmpty)
+                .toList() ??
+            [];
+
+        for (final controller in _sponsorsControllers) {
+          controller.dispose();
+        }
+        _sponsorsControllers
+          ..clear()
+          ..addAll(
+            _sponsors.map(
+              (name) => TextEditingController(text: name),
+            ),
+          );
+
+        // Show one empty field if no sponsors exist yet.
+        if (_sponsorsControllers.isEmpty) {
+          _sponsorsControllers.add(TextEditingController());
+        }
       });
 
       final authProvider = context.read<AuthProvider>();
@@ -303,6 +328,7 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         preferredTimeSlot: _preferredTimeController.text,
         priestId: _selectedPriestId,
         notes: notesToAdd,
+        godparents: _sponsors.map((name) => {'fullName': name}).toList(),
       );
 
       // print('Save result: ${result.success} - ${result.message}');
@@ -421,10 +447,15 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
                       enabled: _isEditMode,
                     ),
 
-                    // TODO: godparents field
-                    // SponsorsInformationSection(
-                    //   sponsorsController: _godparentsController,
-                    // ),
+                    SponsorsInformationSection(
+                      sponsorsControllers: _sponsorsControllers,
+                      // TODO: pull max sponsors value from database
+                      maxSponsors: 4,
+                      onChanged: (sponsors) {
+                        _sponsors = sponsors;
+                      },
+                      enabled: _isEditMode,
+                    ),
 
                     ContactInformationSection(
                       emailController: _contactEmailController,
@@ -618,13 +649,17 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
     _dobController.dispose();
     _fatherNameController.dispose();
     _motherNameController.dispose();
-    _godparentsController.dispose();
     _contactEmailController.dispose();
     _contactPhoneController.dispose();
     _preferredParishController.dispose();
     _preferredDateController.dispose();
     _preferredTimeController.dispose();
     _newNoteController.dispose();
+
+    for (final controller in _sponsorsControllers) {
+      controller.dispose();
+    }
+
     super.dispose();
   }
 }

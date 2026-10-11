@@ -40,7 +40,8 @@ class ConfirmationProvider extends ChangeNotifier {
       notifyListeners();
     } else {
       _setLoading(false);
-      _setErrorMessage(result.message ?? 'Failed to load confirmation bookings');
+      _setErrorMessage(
+          result.message ?? 'Failed to load confirmation bookings');
       notifyListeners();
     }
   }
@@ -58,7 +59,8 @@ class ConfirmationProvider extends ChangeNotifier {
     int? priestId,
     List<Map<String, dynamic>>? notes,
     Map<String, dynamic>? baptismalCertificate,
-    Map<String, dynamic>? birthCertificate, required String sponsorName,
+    Map<String, dynamic>? birthCertificate,
+    List<Map<String, String>>? sponsors,
   }) async {
     _setLoading(true);
     _setErrorMessage(null);
@@ -86,7 +88,8 @@ class ConfirmationProvider extends ChangeNotifier {
       return true;
     } else {
       _setLoading(false);
-      _setErrorMessage(result.message ?? 'Failed to create confirmation booking');
+      _setErrorMessage(
+          result.message ?? 'Failed to create confirmation booking');
       notifyListeners();
       return false;
     }
@@ -121,7 +124,8 @@ class ConfirmationProvider extends ChangeNotifier {
       return true;
     } else {
       _setLoading(false);
-      _setErrorMessage(result.message ?? 'Failed to update confirmation status');
+      _setErrorMessage(
+          result.message ?? 'Failed to update confirmation status');
       notifyListeners();
       return false;
     }

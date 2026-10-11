@@ -26,6 +26,7 @@ class BaptismBooking {
   final String? createdAt;
   final String? updatedAt;
   final List<Document>? documents;
+  final List<Map<String, String>>? godparents;
 
   BaptismBooking({
     this.id,
@@ -50,6 +51,7 @@ class BaptismBooking {
     this.createdAt,
     this.updatedAt,
     this.documents,
+    this.godparents,
   });
 
   factory BaptismBooking.fromJson(Map<String, dynamic> json) {
@@ -89,6 +91,18 @@ class BaptismBooking {
               .map((doc) => Document.fromJson(doc))
               .toList()
           : null,
+      godparents: json['godparents'] != null
+          ? (json['godparents'] as List)
+              .map((g) => Map<String, String>.from(
+                    (g as Map).map(
+                      (key, value) => MapEntry(
+                        key.toString(),
+                        value.toString(),
+                      ),
+                    ),
+                  ))
+              .toList()
+          : null,
     );
   }
 
@@ -112,6 +126,7 @@ class BaptismBooking {
       if (status != null) 'status': status,
       if (documents != null)
         'documents': documents!.map((doc) => doc.toJson()).toList(),
+      if (godparents != null) 'godparents': godparents,
     };
   }
 
@@ -137,6 +152,7 @@ class BaptismBooking {
     String? createdAt,
     String? updatedAt,
     List<Document>? documents,
+    List<Map<String, String>>? godparents,
   }) {
     return BaptismBooking(
       id: id ?? this.id,
@@ -160,6 +176,7 @@ class BaptismBooking {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       documents: documents ?? this.documents,
+      godparents: godparents ?? this.godparents,
     );
   }
 }

@@ -7,6 +7,7 @@ const {
   BlackoutDate,
   Payment,
   User,
+  sequelize,
 } = require('../models');
 const { Op } = require('sequelize');
 const emailService = require('../services/emailService');
@@ -418,72 +419,148 @@ exports.getBaptismBooking = async (req, res) => {
 
 // Update Baptism Booking
 exports.updateBaptismBooking = async (req, res) => {
+  const transaction = await sequelize.transaction();
+
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const updateData = { ...req.body };
 
     console.log('=== UPDATE BAPTISM BOOKING ===');
     console.log('ID:', id);
     console.log('Request body:', JSON.stringify(req.body, null, 2));
     console.log('User:', req.user);
 
-    const booking = await BaptismBooking.findByPk(id);
+    const booking = await BaptismBooking.findByPk(id, { transaction });
+
     if (!booking) {
       console.log('Booking not found with ID:', id);
+      await transaction.rollback();
       return res.status(404).json({ message: 'Booking not found' });
     }
 
     // Check permissions
     const isOwner = booking.userId === req.user.userId;
-    const isAdmin = ['parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin'].includes(
-      req.user.role
-    );
+    const isAdmin = [
+      'parish_admin',
+      'parish_staff',
+      'diocese_staff',
+      'diocese_admin',
+    ].includes(req.user.role);
 
     console.log('Is Owner:', isOwner);
     console.log('Is Admin:', isAdmin);
 
     if (!isOwner && !isAdmin) {
-      console.log('Not authorized - user does not own booking and is not admin');
-      return res.status(403).json({ message: 'Not authorized to update this booking' });
+      console.log(
+        'Not authorized - user does not own booking and is not admin'
+      );
+      await transaction.rollback();
+      return res.status(403).json({
+        message: 'Not authorized to update this booking',
+      });
     }
 
-    // Admins can update status, users can only update notes and resubmit after decline
+    // Admins can update status; parishioners can resubmit
+    // declined bookings by changing the status back to pending.
     if (!isAdmin) {
-      // Allow parishioners to resubmit: change status from 'declined' back to 'pending'
-      if (updateData.status && booking.status === 'declined' && updateData.status === 'pending') {
-        // This is allowed - resubmit after decline
+      if (
+        updateData.status &&
+        booking.status === 'declined' &&
+        updateData.status === 'pending'
+      ) {
         updateData.approvalStage = BOOKING_APPROVAL_STAGES.STAFF;
       } else if (updateData.status) {
-        // Only allow setting back to pending (for resubmit), delete any other status changes
         delete updateData.status;
       }
     }
 
-    // Handle notes: if notes are provided, append to existing notes
+    // Handle notes: append new notes to existing notes.
     if (updateData.notes !== undefined) {
       const existingNotes = booking.notes || [];
-      const newNotes = Array.isArray(updateData.notes) ? updateData.notes : [{
-        author: 'parishioner',
-        content: updateData.notes,
-        authorId: req.user.userId,
-        timestamp: new Date().toISOString(),
-      }];
+
+      const newNotes = Array.isArray(updateData.notes)
+        ? updateData.notes
+        : [
+          {
+            author: 'parishioner',
+            content: updateData.notes,
+            authorId: req.user.userId,
+            timestamp: new Date().toISOString(),
+          },
+        ];
+
       updateData.notes = [...existingNotes, ...newNotes];
     }
 
-    console.log('Updating with data:', JSON.stringify(updateData, null, 2));
+    // Handle godparents separately because they are stored
+    // in the Godparent table, not the BaptismBooking table.
+    if (updateData.godparents !== undefined) {
+      const godparents = updateData.godparents;
 
-    await booking.update(updateData);
+      if (!Array.isArray(godparents)) {
+        await transaction.rollback();
+        return res.status(400).json({
+          message: 'Godparents must be provided as an array.',
+        });
+      }
+
+      // Remove godparents from the data sent to BaptismBooking.update().
+      delete updateData.godparents;
+
+      // Delete existing godparents associated with this baptism booking.
+      await Godparent.destroy({
+        where: {
+          bookingType: 'baptism',
+          bookingId: booking.id,
+        },
+        transaction,
+      });
+
+      // Insert the submitted godparents, if any.
+      if (godparents.length > 0) {
+        const godparentRecords = godparents.map((gp) => ({
+          bookingType: 'baptism',
+          bookingId: booking.id,
+          fullName: gp.fullName || gp.name || 'Unknown',
+          contactEmail: gp.contactEmail || null,
+          contactPhone: gp.contactPhone || null,
+          address: gp.address || null,
+          parishAffiliation: gp.parishAffiliation || null,
+          confirmationCertificateNumber:
+            gp.confirmationCertificateNumber || null,
+          notes: gp.notes || null,
+        }));
+
+        await Godparent.bulkCreate(godparentRecords, { transaction });
+      }
+    }
+
+    console.log('Updating booking with data:', JSON.stringify(updateData, null, 2));
+
+    // Update the baptism booking itself.
+    await booking.update(updateData, { transaction });
+
+    // Commit booking and godparent changes together.
+    await transaction.commit();
 
     console.log('Booking updated successfully!');
+
     res.json({
       message: 'Baptism booking updated successfully',
       booking,
     });
   } catch (error) {
+    if (!transaction.finished) {
+      await transaction.rollback();
+    }
+
     console.error('Error updating baptism booking:', error);
     console.error('Stack trace:', error.stack);
-    res.status(500).json({ message: 'Failed to update baptism booking', details: error.message });
+
+    res.status(500).json({
+      message: 'Failed to update baptism booking',
+      details: error.message,
+    });
   }
 };
 
