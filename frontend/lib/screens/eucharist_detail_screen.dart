@@ -2,6 +2,7 @@ import 'package:diocese_frontend/constants/booking_approval_stages.dart';
 import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/services/booking_document_manager.dart';
 import 'package:diocese_frontend/utils/required_document.dart';
+import 'package:diocese_frontend/utils/role_helpers.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_detail_title.dart';
@@ -167,7 +168,10 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
       // Auto-enable edit mode if user is owner and booking is editable
       final currentUser = authProvider.currentUser;
       final isOwner = booking.userId == currentUser?.id;
-      if (isOwner && isEditable) {
+      final isStaffOrAdmin =
+          currentUser != null && Roles.isAdmin(currentUser.role);
+
+      if (isOwner && isEditable && !isStaffOrAdmin) {
         setState(() => _isEditMode = true);
       }
     } else if (mounted) {

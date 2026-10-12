@@ -5,6 +5,7 @@ import 'package:diocese_frontend/models/note.dart';
 import 'package:diocese_frontend/services/booking_document_manager.dart';
 import 'package:diocese_frontend/services/parish_service.dart';
 import 'package:diocese_frontend/utils/required_document.dart';
+import 'package:diocese_frontend/utils/role_helpers.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_detail_title.dart';
@@ -165,7 +166,10 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
       final isOwner = booking.userId == currentUser?.id;
       final status = booking.status?.toLowerCase() ?? 'pending';
       final isEditable = status == 'pending' || status == 'declined';
-      if (isOwner && isEditable) {
+      final isStaffOrAdmin =
+          currentUser != null && Roles.isAdmin(currentUser.role);
+
+      if (isOwner && isEditable && !isStaffOrAdmin) {
         setState(() => _isEditMode = true);
       }
       // Debug: Print documents count

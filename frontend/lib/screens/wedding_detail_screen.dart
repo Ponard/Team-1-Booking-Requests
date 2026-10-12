@@ -3,6 +3,7 @@ import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/services/parish_service.dart';
 import 'package:diocese_frontend/utils/required_document.dart';
 import 'package:diocese_frontend/services/booking_document_manager.dart';
+import 'package:diocese_frontend/utils/role_helpers.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_detail_title.dart';
@@ -246,7 +247,10 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
       final isOwner = booking.userId == currentUser?.id;
       final status = booking.status.toLowerCase();
       final isEditable = status == 'pending' || status == 'declined';
-      if (isOwner && isEditable) {
+      final isStaffOrAdmin =
+          currentUser != null && Roles.isAdmin(currentUser.role);
+
+      if (isOwner && isEditable && !isStaffOrAdmin) {
         setState(() => _isEditMode = true);
       }
     } else if (mounted) {
