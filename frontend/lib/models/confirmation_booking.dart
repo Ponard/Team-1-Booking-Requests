@@ -24,6 +24,7 @@ class ConfirmationBooking {
   final String? createdAt;
   final String? updatedAt;
   final List<Document>? documents;
+  final List<Map<String, String>>? godparents;
 
   ConfirmationBooking({
     this.id,
@@ -47,6 +48,7 @@ class ConfirmationBooking {
     this.createdAt,
     this.updatedAt,
     this.documents,
+    this.godparents,
   });
 
   factory ConfirmationBooking.fromJson(Map<String, dynamic> json) {
@@ -76,6 +78,18 @@ class ConfirmationBooking {
               .map((doc) => Document.fromJson(doc))
               .toList()
           : null,
+      godparents: json['godparents'] != null
+          ? (json['godparents'] as List)
+              .map((g) => Map<String, String>.from(
+                    (g as Map).map(
+                      (key, value) => MapEntry(
+                        key.toString(),
+                        value.toString(),
+                      ),
+                    ),
+                  ))
+              .toList()
+          : null,
     );
   }
 
@@ -98,6 +112,7 @@ class ConfirmationBooking {
       if (adminNotes != null) 'adminNotes': adminNotes,
       if (documents != null)
         'documents': documents!.map((doc) => doc.toJson()).toList(),
+      if (godparents != null) 'godparents': godparents,
     };
   }
 
@@ -122,6 +137,7 @@ class ConfirmationBooking {
     String? createdAt,
     String? updatedAt,
     List<Document>? documents,
+    List<Map<String, String>>? godparents,
   }) {
     return ConfirmationBooking(
       id: id ?? this.id,
@@ -144,6 +160,7 @@ class ConfirmationBooking {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       documents: documents ?? this.documents,
+      godparents: godparents ?? this.godparents,
     );
   }
 }

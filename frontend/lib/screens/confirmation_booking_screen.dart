@@ -52,6 +52,8 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
       TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
+  int _maxGodparents = -1;
+
   // Priest selection state
   int? _selectedPriestId;
 
@@ -92,6 +94,7 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
             .firstOrNull;
         if (userParish != null) {
           parishProvider.selectParish(userParish);
+          _updateMaxGodparents();
           await priestProvider.loadPriestsByParish(userParishId,
               token: authProvider.token);
         }
@@ -108,6 +111,30 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
     if (user.phone != null) {
       _contactPhoneController.text = user.phone!;
     }
+  }
+
+  void _updateMaxGodparents() {
+    final parish = context.read<ParishProvider>().selectedParish;
+
+    if (parish == null) {
+      setState(() => _maxGodparents = -1);
+      return;
+    }
+
+    final settings = parish.sacramentSettings;
+    final confirmationSettings = settings?['confirmation'];
+
+    final value = confirmationSettings is Map
+        ? confirmationSettings['maxGodparents']
+        : null;
+
+    final maxGodparents = value is num && value >= 0 && value == value.toInt()
+        ? value.toInt()
+        : 0;
+
+    setState(() {
+      _maxGodparents = maxGodparents;
+    });
   }
 
   @override
@@ -379,7 +406,7 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
       motherName: _motherNameController.text.trim(),
 
       //add the missing sponsor payload
-      sponsors: sponsors,
+      godparents: sponsors,
 
       contactEmail: _contactEmailController.text.trim().isNotEmpty
           ? _contactEmailController.text.trim()
@@ -468,16 +495,6 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
                       motherController: _motherNameController,
                     ),
 
-                    // Sponsor Information
-                    SponsorsInformationSection(
-                      sponsorsControllers: _sponsorsControllers,
-                      // TODO: pull max sponsors value from database
-                      maxSponsors: 4,
-                      onChanged: (sponsors) {
-                        _sponsors = sponsors;
-                      },
-                    ),
-
                     // Contact Information
                     ContactInformationSection(
                       emailController: _contactEmailController,
@@ -499,6 +516,7 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
                         ParishDropdown(
                           onParishChanged: () {
                             setState(() => _selectedPriestId = null);
+                            _updateMaxGodparents();
                           },
                         ),
                         BookingDateField(
@@ -523,6 +541,15 @@ class _ConfirmationBookingScreenState extends State<ConfirmationBookingScreen> {
                               : null,
                         ),
                       ],
+                    ),
+
+                    // Sponsor Information
+                    SponsorsInformationSection(
+                      sponsorsControllers: _sponsorsControllers,
+                      maxSponsors: _maxGodparents,
+                      onChanged: (sponsors) {
+                        _sponsors = sponsors;
+                      },
                     ),
 
                     // Required Documents

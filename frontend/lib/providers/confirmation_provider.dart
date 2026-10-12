@@ -60,7 +60,7 @@ class ConfirmationProvider extends ChangeNotifier {
     List<Map<String, dynamic>>? notes,
     Map<String, dynamic>? baptismalCertificate,
     Map<String, dynamic>? birthCertificate,
-    List<Map<String, String>>? sponsors,
+    List<Map<String, String>>? godparents,
   }) async {
     _setLoading(true);
     _setErrorMessage(null);
@@ -77,6 +77,7 @@ class ConfirmationProvider extends ChangeNotifier {
       preferredTimeSlot: preferredTimeSlot,
       priestId: priestId,
       notes: notes,
+      godparents: godparents,
       baptismalCertificate: baptismalCertificate,
       birthCertificate: birthCertificate,
     );

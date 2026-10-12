@@ -1,6 +1,7 @@
 import 'package:diocese_frontend/constants/booking_approval_stages.dart';
 import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/services/booking_document_manager.dart';
+import 'package:diocese_frontend/services/parish_service.dart';
 import 'package:diocese_frontend/utils/required_document.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
@@ -17,6 +18,7 @@ import 'package:diocese_frontend/widgets/booking_forms/sections/booking_status_a
 import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/parent_information_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/sponsors_information_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -56,6 +58,11 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
   bool _isSaving = false;
 
   ConfirmationBooking? _booking;
+
+  final List<TextEditingController> _sponsorsControllers = [];
+  List<String> _sponsors = [];
+
+  int _maxGodparents = -1;
 
   final TextEditingController _confirmandNameController =
       TextEditingController();
@@ -130,12 +137,41 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         _preferredTimeController.text = booking.preferredTimeSlot ?? '';
         _selectedPriestId = booking.priestId;
         _documents = booking.documents ?? [];
+        _sponsors = booking.godparents
+                ?.map((g) => g['fullName'])
+                .whereType<String>()
+                .where((name) => name.trim().isNotEmpty)
+                .toList() ??
+            [];
+
+        for (final controller in _sponsorsControllers) {
+          controller.dispose();
+        }
+
+        _sponsorsControllers
+          ..clear()
+          ..addAll(
+            _sponsors.map(
+              (name) => TextEditingController(text: name),
+            ),
+          );
+
+        if (_sponsorsControllers.isEmpty) {
+          _sponsorsControllers.add(TextEditingController());
+        }
       });
 
       await context.read<PriestProvider>().loadPriestsByParish(
             booking.parishId,
             token: authProvider.token,
           );
+
+      await _loadMaxGodparents(
+        booking.parishId,
+        token,
+      );
+
+      if (!mounted) return;
 
       // Auto-enable edit mode if user is owner and booking is editable
       final currentUser = authProvider.currentUser;
@@ -311,6 +347,11 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         preferredTimeSlot: _preferredTimeController.text,
         priestId: _selectedPriestId,
         notes: notesToAdd,
+        godparents: _sponsors
+            .map((name) => {
+                  'fullName': name,
+                })
+            .toList(),
       );
 
       if (mounted) {
@@ -521,6 +562,15 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
                     ],
                   ),
 
+                  SponsorsInformationSection(
+                    sponsorsControllers: _sponsorsControllers,
+                    maxSponsors: _maxGodparents,
+                    onChanged: (sponsors) {
+                      _sponsors = sponsors;
+                    },
+                    enabled: _isEditMode,
+                  ),
+
                   BookingSection(
                     title: 'Required Documents',
                     children: List.generate(_requiredDocuments.length, (index) {
@@ -613,6 +663,30 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
         SnackBar(content: Text(e.toString())),
       );
     }
+  }
+
+  Future<void> _loadMaxGodparents(int parishId, String token) async {
+    final result = await ParishService().getParishById(
+      parishId,
+      token: token,
+    );
+
+    if (!mounted) return;
+
+    final settings = result.success ? result.data?.sacramentSettings : null;
+    final confirmationSettings = settings?['confirmation'];
+
+    final value = confirmationSettings is Map
+        ? confirmationSettings['maxGodparents']
+        : null;
+
+    final maxGodparents = value is num && value >= 0 && value == value.toInt()
+        ? value.toInt()
+        : 0;
+
+    setState(() {
+      _maxGodparents = maxGodparents;
+    });
   }
 
   @override

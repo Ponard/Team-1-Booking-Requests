@@ -73,6 +73,7 @@ class ConfirmationService {
     required String preferredTimeSlot,
     int? priestId,
     List<Map<String, dynamic>>? notes,
+    List<Map<String, String>>? godparents,
     Map<String, dynamic>? baptismalCertificate,
     Map<String, dynamic>? birthCertificate,
   }) async {
@@ -111,6 +112,7 @@ class ConfirmationService {
         'preferredTimeSlot': preferredTimeSlot,
         if (priestId != null) 'priestId': priestId,
         if (notes != null && notes.isNotEmpty) 'notes': notes,
+        if (godparents != null) 'godparents': godparents,
         if (documents.isNotEmpty) 'documents': documents,
       };
 
@@ -242,6 +244,7 @@ class ConfirmationService {
     String? preferredTimeSlot,
     int? priestId,
     List<Map<String, dynamic>>? notes,
+    List<Map<String, dynamic>>? godparents,
   }) async {
     try {
       final requestBody = <String, dynamic>{
@@ -254,6 +257,7 @@ class ConfirmationService {
         if (preferredTimeSlot != null) 'preferredTimeSlot': preferredTimeSlot,
         if (priestId != null) 'priestId': priestId,
         if (notes != null) 'notes': notes,
+        if (godparents != null) 'godparents': godparents,
       };
 
       final response = await ApiConfig.putWithAuth(
