@@ -639,11 +639,9 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                         }).toList(),
                       ),
 
-                    if (_isEditMode) ...[
-                      AdditionalInformationSection(
-                        notesController: _newNoteController,
-                      ),
-                    ],
+                    AdditionalInformationSection(
+                      notesController: _newNoteController,
+                    ),
 
                     if (status == 'declined' && isOwner)
                       BookingResubmitSection(

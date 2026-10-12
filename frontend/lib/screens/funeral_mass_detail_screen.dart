@@ -449,12 +449,9 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
                     if (_booking?.notes != null && _booking!.notes!.isNotEmpty)
                       NotesDisplay(notes: _booking!.notes!),
 
-                    // Add new note field (only in edit mode)
-                    if (_isEditMode) ...[
-                      AdditionalInformationSection(
-                        notesController: _newNoteController,
-                      ),
-                    ],
+                    AdditionalInformationSection(
+                      notesController: _newNoteController,
+                    ),
 
                     if (status == 'declined' && isOwner) ...[
                       const SizedBox(height: 20),
@@ -492,14 +489,14 @@ class _FuneralMassDetailScreenState extends State<FuneralMassDetailScreen> {
                     ],
 
                     if (!_isEditMode)
-                    BookingStatusActionsSection(
-                      status: _booking?.status ?? 'pending',
-                      approvalStage: _booking?.approvalStage ??
-                          BookingApprovalStages.staff,
-                      role: currentUser?.role,
-                      onUpdateStatus: _updateStatus,
-                      onForwardToPriest: _forwardToPriest,
-                    )
+                      BookingStatusActionsSection(
+                        status: _booking?.status ?? 'pending',
+                        approvalStage: _booking?.approvalStage ??
+                            BookingApprovalStages.staff,
+                        role: currentUser?.role,
+                        onUpdateStatus: _updateStatus,
+                        onForwardToPriest: _forwardToPriest,
+                      )
                   ],
                 ),
               ),

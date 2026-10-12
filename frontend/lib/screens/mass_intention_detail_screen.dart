@@ -631,12 +631,9 @@ class _MassIntentionDetailScreenState extends State<MassIntentionDetailScreen> {
                         _intention!.notes!.isNotEmpty)
                       NotesDisplay(notes: _intention!.notes!),
 
-                    // Add new note field (only in edit mode)
-                    if (_isEditMode) ...[
-                      AdditionalInformationSection(
-                        notesController: _newNoteController,
-                      ),
-                    ],
+                    AdditionalInformationSection(
+                      notesController: _newNoteController,
+                    ),
 
                     // Resubmit button for declined status (owner only)
                     Consumer<AuthProvider>(

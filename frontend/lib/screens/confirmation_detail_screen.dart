@@ -612,11 +612,9 @@ class _ConfirmationDetailScreenState extends State<ConfirmationDetailScreen> {
                       }).toList(),
                     ),
 
-                  if (_isEditMode) ...[
-                    AdditionalInformationSection(
-                      notesController: _newNoteController,
-                    ),
-                  ],
+                  AdditionalInformationSection(
+                    notesController: _newNoteController,
+                  ),
 
                   if (status == 'declined' && isOwner)
                     BookingResubmitSection(

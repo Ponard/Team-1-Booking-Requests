@@ -555,11 +555,9 @@ class _EucharistDetailScreenState extends State<EucharistDetailScreen> {
                         }).toList(),
                       ),
 
-                    if (_isEditMode) ...[
-                      AdditionalInformationSection(
-                        notesController: _newNoteController,
-                      ),
-                    ],
+                    AdditionalInformationSection(
+                      notesController: _newNoteController,
+                    ),
 
                     if (status == 'declined' && isOwner)
                       BookingResubmitSection(

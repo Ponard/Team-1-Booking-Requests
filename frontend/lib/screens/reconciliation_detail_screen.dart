@@ -377,11 +377,9 @@ class _ReconciliationDetailScreenState
                       ],
                     ),
                     NotesDisplay(notes: _booking?.notes),
-                    if (_isEditMode) ...[
-                      AdditionalInformationSection(
-                        notesController: _notesController,
-                      ),
-                    ],
+                    AdditionalInformationSection(
+                      notesController: _notesController,
+                    ),
                     if (status == 'declined' && isOwner) ...[
                       const SizedBox(height: 20),
                       Card(
@@ -415,16 +413,15 @@ class _ReconciliationDetailScreenState
                         ),
                       ),
                     ],
-
                     if (!_isEditMode)
-                    BookingStatusActionsSection(
-                      status: _booking?.status ?? 'pending',
-                      approvalStage: _booking?.approvalStage ??
-                          BookingApprovalStages.staff,
-                      role: currentUser?.role,
-                      onUpdateStatus: _updateStatus,
-                      onForwardToPriest: _forwardToPriest,
-                    )
+                      BookingStatusActionsSection(
+                        status: _booking?.status ?? 'pending',
+                        approvalStage: _booking?.approvalStage ??
+                            BookingApprovalStages.staff,
+                        role: currentUser?.role,
+                        onUpdateStatus: _updateStatus,
+                        onForwardToPriest: _forwardToPriest,
+                      )
                   ],
                 ),
               ),

@@ -545,12 +545,9 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
                     if (_booking?.notes != null && _booking!.notes!.isNotEmpty)
                       NotesDisplay(notes: _booking!.notes!),
 
-                    // Add new note field (only in edit mode)
-                    if (_isEditMode) ...[
-                      AdditionalInformationSection(
-                        notesController: _newNoteController,
-                      ),
-                    ],
+                    AdditionalInformationSection(
+                      notesController: _newNoteController,
+                    ),
 
                     if (status == 'declined' && isOwner)
                       BookingResubmitSection(

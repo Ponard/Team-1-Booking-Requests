@@ -403,11 +403,9 @@ class _AnointingSickDetailScreenState extends State<AnointingSickDetailScreen> {
                       ],
                     ),
                     NotesDisplay(notes: _booking?.notes),
-                    if (_isEditMode) ...[
-                      AdditionalInformationSection(
-                        notesController: _notesController,
-                      ),
-                    ],
+                    AdditionalInformationSection(
+                      notesController: _notesController,
+                    ),
                     if (status == 'declined' && isOwner) ...[
                       const SizedBox(height: 20),
                       Card(
