@@ -453,15 +453,6 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
                       enabled: _isEditMode,
                     ),
 
-                    SponsorsInformationSection(
-                      sponsorsControllers: _sponsorsControllers,
-                      maxSponsors: _maxGodparents,
-                      onChanged: (sponsors) {
-                        _sponsors = sponsors;
-                      },
-                      enabled: _isEditMode,
-                    ),
-
                     ContactInformationSection(
                       emailController: _contactEmailController,
                       phoneController: _contactPhoneController,
@@ -507,6 +498,15 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
                           },
                         ),
                       ],
+                    ),
+
+                    SponsorsInformationSection(
+                      sponsorsControllers: _sponsorsControllers,
+                      maxSponsors: _maxGodparents,
+                      onChanged: (sponsors) {
+                        _sponsors = sponsors;
+                      },
+                      enabled: _isEditMode,
                     ),
 
                     BookingSection(
