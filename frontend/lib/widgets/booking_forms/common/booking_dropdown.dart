@@ -80,6 +80,43 @@ class _BookingDropdownState<T> extends State<BookingDropdown<T>> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isReadOnly = !widget.enabled;
+
+    if (isReadOnly) {
+      final selectedItem =
+          widget.items.where((item) => item.value == widget.initialValue);
+
+      final selectedChild =
+          selectedItem.isNotEmpty ? selectedItem.first.child : null;
+
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: InputDecorator(
+          isEmpty: selectedChild == null,
+          decoration: InputDecoration(
+            labelText: widget.label,
+            filled: true,
+            fillColor: colors.surfaceContainerHighest,
+            border: const OutlineInputBorder(),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: colors.outline),
+            ),
+          ),
+          child: DefaultTextStyle.merge(
+            style: TextStyle(
+              color: colors.onSurface,
+              fontSize: 16,
+            ),
+            child: selectedChild ??
+                widget.disabledHint ??
+                widget.hint ??
+                const SizedBox.shrink(),
+          ),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: DropdownButtonFormField<T>(

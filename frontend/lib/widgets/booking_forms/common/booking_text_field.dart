@@ -95,6 +95,32 @@ class _BookingTextFieldState extends State<BookingTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isReadOnly = !widget.enabled;
+
+    final decoration = InputDecoration(
+      labelText: widget.label,
+      hintText: widget.hint,
+      floatingLabelStyle: TextStyle(
+        color: colors.onSurface,
+      ),
+      filled: isReadOnly,
+      fillColor: isReadOnly ? colors.surfaceContainerHighest : null,
+      border: const OutlineInputBorder(),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(
+          color: isReadOnly ? colors.outlineVariant : colors.outline,
+        ),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(
+          color: colors.outline,
+        ),
+      ),
+      suffixIcon: widget.suffixIcon,
+    );
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
@@ -107,12 +133,10 @@ class _BookingTextFieldState extends State<BookingTextField> {
         maxLines: widget.maxLines,
         validator: widget.validator,
         onTap: widget.onTap,
-        decoration: InputDecoration(
-          labelText: widget.label,
-          hintText: widget.hint,
-          border: const OutlineInputBorder(),
-          suffixIcon: widget.suffixIcon,
+        style: TextStyle(
+          color: colors.onSurface,
         ),
+        decoration: decoration,
       ),
     );
   }

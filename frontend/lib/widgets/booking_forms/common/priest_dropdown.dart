@@ -29,6 +29,7 @@ class PriestDropdown extends StatelessWidget {
         return BookingDropdown<int>(
           initialValue: validPriestId,
           label: 'Preferred Priest (Optional) - Subject to availability',
+          enabled: enabled,
           items: [
             const DropdownMenuItem<int>(
               value: null,
