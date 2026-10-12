@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/admin_service.dart';
+import 'parish_availability_settings_screen.dart';
 
 class AdminParishesScreen extends StatefulWidget {
   const AdminParishesScreen({super.key});
@@ -356,10 +357,45 @@ class _AdminParishesScreenState extends State<AdminParishesScreen> {
                                 Text('📞 ${parish['contactPhone']}'),
                             ],
                           ),
-                          trailing: parish['isActive'] == true
-                              ? const Icon(Icons.check_circle,
-                                  color: Colors.green)
-                              : const Icon(Icons.cancel, color: Colors.grey),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              parish['isActive'] == true
+                                  ? const Icon(Icons.check_circle,
+                                      color: Colors.green)
+                                  : const Icon(Icons.cancel,
+                                      color: Colors.grey),
+                              IconButton(
+                                tooltip: 'Availability settings',
+                                icon: const Icon(Icons.calendar_month),
+                                onPressed: () {
+                                  final parishId = parish['id'];
+
+                                  if (parishId == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Parish ID is missing.'),
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          ParishAvailabilitySettingsScreen(
+                                        parishId: parishId is int
+                                            ? parishId
+                                            : int.parse(parishId.toString()),
+                                        parishName:
+                                            parish['name'] ?? 'Unknown Parish',
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                           onTap: () {
                             _showEditParishDialog(parish);
                           },
