@@ -58,6 +58,7 @@ class WeddingProvider extends ChangeNotifier {
     String? seminarSchedule,
     int? priestId,
     List<Map<String, dynamic>>? notes,
+    List<Map<String, String>>? godparents,
     List<Map<String, dynamic>>? documents,
   }) async {
     _setLoading(true);
@@ -75,6 +76,7 @@ class WeddingProvider extends ChangeNotifier {
       seminarSchedule: seminarSchedule,
       priestId: priestId,
       notes: notes,
+      godparents: godparents,
       documents: documents,
     );
 

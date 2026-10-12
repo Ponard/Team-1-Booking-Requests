@@ -1,5 +1,6 @@
 import 'package:diocese_frontend/constants/booking_approval_stages.dart';
 import 'package:diocese_frontend/extensions/build_context_extensions.dart';
+import 'package:diocese_frontend/services/parish_service.dart';
 import 'package:diocese_frontend/utils/required_document.dart';
 import 'package:diocese_frontend/services/booking_document_manager.dart';
 import 'package:diocese_frontend/utils/validators.dart';
@@ -17,6 +18,7 @@ import 'package:diocese_frontend/widgets/booking_forms/sections/booking_status_a
 import 'package:diocese_frontend/widgets/booking_forms/sections/contact_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/couple_information_section.dart';
 import 'package:diocese_frontend/widgets/booking_forms/sections/document_upload_section.dart';
+import 'package:diocese_frontend/widgets/booking_forms/sections/sponsors_information_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -72,6 +74,11 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
   int? _selectedPriestId;
   final TextEditingController _newNoteController = TextEditingController();
 
+  final List<TextEditingController> _sponsorsControllers = [];
+  List<String> _sponsors = [];
+
+  int _maxGodparents = -1;
+
   // Document files and upload data
   late final List<RequiredDocument> _requiredDocuments = [
     RequiredDocument(
@@ -108,6 +115,29 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
     _loadBooking();
   }
 
+  Future<void> _loadMaxGodparents(int parishId, String token) async {
+    final result = await ParishService().getParishById(
+      parishId,
+      token: token,
+    );
+
+    if (!mounted) return;
+
+    final settings = result.success ? result.data?.sacramentSettings : null;
+    final weddingSettings = settings?['wedding'];
+
+    final value =
+        weddingSettings is Map ? weddingSettings['maxGodparents'] : null;
+
+    final maxGodparents = value is num && value >= 0 && value == value.toInt()
+        ? value.toInt()
+        : 0;
+
+    setState(() {
+      _maxGodparents = maxGodparents;
+    });
+  }
+
   @override
   void dispose() {
     _groomNameController.dispose();
@@ -119,6 +149,11 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
     _preferredTimeController.dispose();
     _seminarScheduleController.dispose();
     _newNoteController.dispose();
+
+    for (final controller in _sponsorsControllers) {
+      controller.dispose();
+    }
+
     super.dispose();
   }
 
@@ -167,12 +202,42 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
           _selectedPriestId = booking.priestId;
         }
         _documents = booking.documents ?? [];
+
+        _sponsors = booking.godparents
+                ?.map((g) => g['fullName'])
+                .whereType<String>()
+                .where((name) => name.trim().isNotEmpty)
+                .toList() ??
+            [];
+
+        for (final controller in _sponsorsControllers) {
+          controller.dispose();
+        }
+        _sponsorsControllers
+          ..clear()
+          ..addAll(
+            _sponsors.map(
+              (name) => TextEditingController(text: name),
+            ),
+          );
+
+        // Show one empty field if no sponsors exist yet.
+        if (_sponsorsControllers.isEmpty) {
+          _sponsorsControllers.add(TextEditingController());
+        }
       });
 
       await context.read<PriestProvider>().loadPriestsByParish(
             booking.parishId,
             token: authProvider.token,
           );
+
+      if (!mounted) return;
+
+      await _loadMaxGodparents(
+        booking.parishId,
+        token,
+      );
 
       if (!mounted) return;
 
@@ -323,6 +388,7 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
       seminarSchedule: _seminarScheduleController.text.trim(),
       priestId: _selectedPriestId,
       notes: notesToAdd,
+      godparents: _sponsors.map((name) => {'fullName': name}).toList(),
     );
 
     setState(() => _isSaving = false);
@@ -464,11 +530,6 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                       enabled: _isEditMode,
                     ),
 
-                    // TODO: godparents field
-                    // SponsorsInformationSection(
-                    //   sponsorsController: _godparentsController,
-                    // ),
-
                     ContactInformationSection(
                       emailController: _contactEmailController,
                       phoneController: _contactPhoneController,
@@ -523,6 +584,14 @@ class _WeddingDetailScreenState extends State<WeddingDetailScreen> {
                           },
                         ),
                       ],
+                    ),
+
+                    SponsorsInformationSection(
+                      sponsorsControllers: _sponsorsControllers,
+                      maxSponsors: _maxGodparents,
+                      onChanged: (sponsors) {
+                        _sponsors = sponsors;
+                      },
                     ),
 
                     // Documents Section

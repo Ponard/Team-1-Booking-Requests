@@ -12,6 +12,7 @@ const {
   BlackoutDate,
   Payment,
   User,
+  sequelize,
 } = require('../models');
 const { Op } = require('sequelize');
 const emailService = require('../services/emailService');
@@ -56,6 +57,36 @@ const SACRAMENT_CONFIG = {
     emailTemplate: 'funeralMassConfirmation',
     allowsGodparents: false,
   },
+};
+
+const validateGodparents = (godparents, maxGodparents) => {
+  if (!Array.isArray(godparents)) {
+    return 'Godparents must be provided as an array.';
+  }
+
+  if (godparents.length > maxGodparents) {
+    return `This parish allows a maximum of ${maxGodparents} godparent(s).`;
+  }
+
+  const hasInvalidName = godparents.some((godparent) => {
+    if (
+      !godparent ||
+      typeof godparent !== 'object' ||
+      Array.isArray(godparent)
+    ) {
+      return true;
+    }
+
+    const fullName = godparent.fullName ?? godparent.name;
+
+    return typeof fullName !== 'string' || !fullName.trim();
+  });
+
+  if (hasInvalidName) {
+    return 'Each godparent must have a valid full name.';
+  }
+
+  return null;
 };
 
 // Helper function to check if date is within booking window
@@ -184,6 +215,20 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
       ...bookingData
     } = req.body;
 
+    if (!Array.isArray(godparents)) {
+      return res.status(400).json({
+        message: 'Godparents must be provided as an array.',
+        field: 'godparents',
+      });
+    }
+
+    if (!config.allowsGodparents && godparents.length > 0) {
+      return res.status(400).json({
+        message: 'Godparents are not supported for this sacrament.',
+        field: 'godparents',
+      });
+    }
+
     const phoneValidation = validatePhoneNumber(bookingData.contactPhone);
 
     if (!phoneValidation.valid) {
@@ -211,6 +256,33 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
       return res.status(400).json({
         message: `The selected parish does not offer ${config.serviceName.toLowerCase()}.`,
       });
+    }
+
+    if (config.allowsGodparents) {
+      // Read the limit for this specific sacrament.
+      const sacramentSettings = parish.sacramentSettings;
+      const settings = sacramentSettings?.[sacramentType];
+      const configuredLimit = settings?.maxGodparents;
+
+      const maxGodparents =
+        typeof configuredLimit === 'number' &&
+          Number.isInteger(configuredLimit) &&
+          configuredLimit >= 0
+          ? configuredLimit
+          : 0;
+
+      const godparentError = validateGodparents(
+        godparents,
+        maxGodparents
+      );
+
+      if (godparentError) {
+        return res.status(400).json({
+          message: godparentError,
+          field: 'godparents',
+          maxGodparents,
+        });
+      }
     }
 
     const dateValidation = validateBookingDate(preferredDate);
@@ -265,6 +337,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
 
     // Create booking first (we need the booking ID to link documents)
     const booking = await config.model.create({
+      ...bookingData,
       parishId,
       userId: req.user.userId,
       preferredDate,
@@ -272,7 +345,6 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
       priestId,
       notes: notesArray,
       status: 'pending',
-      ...bookingData,
     });
 
 
@@ -281,7 +353,7 @@ exports.createSacramentBooking = (sacramentType) => async (req, res) => {
       const godparentRecords = godparents.map((gp) => ({
         bookingType: sacramentType,
         bookingId: booking.id,
-        fullName: gp.fullName,
+        fullName: (gp.fullName ?? gp.name).trim(),
         contactEmail: gp.contactEmail,
         contactPhone: gp.contactPhone,
         address: gp.address,
@@ -518,63 +590,193 @@ exports.getSacramentBooking = (sacramentType) => async (req, res) => {
 
 // Update Sacrament Booking (generic)
 exports.updateSacramentBooking = (sacramentType) => async (req, res) => {
+  let transaction;
+
   try {
+    transaction = await sequelize.transaction();
     const config = SACRAMENT_CONFIG[sacramentType];
+
     if (!config) {
-      return res.status(400).json({ message: 'Invalid sacrament type' });
+      await transaction.rollback();
+      return res.status(400).json({
+        message: 'Invalid sacrament type',
+      });
     }
 
     const { id } = req.params;
-    const updateData = req.body;
+    const updateData = { ...req.body };
 
-    const booking = await config.model.findByPk(id);
+    const booking = await config.model.findByPk(id, {
+      transaction,
+    });
+
     if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
+      await transaction.rollback();
+      return res.status(404).json({
+        message: 'Booking not found',
+      });
     }
 
-    // Check permissions
+    // Check permissions.
     const isOwner = booking.userId === req.user.userId;
-    const isAdmin = ['parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin'].includes(
-      req.user.role
-    );
+    const isAdmin = [
+      'parish_admin',
+      'parish_staff',
+      'diocese_staff',
+      'diocese_admin',
+    ].includes(req.user.role);
 
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ message: 'Not authorized to update this booking' });
+      await transaction.rollback();
+      return res.status(403).json({
+        message: 'Not authorized to update this booking',
+      });
     }
 
-    // Admins can update status, users can only update notes and resubmit after decline
+    // Admins can update status; parishioners can resubmit
+    // declined bookings by changing the status back to pending.
     if (!isAdmin) {
-      // Allow parishioners to resubmit: change status from 'declined' back to 'pending'
-      if (updateData.status && booking.status === 'declined' && updateData.status === 'pending') {
-        // This is allowed - resubmit after decline
+      if (
+        updateData.status &&
+        booking.status === 'declined' &&
+        updateData.status === 'pending'
+      ) {
         updateData.approvalStage = BOOKING_APPROVAL_STAGES.STAFF;
       } else if (updateData.status) {
-        // Only allow setting back to pending (for resubmit), delete any other status changes
         delete updateData.status;
       }
     }
 
-    // Handle notes: if notes are provided, append to existing notes
+    // Append new notes to existing notes.
     if (updateData.notes !== undefined) {
       const existingNotes = booking.notes || [];
-      const newNotes = Array.isArray(updateData.notes) ? updateData.notes : [{
-        author: 'parishioner',
-        content: updateData.notes,
-        authorId: req.user.userId,
-        timestamp: new Date().toISOString(),
-      }];
+
+      const newNotes = Array.isArray(updateData.notes)
+        ? updateData.notes
+        : [
+          {
+            author: 'parishioner',
+            content: updateData.notes,
+            authorId: req.user.userId,
+            timestamp: new Date().toISOString(),
+          },
+        ];
+
       updateData.notes = [...existingNotes, ...newNotes];
     }
 
-    await booking.update(updateData);
+    // Handle godparents separately because they are stored
+    // in the Godparent table, not in the booking table.
+    if (updateData.godparents !== undefined) {
+      if (!config.allowsGodparents) {
+        await transaction.rollback();
 
-    res.json({
+        return res.status(400).json({
+          message: 'Godparents are not supported for this sacrament.',
+          field: 'godparents',
+        });
+      }
+
+      const godparents = updateData.godparents;
+
+      const parish = await Parish.findByPk(booking.parishId, {
+        transaction,
+      });
+
+      if (!parish) {
+        await transaction.rollback();
+
+        return res.status(404).json({
+          message: 'Booking parish not found.',
+        });
+      }
+
+      // Read the limit for this specific sacrament.
+      const sacramentSettings = parish.sacramentSettings;
+      const settings = sacramentSettings?.[sacramentType];
+      const configuredLimit = settings?.maxGodparents;
+
+      const maxGodparents =
+        typeof configuredLimit === 'number' &&
+          Number.isInteger(configuredLimit) &&
+          configuredLimit >= 0
+          ? configuredLimit
+          : 0;
+
+      const godparentError = validateGodparents(
+        godparents,
+        maxGodparents
+      );
+
+      if (godparentError) {
+        await transaction.rollback();
+
+        return res.status(400).json({
+          message: godparentError,
+          field: 'godparents',
+          maxGodparents,
+        });
+      }
+
+
+      // Prevent Sequelize from trying to update a nonexistent
+      // godparents column on the booking model.
+      delete updateData.godparents;
+
+      // Replace the existing godparents for this booking.
+      await Godparent.destroy({
+        where: {
+          bookingType: sacramentType,
+          bookingId: booking.id,
+        },
+        transaction,
+      });
+
+      if (godparents.length > 0) {
+        const godparentRecords = godparents.map((gp) => ({
+          bookingType: sacramentType,
+          bookingId: booking.id,
+          fullName: (gp.fullName ?? gp.name).trim(),
+          contactEmail: gp.contactEmail || null,
+          contactPhone: gp.contactPhone || null,
+          address: gp.address || null,
+          parishAffiliation: gp.parishAffiliation || null,
+          confirmationCertificateNumber:
+            gp.confirmationCertificateNumber || null,
+          notes: gp.notes || null,
+        }));
+
+        await Godparent.bulkCreate(godparentRecords, {
+          transaction,
+        });
+      }
+    }
+
+    // Update the booking itself.
+    await booking.update(updateData, {
+      transaction,
+    });
+
+    await transaction.commit();
+
+    return res.json({
       message: `${config.serviceName} booking updated successfully`,
       booking,
     });
+
   } catch (error) {
-    console.error(`Error updating ${sacramentType} booking:`, error);
-    res.status(500).json({ message: `Failed to update ${sacramentType} booking` });
+    if (transaction && !transaction.finished) {
+      await transaction.rollback();
+    }
+
+    console.error(
+      `Error updating ${sacramentType} booking:`,
+      error
+    );
+
+    return res.status(500).json({
+      message: `Failed to update ${sacramentType} booking`,
+    });
   }
 };
 

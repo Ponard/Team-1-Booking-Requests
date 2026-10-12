@@ -108,6 +108,7 @@ class WeddingService {
     String? seminarSchedule,
     int? priestId,
     List<Map<String, dynamic>>? notes,
+    List<Map<String, String>>? godparents,
     List<Map<String, dynamic>>? documents,
   }) async {
     try {
@@ -122,6 +123,7 @@ class WeddingService {
         if (seminarSchedule != null) 'seminarSchedule': seminarSchedule,
         if (priestId != null) 'priestId': priestId,
         if (notes != null && notes.isNotEmpty) 'notes': notes,
+        if (godparents != null) 'godparents': godparents,
         if (documents != null && documents.isNotEmpty) 'documents': documents,
       };
 
@@ -246,6 +248,7 @@ class WeddingService {
     String? seminarSchedule,
     int? priestId,
     List<Map<String, dynamic>>? notes,
+    List<Map<String, dynamic>>? godparents,
   }) async {
     try {
       final requestBody = <String, dynamic>{
@@ -258,6 +261,7 @@ class WeddingService {
         if (seminarSchedule != null) 'seminarSchedule': seminarSchedule,
         if (priestId != null) 'priestId': priestId,
         if (notes != null) 'notes': notes,
+        if (godparents != null) 'godparents': godparents,
       };
 
       final response = await ApiConfig.putWithAuth(

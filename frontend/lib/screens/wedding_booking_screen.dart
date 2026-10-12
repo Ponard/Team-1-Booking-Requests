@@ -50,6 +50,8 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
       TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
+  int _maxGodparents = -1;
+
   // Priest selection state
   int? _selectedPriestId;
 
@@ -98,6 +100,7 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
             .firstOrNull;
         if (userParish != null) {
           parishProvider.selectParish(userParish);
+          _updateMaxGodparents();
           await priestProvider.loadPriestsByParish(userParishId,
               token: authProvider.token);
         }
@@ -114,6 +117,27 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
     if (user.phone != null) {
       _contactPhoneController.text = user.phone!;
     }
+  }
+
+  void _updateMaxGodparents() {
+    final parish = context.read<ParishProvider>().selectedParish;
+
+    if (parish == null) {
+      setState(() => _maxGodparents = -1);
+      return;
+    }
+
+    final settings = parish.sacramentSettings;
+    final weddingSettings = settings?['wedding'];
+
+    final value =
+        weddingSettings is Map ? weddingSettings['maxGodparents'] : null;
+
+    final maxGodparents = value is num && value >= 0 ? value.toInt() : 0;
+
+    setState(() {
+      _maxGodparents = maxGodparents;
+    });
   }
 
   @override
@@ -569,6 +593,15 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
       return time;
     }
 
+    // Safely parse sponsors (prevents empty array items)
+    List<Map<String, String>> sponsors = [];
+    final sponsorsList = _sponsors;
+    for (var sponsor in sponsorsList) {
+      if (sponsor.trim().isNotEmpty) {
+        sponsors.add({'fullName': sponsor.trim()});
+      }
+    }
+
     // Prepare notes array if a note was added
     final note = Note.fromInput(
       text: _notesController.text,
@@ -592,6 +625,7 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
       seminarSchedule: formatDate(_seminarScheduleController.text.trim()),
       priestId: _selectedPriestId,
       notes: notesToAdd,
+      godparents: sponsors.isEmpty ? null : sponsors,
       documents: documents,
     );
 
@@ -654,16 +688,6 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                       brideController: _brideNameController,
                     ),
 
-                    // Sponsors
-                    SponsorsInformationSection(
-                      sponsorsControllers: _sponsorsControllers,
-                      // TODO: pull max sponsors value from database
-                      maxSponsors: 4,
-                      onChanged: (sponsors) {
-                        _sponsors = sponsors;
-                      },
-                    ),
-
                     // Contact
                     ContactInformationSection(
                       emailController: _contactEmailController,
@@ -685,6 +709,7 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                         ParishDropdown(
                           onParishChanged: () {
                             setState(() => _selectedPriestId = null);
+                            _updateMaxGodparents();
                           },
                         ),
                         BookingDateField(
@@ -717,6 +742,15 @@ class _WeddingBookingScreenState extends State<WeddingBookingScreen> {
                               : null,
                         ),
                       ],
+                    ),
+
+                    // Sponsors
+                    SponsorsInformationSection(
+                      sponsorsControllers: _sponsorsControllers,
+                      maxSponsors: _maxGodparents,
+                      onChanged: (sponsors) {
+                        _sponsors = sponsors;
+                      },
                     ),
 
                     // Required Documents - Separate uploads
