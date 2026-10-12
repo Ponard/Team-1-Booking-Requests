@@ -15,7 +15,7 @@ class SponsorsInformationSection extends StatefulWidget {
     required this.maxSponsors,
     required this.onChanged,
     this.enabled = true,
-  }) : assert(maxSponsors >= 0);
+  }) : assert(maxSponsors >= -1);
 
   @override
   State<SponsorsInformationSection> createState() =>
@@ -43,12 +43,31 @@ class _SponsorsInformationSectionState
   void didUpdateWidget(covariant SponsorsInformationSection oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (widget.maxSponsors > 0 && widget.sponsorsControllers.isEmpty) {
-      widget.sponsorsControllers.add(TextEditingController());
-    }
+    if (oldWidget.maxSponsors != widget.maxSponsors) {
+      if (widget.maxSponsors <= 0) {
+        // Remove all inputs when no parish is selected or the limit is zero.
+        for (final controller in widget.sponsorsControllers.toList()) {
+          widget.sponsorsControllers.remove(controller);
+          controller.dispose();
+        }
+      } else {
+        // Remove excess inputs when the new parish has a lower limit.
+        while (widget.sponsorsControllers.length > widget.maxSponsors) {
+          widget.sponsorsControllers.removeLast().dispose();
+        }
 
-    // Reconcile even when the parent mutates the same list instance.
-    _reconcileListeners();
+        // Ensure at least one input exists for a positive limit.
+        if (widget.sponsorsControllers.isEmpty) {
+          widget.sponsorsControllers.add(TextEditingController());
+        }
+      }
+
+      _reconcileListeners();
+      _notifyChanged();
+    } else {
+      // Reconcile even when the parent mutates the same list instance.
+      _reconcileListeners();
+    }
   }
 
   void _reconcileListeners() {
@@ -136,8 +155,10 @@ class _SponsorsInformationSectionState
     return BookingSection(
       title: 'Sponsors / Godparents',
       children: [
-        if (widget.maxSponsors == 0)
-          const Text('Godparents are not required for this booking.')
+        if (widget.maxSponsors == -1)
+          const Text('Please select a parish first.')
+        else if (widget.maxSponsors == 0)
+          const Text('Godparents are not available for this booking.')
         else ...[
           Text(
             'Add up to ${widget.maxSponsors} '

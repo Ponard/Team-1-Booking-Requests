@@ -53,6 +53,8 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
   final TextEditingController _preferredTimeController =
       TextEditingController();
 
+  int _maxGodparents = -1;
+
   // Priest selection state
   int? _selectedPriestId;
 
@@ -90,6 +92,7 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
             .firstOrNull;
         if (userParish != null) {
           parishProvider.selectParish(userParish);
+          _updateMaxGodparents();
           await priestProvider.loadPriestsByParish(userParishId,
               token: authProvider.token);
         }
@@ -186,6 +189,27 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
         setState(() => _isUploadingFile = false);
       }
     }
+  }
+
+  void _updateMaxGodparents() {
+    final parish = context.read<ParishProvider>().selectedParish;
+
+    if (parish == null) {
+      setState(() => _maxGodparents = -1);
+      return;
+    }
+
+    final settings = parish.sacramentSettings;
+    final baptismSettings = settings?['baptism'];
+
+    final value =
+        baptismSettings is Map ? baptismSettings['maxGodparents'] : null;
+
+    final maxGodparents = value is num && value >= 0 ? value.toInt() : 0;
+
+    setState(() {
+      _maxGodparents = maxGodparents;
+    });
   }
 
   @override
@@ -364,15 +388,6 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                       motherController: _motherNameController,
                     ),
 
-                    SponsorsInformationSection(
-                      sponsorsControllers: _sponsorsControllers,
-                      // TODO: pull max sponsors value from database
-                      maxSponsors: 4,
-                      onChanged: (sponsors) {
-                        _sponsors = sponsors;
-                      },
-                    ),
-
                     // Contact Info Section
                     ContactInformationSection(
                       emailController: _contactEmailController,
@@ -394,6 +409,7 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                         ParishDropdown(
                           onParishChanged: () {
                             setState(() => _selectedPriestId = null);
+                            _updateMaxGodparents();
                           },
                         ),
                         BookingDateField(
@@ -418,6 +434,14 @@ class _BaptismBookingScreenState extends State<BaptismBookingScreen> {
                               : null,
                         ),
                       ],
+                    ),
+
+                    SponsorsInformationSection(
+                      sponsorsControllers: _sponsorsControllers,
+                      maxSponsors: _maxGodparents,
+                      onChanged: (sponsors) {
+                        _sponsors = sponsors;
+                      },
                     ),
 
                     // Additional Notes

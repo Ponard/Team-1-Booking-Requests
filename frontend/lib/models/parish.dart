@@ -9,6 +9,7 @@ class Parish {
   final bool isActive;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final Map<String, dynamic>? sacramentSettings;
 
   Parish({
     this.id,
@@ -21,6 +22,7 @@ class Parish {
     required this.isActive,
     this.createdAt,
     this.updatedAt,
+    this.sacramentSettings,
   });
 
   factory Parish.fromJson(Map<String, dynamic> json) {
@@ -30,13 +32,20 @@ class Parish {
       address: json['address'],
       contactEmail: json['contactEmail'],
       contactPhone: json['contactPhone'],
-      schedule: json['schedule'] != null ? Map<String, dynamic>.from(json['schedule']) : null,
-      servicesOffered: json['servicesOffered'] != null 
-          ? List<String>.from(json['servicesOffered']) 
+      schedule: json['schedule'] != null
+          ? Map<String, dynamic>.from(json['schedule'])
+          : null,
+      servicesOffered: json['servicesOffered'] != null
+          ? List<String>.from(json['servicesOffered'])
           : null,
       isActive: json['isActive'] ?? true,
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
+      createdAt:
+          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      updatedAt:
+          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
+      sacramentSettings: json['sacramentSettings'] is Map
+          ? Map<String, dynamic>.from(json['sacramentSettings'])
+          : null,
     );
   }
 
@@ -52,6 +61,7 @@ class Parish {
       'isActive': isActive,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      'sacramentSettings': sacramentSettings,
     };
   }
 
@@ -66,6 +76,7 @@ class Parish {
     bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
+    Map<String, dynamic>? sacramentSettings,
   }) {
     return Parish(
       id: id ?? this.id,
@@ -78,6 +89,7 @@ class Parish {
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      sacramentSettings: sacramentSettings ?? this.sacramentSettings,
     );
   }
 }

@@ -14,6 +14,25 @@ const emailService = require('../services/emailService');
 const { validateBookingDate, validatePhoneNumber } = require('../utils/validators');
 const { BOOKING_APPROVAL_STAGES } = require('../constants/bookingApprovalStages');
 
+const getMaxGodparents = (parish) => {
+  const baptismSettings = parish?.sacramentSettings?.baptism;
+  const value = baptismSettings?.maxGodparents;
+
+  return Number.isInteger(value) && value >= 0 ? value : 0;
+};
+
+const validateGodparents = (godparents, maxGodparents) => {
+  if (!Array.isArray(godparents)) {
+    return 'Godparents must be provided as an array.';
+  }
+
+  if (godparents.length > maxGodparents) {
+    return `This parish allows a maximum of ${maxGodparents} godparent(s) for Baptism.`;
+  }
+
+  return null;
+};
+
 // Helper function to check if date is within booking window
 const checkBookingWindow = async (parishId, serviceType, preferredDate) => {
   if (!preferredDate) return { valid: true };
@@ -157,6 +176,21 @@ exports.createBaptismBooking = async (req, res) => {
     if (!parish.servicesOffered?.includes('baptism')) {
       return res.status(400).json({
         message: 'The selected parish does not offer baptisms.',
+      });
+    }
+
+    const maxGodparents = getMaxGodparents(parish);
+
+    const godparentError = validateGodparents(
+      godparents,
+      maxGodparents
+    );
+
+    if (godparentError) {
+      return res.status(400).json({
+        message: godparentError,
+        field: 'godparents',
+        maxGodparents,
       });
     }
 
@@ -499,8 +533,39 @@ exports.updateBaptismBooking = async (req, res) => {
 
       if (!Array.isArray(godparents)) {
         await transaction.rollback();
+
         return res.status(400).json({
           message: 'Godparents must be provided as an array.',
+          field: 'godparents',
+        });
+      }
+
+      const parish = await Parish.findByPk(booking.parishId, {
+        transaction,
+      });
+
+      if (!parish) {
+        await transaction.rollback();
+
+        return res.status(404).json({
+          message: 'Booking parish not found.',
+        });
+      }
+
+      const maxGodparents = getMaxGodparents(parish);
+
+      const godparentError = validateGodparents(
+        godparents,
+        maxGodparents
+      );
+
+      if (godparentError) {
+        await transaction.rollback();
+
+        return res.status(400).json({
+          message: godparentError,
+          field: 'godparents',
+          maxGodparents,
         });
       }
 

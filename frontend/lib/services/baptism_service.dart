@@ -99,7 +99,6 @@ class BaptismService {
         );
       }
     } catch (e) {
-      print(e);
       return ApiResponse<BaptismBooking>(
         success: false,
         message: 'Network error fetching baptism booking',

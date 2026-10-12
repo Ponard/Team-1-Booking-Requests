@@ -137,7 +137,7 @@ exports.updateParish = async (req, res, next) => {
     // Check if another parish with the same name exists (excluding current parish)
     if (name) {
       const existingParish = await Parish.findOne({
-        where: { 
+        where: {
           name: { [Op.iLike]: name.trim() },
           id: { [Op.ne]: id } // Exclude current parish
         }
@@ -282,7 +282,7 @@ exports.getParishesByService = async (req, res, next) => {
         isActive: true,
         servicesOffered: { [Op.contains]: [service] },
       },
-      attributes: ['id', 'name', 'address', 'contactEmail', 'contactPhone', 'schedule', 'servicesOffered', 'isActive', 'createdAt', 'updatedAt'],
+      attributes: ['id', 'name', 'address', 'contactEmail', 'contactPhone', 'schedule', 'servicesOffered', 'sacramentSettings', 'isActive', 'createdAt', 'updatedAt'],
     });
 
     res.json({
