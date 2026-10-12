@@ -187,7 +187,6 @@ class _SponsorsInformationSectionState
                 ],
               ],
             ),
-            const SizedBox(height: 8),
           ],
           if (canAdd)
             Align(
