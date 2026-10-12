@@ -800,14 +800,22 @@ exports.approveSacramentBooking = (sacramentType) => async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
+    const isStaffOrAdmin = [
+      'parish_staff',
+      'parish_admin',
+      'diocese_staff',
+      'diocese_admin',
+    ].includes(req.user.role);
+
+    const isPriestApprovedCompletion =
+      status === 'completed' &&
+      booking.status === 'approved' &&
+      booking.approvalStage === BOOKING_APPROVAL_STAGES.PRIEST;
+
     if (
-      [
-        'parish_staff',
-        'parish_admin',
-        'diocese_staff',
-        'diocese_admin',
-      ].includes(req.user.role) &&
-      booking.approvalStage !== BOOKING_APPROVAL_STAGES.STAFF
+      isStaffOrAdmin &&
+      booking.approvalStage !== BOOKING_APPROVAL_STAGES.STAFF &&
+      !isPriestApprovedCompletion
     ) {
       return res.status(403).json({
         message: 'This booking has already been forwarded to the priest.',

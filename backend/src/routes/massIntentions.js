@@ -110,9 +110,9 @@ router.put('/:id', [
 // Delete a mass intention
 router.delete('/:id', massIntentionController.deleteMassIntention);
 
-// Update mass intention status (parish_admin/parish_staff/diocese_staff/diocese_admin only)
+// Update mass intention status (parish_admin/parish_staff/diocese_staff/diocese_admin/priest only)
 router.patch('/:id/status',
-  authorizeRoles('parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin'),
+  authorizeRoles('parish_admin', 'parish_staff', 'diocese_staff', 'diocese_admin', 'priest'),
   massIntentionController.updateMassIntentionStatus
 );
 
