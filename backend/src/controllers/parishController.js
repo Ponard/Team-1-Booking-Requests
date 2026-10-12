@@ -44,7 +44,7 @@ exports.getParishById = async (req, res, next) => {
     const { id } = req.params;
 
     const parish = await Parish.findByPk(id, {
-      attributes: ['id', 'name', 'address', 'contactEmail', 'contactPhone', 'schedule', 'servicesOffered', 'isActive', 'createdAt', 'updatedAt'],
+      attributes: ['id', 'name', 'address', 'contactEmail', 'contactPhone', 'schedule', 'servicesOffered', 'sacramentSettings', 'isActive', 'createdAt', 'updatedAt'],
     });
 
     if (!parish) {

@@ -3,6 +3,7 @@ import 'package:diocese_frontend/constants/booking_approval_stages.dart';
 import 'package:diocese_frontend/extensions/build_context_extensions.dart';
 import 'package:diocese_frontend/models/note.dart';
 import 'package:diocese_frontend/services/booking_document_manager.dart';
+import 'package:diocese_frontend/services/parish_service.dart';
 import 'package:diocese_frontend/utils/required_document.dart';
 import 'package:diocese_frontend/utils/validators.dart';
 import 'package:diocese_frontend/widgets/booking_forms/common/booking_date_field.dart';
@@ -57,6 +58,10 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
   bool _isSaving = false;
 
   BaptismBooking? _booking;
+
+  final ParishService _parishService = ParishService();
+
+  int _maxGodparents = -1;
 
   final TextEditingController _childNameController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
@@ -152,6 +157,7 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
               booking.parishId!,
               token: authProvider.token,
             );
+        await _loadMaxGodparents(booking.parishId!);
       }
 
       // Auto-enable edit mode if user is owner and booking is editable
@@ -449,8 +455,7 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
 
                     SponsorsInformationSection(
                       sponsorsControllers: _sponsorsControllers,
-                      // TODO: pull max sponsors value from database
-                      maxSponsors: 4,
+                      maxSponsors: _maxGodparents,
                       onChanged: (sponsors) {
                         _sponsors = sponsors;
                       },
@@ -641,6 +646,26 @@ class _BaptismDetailScreenState extends State<BaptismDetailScreen> {
         SnackBar(content: Text(e.toString())),
       );
     }
+  }
+
+  Future<void> _loadMaxGodparents(int parishId) async {
+    final authProvider = context.read<AuthProvider>();
+
+    final result = await _parishService.getParishById(
+      parishId,
+      token: authProvider.token,
+    );
+
+    if (!mounted) return;
+
+    final settings = result.data?.sacramentSettings;
+    final baptismSettings = settings?['baptism'];
+    final value =
+        baptismSettings is Map ? baptismSettings['maxGodparents'] : null;
+
+    setState(() {
+      _maxGodparents = value is num && value >= 0 ? value.toInt() : 0;
+    });
   }
 
   @override
