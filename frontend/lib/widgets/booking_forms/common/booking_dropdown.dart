@@ -90,28 +90,35 @@ class _BookingDropdownState<T> extends State<BookingDropdown<T>> {
       final selectedChild =
           selectedItem.isNotEmpty ? selectedItem.first.child : null;
 
+      final displayChild = selectedChild ??
+          widget.disabledHint ??
+          widget.hint ??
+          const SizedBox.shrink();
+
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: InputDecorator(
-          isEmpty: selectedChild == null,
+          isEmpty: false,
           decoration: InputDecoration(
             labelText: widget.label,
+            floatingLabelBehavior: FloatingLabelBehavior.always,
             filled: true,
             fillColor: colors.surfaceContainerHighest,
             border: const OutlineInputBorder(),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(color: colors.outline),
             ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 16,
+            ),
           ),
           child: DefaultTextStyle.merge(
             style: TextStyle(
-              color: colors.onSurface,
+              color: colors.onSurfaceVariant,
               fontSize: 16,
             ),
-            child: selectedChild ??
-                widget.disabledHint ??
-                widget.hint ??
-                const SizedBox.shrink(),
+            child: displayChild,
           ),
         ),
       );
@@ -129,7 +136,7 @@ class _BookingDropdownState<T> extends State<BookingDropdown<T>> {
           border: const OutlineInputBorder(),
         ),
         items: widget.items,
-        onChanged: widget.enabled ? widget.onChanged : null,
+        onChanged: widget.onChanged,
         validator: widget.validator,
         hint: widget.hint,
         disabledHint: widget.disabledHint,
