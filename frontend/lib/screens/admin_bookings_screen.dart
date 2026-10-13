@@ -505,6 +505,12 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
       toolbar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text('Manage Bookings'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadBookings,
+          ),
+        ],
       ),
       body: Column(
         children: [
